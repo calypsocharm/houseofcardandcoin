@@ -191,7 +191,12 @@ app.post('/members/profile',au,up.single('avatar'),shrinkAvatar,(req,res)=>{cons
   // faires is deliberately NOT editable here — it drives rank, so only the Guild
   // Leader sets it via /members/admin/fares. Otherwise members self-promote.
   if(req.body.class)u.class=req.body.class;
-  u.contactEmail=(req.body.contactEmail||'').trim();u.phone=(req.body.phone||'').trim();if(req.file)u.avatar='/uploads/'+req.file.filename;save();res.redirect('/members#profile');});
+  u.contactEmail=(req.body.contactEmail||'').trim();u.phone=(req.body.phone||'').trim();
+  // Replacing an avatar used to strand the old file in /uploads forever.
+  if(req.file&&u.avatar&&u.avatar.startsWith('/uploads/')){
+    try{ fs.unlinkSync(path.join(__dirname,u.avatar.replace('/uploads/','uploads/'))); }catch(e){}
+  }
+  if(req.file)u.avatar='/uploads/'+req.file.filename;save();res.redirect('/members#profile');});
 app.post('/members/bunk',au,sworn,(req,res)=>{const u=cur(req);const{night,bunk}=req.body;b=parseInt(bunk);
   if(!NIGHTS.includes(night)||!BUNKS.includes(b))return res.redirect('/members#bunks');
   if(db.bunks.find(x=>x.night===night&&x.bunk===b))return res.redirect('/members#bunks?e=taken');
