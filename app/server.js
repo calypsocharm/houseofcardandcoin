@@ -96,6 +96,14 @@ function shrinkAvatar(req,res,next){
     .catch(function(e){ console.log('avatar resize failed, keeping original:',e.message); next(); });
 }
 function au(req,res,next){if(req.session.uid)return next();res.redirect('/members/login');}
+// Bunks are for sworn guildmates. A Pledge has an account but has not been
+// accepted into the House yet, so the camp is not theirs to book.
+function sworn(req,res,next){
+  const u=cur(req);
+  if(!u)return res.redirect('/members/login');
+  if(u.pledge)return res.redirect('/members?e='+encodeURIComponent('Bunks are for sworn guildmates. Ask the Guild Leader to accept your pledge, and the camp is yours.')+'#bunks');
+  next();
+}
 function al(req,res,next){const u=db.users.find(x=>x.id===req.session.uid);if(u&&u.role==='leader')return next();res.status(403).send('Leader only');}
 function cur(req){return db.users.find(x=>x.id===req.session.uid);}
 // seed bring items once
@@ -153,13 +161,13 @@ app.post('/members/profile',au,up.single('avatar'),shrinkAvatar,(req,res)=>{cons
   // Leader sets it via /members/admin/fares. Otherwise members self-promote.
   if(req.body.class)u.class=req.body.class;
   u.contactEmail=(req.body.contactEmail||'').trim();u.phone=(req.body.phone||'').trim();if(req.file)u.avatar='/uploads/'+req.file.filename;save();res.redirect('/members#profile');});
-app.post('/members/bunk',au,(req,res)=>{const u=cur(req);const{night,bunk}=req.body;b=parseInt(bunk);
+app.post('/members/bunk',au,sworn,(req,res)=>{const u=cur(req);const{night,bunk}=req.body;b=parseInt(bunk);
   if(!NIGHTS.includes(night)||!BUNKS.includes(b))return res.redirect('/members#bunks');
   if(db.bunks.find(x=>x.night===night&&x.bunk===b))return res.redirect('/members#bunks?e=taken');
   // limit a member to one bunk per night
   db.bunks=db.bunks.filter(x=>!(x.night===night&&x.userId===u.id));
   db.bunks.push({id:nid(),night,bunk:b,userId:u.id});save();res.redirect('/members#bunks');});
-app.post('/members/bunk/release',au,(req,res)=>{const u=cur(req);db.bunks=db.bunks.filter(x=>!(x.night===req.body.night&&x.bunk===parseInt(req.body.bunk)&&x.userId===u.id));save();res.redirect('/members#bunks');});
+app.post('/members/bunk/release',au,sworn,(req,res)=>{const u=cur(req);db.bunks=db.bunks.filter(x=>!(x.night===req.body.night&&x.bunk===parseInt(req.body.bunk)&&x.userId===u.id));save();res.redirect('/members#bunks');});
 app.post('/members/bring/claim',au,(req,res)=>{const u=cur(req);const itemId=parseInt(req.body.itemId);const it=db.items.find(x=>x.id===itemId);if(!it)return res.redirect('/members#bring');
   const qty=Math.max(1,parseInt(req.body.qty||1));const existing=db.claims.find(c=>c.itemId===itemId&&c.userId===u.id);
   if(existing)existing.qty=qty;else db.claims.push({id:nid(),itemId,userId:u.id,qty});save();res.redirect('/members#bring');});
