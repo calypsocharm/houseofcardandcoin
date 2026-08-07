@@ -1,4 +1,5 @@
 <%- include('_top',{title:'The Tavern',active:'board',desc:'The Tavern of the House of Card and Coin — notices, wagers and talk by the fire before the Age of Chivalry Renaissance Festival.',image:'/assets/img/og/index.jpg',url:'https://houseofcardandcoin.com/board'}) %>
+<link rel="stylesheet" href="/assets/css/tavern.css?v=<%= typeof cssv!=='undefined'?cssv:'1' %>">
 
 <div class="tav">
 
@@ -12,6 +13,12 @@
       <div class="tav-hearth"></div>
       <canvas class="tav-fx" id="tavFx"></canvas>
       <div class="tav-floor"></div>
+
+      <div class="tav-table" aria-hidden="true">
+        <span class="tav-tankard tav-tankard--a"></span>
+        <span class="tav-candle"></span>
+        <span class="tav-tankard tav-tankard--b"></span>
+      </div>
 
       <div class="tav-folk">
         <% folk.slice(0,5).forEach(function(f,n){ var mine = i && f.t===i.t && f.id===i.id; %>
