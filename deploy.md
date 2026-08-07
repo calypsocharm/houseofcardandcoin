@@ -150,13 +150,16 @@ certbot certificates             # list certs / expiry
 
 | Var | Default in code | Set in production? |
 |---|---|---|
-| `PORT` | `3000` | no (default is correct) |
-| `SESSION_SECRET` | `guild-faire-secret-change` | ❌ **no** |
-| `GUILD_INVITE_CODE` | `COIN-2026` | ❌ **no** |
-| `FORMSPREE_ENDPOINT` | `https://formspree.io/f/mojgjwqg` | no |
+| `PORT` | `3000` | ✅ yes — `3000` |
+| `SESSION_SECRET` | `guild-faire-secret-change` | ✅ yes — a real random value |
+| `GUILD_INVITE_CODE` | `COIN-2026` | ✅ yes — `COIN-2026` |
+| `FORMSPREE_ENDPOINT` | *(none — form is dropped if unset)* | ✅ yes (set 2026-08-07) |
 
-⚠️ **`SESSION_SECRET` and `GUILD_INVITE_CODE` are not set on the running process**
-(verified 2026-08-07), so both hardcoded defaults are live. See §11.
+All four are set and persisted via `pm2 save`, so they survive a restart.
+
+> **Reading the env correctly:** `pm2 env <id>` prints `KEY: value`, **not** `KEY=value`.
+> Grepping for `'^KEY='` matches nothing and makes every var look unset.
+> Use `pm2 env $(pm2 id hocc | tr -d '[] ') | grep -i KEY`.
 
 ```bash
 SESSION_SECRET='<long-random>' GUILD_INVITE_CODE='<new-code>' \
@@ -306,13 +309,17 @@ members. Seed a local dev database with `node seed.js` (see §11 first).
 Full findings, with measurements and fixes, in [`AUDIT.md`](AUDIT.md).
 The security-relevant ones:
 
-1. **`SESSION_SECRET` unset in production** — the app falls back to
-   `'guild-faire-secret-change'`, which is in this repo. Sessions are stored
-   server-side, so this is not direct account takeover, but it's the wrong
-   default. Set a real one (§4). Related: the default `MemoryStore` drops all
-   sessions on restart and leaks memory — worth a file/SQLite store eventually.
-2. **`GUILD_INVITE_CODE` unset in production** — falls back to `COIN-2026`.
-   Anyone who learns it can register a guild account. Set a real one (§4).
+1. ✅ **FIXED 2026-08-07 — public file exposure.** `express.static` was mounted on
+   `/var/www/hocc`, so `/app/data/guild.json` (every member record including
+   bcrypt hashes), `/app/server.js`, `/app/seed.js`, `/build.js` and
+   `/content/content.json` were publicly downloadable. A path guard in
+   `server.js` now 404s them. **Do not regress this** — redeploying an older
+   `server.js` reopens it. Members should still rotate passwords, since the
+   hashes were exposed for an unknown period.
+2. **`SESSION_SECRET` and `GUILD_INVITE_CODE` are both properly set** in
+   production (see §4) — an earlier note here claimed otherwise and was wrong.
+   Remaining nit: `express-session` uses the default `MemoryStore`, which drops
+   every session on restart and leaks memory. A file/SQLite store would fix it.
 3. **`app/seed.js` no longer hardcodes a password** — it reads `SEED_PASSWORD`
    from the environment and refuses to run without it. Seed with:
    `SEED_PASSWORD='...' node seed.js`
