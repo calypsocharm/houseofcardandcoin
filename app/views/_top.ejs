@@ -1,0 +1,18 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title><%= typeof title!=='undefined'?title:'House of Card and Coin' %> — House of Card and Coin</title>
+<meta name="description" content="<%= typeof desc!=='undefined'?desc:'A Renaissance Faire guild of dealers, readers, brokers and sellswords — the House of Card and Coin at the Age of Chivalry Renaissance Festival, Las Vegas.' %>">
+<meta property="og:title" content="<%= typeof title!=='undefined'?title:'House of Card and Coin' %> — House of Card and Coin">
+<meta property="og:description" content="<%= typeof desc!=='undefined'?desc:'A Renaissance Faire guild of dealers, readers, brokers and sellswords.' %>">
+<meta property="og:image" content="<%= typeof image!=='undefined'?image:'/assets/img/000.jpg' %>">
+<meta property="og:url" content="<%= typeof url!=='undefined'?url:'https://houseofcardandcoin.com/' %>">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="House of Card and Coin">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="/assets/img/019.png">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/css/style.css"></head><body<%- locals.bodyClass?(' class="'+bodyClass+'"'):'' %>>
+<header><div class="nav"><a class="brand" href="/index.html"><img class="crest" src="/assets/img/019.png" alt="House of Card and Coin crest"><span>House of Card and Coin<small>Whispers, Wagers, and Well-Kept Secrets</small></span></a>
+<button class="menu-toggle" aria-label="Menu" onclick="document.getElementById('nl').classList.toggle('open')"><span></span><span></span><span></span></button>
+<nav class="nav-links" id="nl"><a href="/index.html">Home</a><a href="/guild.html"<%= typeof active==='undefined'||active==='guild'?' class="active"':'' %>>Guild</a><a href="/sellsword.html">Sellsword</a><a href="/events.html">Scroll of Events</a><a href="/camp.html">Ren Faire Camp</a><a href="/board">Tavern</a><a href="/pigeon.html">Carrier Pigeon</a><% if(locals.u){ %><a href="/members">Guild Hall</a><form method="post" action="/members/logout" class="nav-logout"><button type="submit" class="nav-login">Logout</button></form><% } else { %><a class="nav-login" href="/members/login">Guild Login</a><% } %></nav></div></header>
+<main>

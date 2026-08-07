@@ -1,0 +1,15 @@
+# dependencies
+node_modules/
+
+# secrets (kept locally only — never commit)
+.hocc-vps-secret
+.hocc-askpass.bat
+.hocc-members-secret
+askpass.exe
+
+# live member data + uploads (runtime, not source)
+app/data/
+app/uploads/
+
+# logs
+*.log

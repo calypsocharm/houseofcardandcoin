@@ -1,0 +1,49 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>House of Card and Coin · Renaissance Faire Guild · Las Vegas</title>
+<meta name="description" content="A Renaissance Faire guild of dealers, readers, brokers and sellswords. Visit the House of Card and Coin at the 31st Annual Age of Chivalry Renaissance Festival, Oct 9–11, 2026, Sunset Park, Las Vegas.">
+<meta property="og:title" content="House of Card and Coin · Renaissance Faire Guild · Las Vegas">
+<meta property="og:description" content="A Renaissance Faire guild of dealers, readers, brokers and sellswords. Visit the House of Card and Coin at the 31st Annual Age of Chivalry Renaissance Festival, Oct 9–11, 2026, Sunset Park, Las Vegas.">
+<meta property="og:image" content="/assets/img/og/index.jpg">
+<meta property="og:url" content="https://houseofcardandcoin.com/index.html">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="House of Card and Coin">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="House of Card and Coin · Renaissance Faire Guild · Las Vegas">
+<meta name="twitter:description" content="A Renaissance Faire guild of dealers, readers, brokers and sellswords. Visit the House of Card and Coin at the 31st Annual Age of Chivalry Renaissance Festival, Oct 9–11, 2026, Sunset Park, Las Vegas.">
+<meta name="twitter:image" content="/assets/img/og/index.jpg">
+<link rel="icon" href="/assets/img/019.png">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/css/style.css"></head><body>
+<header><div class="nav"><a class="brand" href="/index.html"><img class="crest" src="/assets/img/019.png" alt="House of Card and Coin crest"><span>House of Card and Coin<small>Whispers, Wagers, and Well-Kept Secrets</small></span></a>
+<button class="menu-toggle" aria-label="Menu" onclick="document.getElementById('nl').classList.toggle('open')"><span></span><span></span><span></span></button>
+<nav class="nav-links" id="nl"><a href="/index.html" class="active">Home</a><a href="/guild.html">Guild</a><a href="/sellsword.html">Sellsword</a><a href="/events.html">Scroll of Events</a><a href="/camp.html">Ren Faire Camp</a><a href="/board">Tavern</a><a href="/pigeon.html">Carrier Pigeon</a><a class="nav-login" href="/members/login">Guild Login</a></nav></div></header>
+<section class="hero"><video class="hero__bg" autoplay muted loop playsinline poster="/assets/img/000.jpg"><source src="/assets/vid.mp4" type="video/mp4"><img src="/assets/img/000.jpg" alt=""></video>
+<div class="container hero__inner"><span class="eyebrow">Our Spot Is Secured · 31st Annual Age of Chivalry · Las Vegas</span>
+<h1>House of Card &amp; Coin</h1>
+<p class="sub">Our spot for the 2026 Renaissance Faire is secured — and guild members, you are invited. We are excited to see you there. Log in to the Guild Hall and make yourself at home.</p>
+<div class="hero__cta"><a class="btn btn--gold" href="/guild.html">Enter the Guild</a><a class="btn btn--wine" href="/members/login">Guild Login</a></div>
+<div class="hero__meta"><span class="chip"><b>October 9 – 11, 2026</b></span><span class="chip">Gates 10AM–10PM</span><span class="chip">Sunset Park, Las Vegas</span></div></div><section class="section" id="cryer" style="display:none"><div class="container"><div class="bannerhead"><span class="eyebrow">⚜ From the Town Cryer ⚜</span><h2>Announcements from the House</h2><div class="rule"></div></div><div id="cryer-list" class="grid grid--2" style="margin-top:20px"></div></div></section><script>fetch("/api/announcements").then(function(r){return r.json();}).then(function(list){if(!list||!list.length)return;var sec=document.getElementById("cryer");document.getElementById("cryer-list").innerHTML=list.map(function(a){var d=new Date(a.ts).toLocaleDateString();return '<div class="scroll"><p style="font-size:1.06rem">'+a.text.replace(/</g,"&lt;")+'</p><p class="muted" style="font-size:.78rem;margin-top:6px">'+d+'</p></div>';}).join("");sec.style.display="";}).catch(function(){});</script>
+</section>
+
+<section class="section"><div class="container"><div class="bannerhead"><span class="eyebrow">The Specialists of the House</span><h2>Dealers · Readers · Brokers</h2><div class="rule"></div></div>
+<div class="grid grid--3">
+<div class="rolecard"><img class="rolecard__img" loading="lazy" decoding="async" src="/assets/img/024.jpg" alt="The Dealer of Dares & Delights"><div class="rolecard__body"><h3>🃏 Dealers</h3><p>The Dealer of Dares &amp; Delights — step up to the table of our resident card maestro. Games of chance, tests of strategy, and merry diversions. The house doesn't always win, but it certainly enjoys the attempt.</p></div></div>
+<div class="rolecard"><img class="rolecard__img" loading="lazy" decoding="async" src="/assets/img/013.jpg" alt="The Interpreter of Inner Trails"><div class="rolecard__body"><h3>🔮 Readers</h3><p>The Interpreter of Inner Trails — our gifted tarot reader illuminates your path, explores your questions, and offers fresh perspectives. Let the ancient wisdom of the cards spark inspiration.</p></div></div>
+<div class="rolecard"><img class="rolecard__img" loading="lazy" decoding="async" src="/assets/img/005.jpg" alt="The Broker of Balanced Bargains"><div class="rolecard__body"><h3>🪙 Brokers</h3><p>The Broker of Balanced Bargains — our astute accountant and broker navigates the nuances of exchange, facilitates discreet transactions, and keeps all ledgers — visible and invisible — meticulously kept.</p></div></div>
+</div></div></section>
+
+<section class="section section--parch2"><div class="container"><div class="grid grid--2" style="align-items:center">
+<div><figure class="fig fig--43"><img src="/assets/img/002.jpg" alt="Parchment &amp;amp; the Rogue's Watermark" loading="lazy"><figcaption>Parchment &amp;amp; the Rogue's Watermark<span style="display:block;font-size:.74rem;letter-spacing:.1em;color:var(--gold-l);text-transform:uppercase">A guild secret, sealed</span></figcaption></figure></div>
+<div><span class="eyebrow">Foresee the Future</span><h2>The Life of a Beggar Ends with a Coin</h2><p class="lead">We are weavers of fate, dealers of chance, and discreet facilitators of… interesting opportunities. If you tire of the mundane and seek a sprinkle of magic — or a carefully calculated risk — you've stumbled upon the right path.</p>
+<p style="margin-top:14px;color:var(--muted)">Experience the Renaissance Faire with our skilled Dealers, Readers, and Brokers at your service — and, should the need arise, a sellsword or two.</p>
+<a class="btn btn--outline" href="/sellsword.html" style="margin-top:22px">Hire a Sellsword</a></div>
+</div></div></section>
+
+<section class="section section--dark"><div class="container"><div class="grid grid--2" style="align-items:center"><div><figure class="fig fig--43"><video autoplay muted loop playsinline poster="/assets/img/010.jpg"><source src="/assets/vid-space.mp4" type="video/mp4"></video><figcaption>Under the stars &middot; camp nights</figcaption></figure></div><div><span class="eyebrow">Ren Faire Camp</span><h2 style="color:#f5e9c8">A Camp Under the Stars</h2><p class="lead">We claim the spot Thursday, October 8 and camp from Friday night — a dry camp beside the campground, with private entertainment and the option of the Saturday Dinner Feast Show.</p><a class="btn btn--gold" href="/camp.html" style="margin-top:22px">Camp Details</a></div></div></div></section>
+<section class="section section--dark"><div class="container cta"><div><span class="eyebrow">Join the House</span><h2>Put me on the list!</h2><p>Quests, trading, tales, and a seat by the campfire await. Send your pigeon and claim your place in the House of Card and Coin.</p></div><div class="cta__actions"><a class="btn btn--gold" href="/pigeon.html">Send a Pigeon</a><a class="btn btn--ghost" href="/events.html">View the Scroll of Events</a></div></div></section><footer><div class="container"><div class="footer-grid">
+<div class="footer-brand"><a class="brand" href="/index.html" style="color:#f5e9c8"><img class="crest" src="/assets/img/019.png" alt="House of Card and Coin crest"><span style="font-family:var(--display);font-weight:700;font-size:1.1rem">House of Card and Coin<small style="display:block;font-size:.6rem;letter-spacing:.2em;text-transform:uppercase;color:var(--gold-l)">Whispers, Wagers, and Well-Kept Secrets</small></span></a><p>A guild of dealers, readers, brokers and sellswords — weavers of fate at the Age of Chivalry Renaissance Festival, October 9 – 11, 2026, Sunset Park, Las Vegas.</p></div>
+<div><h4>The Guild</h4><ul><li><a href="/index.html">Home</a></li><li><a href="/guild.html">Guild</a></li><li><a href="/sellsword.html">Sellsword</a></li><li></li><li><a href="/events.html">Scroll of Events</a></li></ul></div>
+<div><h4>Faire</h4><ul><li><a href="/camp.html">Ren Faire Camp</a></li><li><a href="/events.html">Scroll of Events</a></li><li></li></ul></div>
+<div><h4>Send a Pigeon</h4><ul><li><a href="/pigeon.html">houseofcardandcoin@gmail.com</a></li><li>Sunset Park · 2601 E Sunset Rd · Las Vegas, NV 89120</li><li>October 9 – 11, 2026</li></ul></div></div>
+<div class="footer-bottom"><span>&copy; 2024 – 2026 House of Card and Coin. All rights reserved.</span><span>Where Fortunes Shift, Destinies Unfurl, and Every Bargain Has Its Price.</span></div></div></footer></body></html>

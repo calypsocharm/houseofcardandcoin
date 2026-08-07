@@ -1,0 +1,11 @@
+<%- include('_top',{title:'Guild Login'}) %>
+<style>body{background:#1a120b !important}body::before{display:none !important}.login-backdrop{position:fixed;inset:0;z-index:0;background-image:url('/assets/img/login-bg.jpg');background-size:cover;background-position:center}.login-veil{position:fixed;inset:0;z-index:0;background:linear-gradient(105deg,rgba(20,14,8,.86) 0%,rgba(20,14,8,.5) 55%,rgba(20,14,8,.78) 100%)}main{position:relative;z-index:1}footer{position:relative;z-index:1}.login-card{background:rgba(251,246,233,.96);backdrop-filter:blur(3px)}</style>
+<div class="login-backdrop"></div>
+<div class="login-veil"></div>
+<section class="section" style="padding-top:120px"><div class="container" style="max-width:540px">
+<div class="bannerhead"><span class="eyebrow" style="color:var(--gold-l)">Members Only</span><h2 style="color:#f8edd1">Guild Hall</h2><div class="rule"></div></div>
+<% if(err){ %><div class="login-card scroll" style="border-color:var(--wine);margin-bottom:18px;color:var(--wine)"><%= err %></div><% } %>
+<div class="login-card scroll"><h3 style="color:var(--wine)">Sign In</h3><form method="post" action="/members/login"><div class="field"><label>Username or Email</label><input type="text" name="email" required></div><div class="field"><label>Password</label><input type="password" name="password" required></div><button class="btn btn--gold" style="width:100%;justify-content:center">Enter the Hall</button></form></div>
+<div class="login-card scroll" style="margin-top:18px"><h3 style="color:var(--wine)">Join the House</h3><p class="muted" style="font-size:.96rem">New guildmates need the invite code from the Guild Leader.</p><form method="post" action="/members/register" enctype="multipart/form-data"><div class="field"><label>Your Name</label><input name="name" required></div><div class="field"><label>Username or Email</label><input type="text" name="email" required></div><div class="field"><label>Password</label><input type="password" name="password" required></div><div class="field"><label>Guild Invite Code</label><input name="invite" required placeholder="Ask the Guild Leader"></div><button class="btn btn--wine" style="width:100%;justify-content:center">Take the Oath</button></form></div>
+</div></section>
+<%- include('_bot') %>

@@ -1,0 +1,42 @@
+{
+  "home": [
+    "019.png",
+    "024.jpg"
+  ],
+  "guild": [
+    "019.png",
+    "021.jpg",
+    "014.jpg",
+    "020.jpg"
+  ],
+  "camp": [
+    "023.webp",
+    "008.jpg",
+    "019.png"
+  ],
+  "sellsword": [
+    "019.png",
+    "018.png",
+    "015.jpg"
+  ],
+  "ranks": [
+    "019.png"
+  ],
+  "events": [
+    "016.jpg",
+    "019.png",
+    "012.png",
+    "013.png",
+    "022.png"
+  ],
+  "cryer": [
+    "019.png"
+  ],
+  "wanted": [
+    "019.png"
+  ],
+  "pigeon": [
+    "019.png",
+    "017.png"
+  ]
+}

@@ -1,0 +1,336 @@
+# House of Card and Coin — Deploy & Ops Runbook
+
+Live site: <https://houseofcardandcoin.com>
+Repo: `git@github.com:calypsocharm/houseofcardandcoin.git`
+Domain DNS: `@` A record → `187.124.235.109`, `www` CNAME → `houseofcardandcoin.com`
+
+> **No credentials in this file.** Member logins live in `.hocc-members-secret`,
+> the VPS root password in `.hocc-vps-secret` — both gitignored, both local-only.
+> Keep it that way; this repo is on GitHub.
+
+---
+
+## 0. The repo
+
+The site used to live inside the **stardraw** repo (`New project/`), sharing history
+with the Calypso Star files. As of 2026-08-07 it has its own repo.
+
+| | |
+|---|---|
+| **Remote** | `git@github.com:calypsocharm/houseofcardandcoin.git` |
+| **Branch** | `main` |
+| **Working copy** | `C:\Users\Calyp\Downloads\houseofcardandcoin` |
+| **Original source** | `C:\Users\Calyp\OneDrive\Documents\New project\houseofcardandcoin-site` (still tracked by stardraw — see caution below) |
+
+```powershell
+cd C:\Users\Calyp\Downloads\houseofcardandcoin
+git add -A; git commit -m "your message"; git push
+```
+
+> ⚠️ **Two copies exist.** The OneDrive folder is still inside the stardraw working
+> tree. Edit in **one place only** — the Downloads working copy — or the two will
+> drift. When you're confident the new repo is good, delete the HOCC files from
+> stardraw so there's a single source of truth.
+
+**Pushing to GitHub does not deploy.** Unlike Calypso Star Studio (which
+auto-deploys via cron), this site has no autodeploy. Deploying is a separate,
+manual step — see §5.
+
+---
+
+## 1. The VPS
+
+| | |
+|---|---|
+| **Host / IP** | `187.124.235.109` |
+| **Hostname** | `srv1511458` |
+| **User** | `root` |
+| **Auth** | **SSH key** (preferred). Password fallback in `.hocc-vps-secret` |
+| **OS** | Ubuntu 24.04 LTS (installed 2025-12-13) |
+| **Software** | Node v20.20.1, npm, nginx 1.24, pm2, certbot, ffmpeg |
+
+**Shared box.** Also runs Daily Stars (`atmosphereengine.com`), BotCash Trader,
+Calypso Radio, futures-friend, and YOLO. Restarting *your* pm2 app is fine;
+never `pm2 restart all` or reboot without checking what else is running.
+
+> **Host keys rotated 2026-07-07.** All three SSH host keys were regenerated when
+> the box rebooted (snapshot restore or provider migration — the OS install date
+> is unchanged and all data survived). If SSH ever again refuses with
+> "REMOTE HOST IDENTIFICATION HAS CHANGED", that's what happened. Verify before
+> trusting: `ssh-keygen -lf /etc/ssh/ssh_host_ed25519_key.pub` from the Hostinger
+> hPanel browser terminal, then `ssh-keygen -R 187.124.235.109` locally.
+> Current ED25519 fingerprint: `SHA256:MXbGdZfl/sa+LTYuQBTp4xiT4q1RhHzOTI0jv1YSeGg`
+
+---
+
+## 2. SSH in
+
+### Preferred — key auth (no password needed)
+
+```powershell
+ssh root@187.124.235.109
+```
+
+Your SSH key is already authorized on this box. This is what the deploy commands
+below assume.
+
+### Fallback — password via the askpass helper
+
+Only needed if key auth ever stops working. `askpass.cs` / `askpass.exe` read the
+password from `.hocc-vps-secret` (it is **not** embedded in the binary).
+
+```powershell
+$root = "C:\Users\Calyp\Downloads\houseofcardandcoin"
+$env:SSH_ASKPASS = "$root\askpass.exe"
+$env:SSH_ASKPASS_REQUIRE = "force"
+$env:DISPLAY = ":0"
+ssh -o PreferredAuthentications=password -o PubkeyAuthentication=no root@187.124.235.109 "uname -a"
+```
+
+> Don't use `-o StrictHostKeyChecking=no -o UserKnownHostsFile=NUL` (as the old
+> runbook did). That disables the check that caught the July key rotation.
+
+---
+
+## 3. What lives where on the VPS
+
+| Path | Purpose |
+|---|---|
+| `/var/www/hocc` | The whole site + members app |
+| `/var/www/hocc/app/server.js` | Express members app (roster, login, bunks, RSVP, announcements, admin, tavern) |
+| `/var/www/hocc/app/data/guild.json` | **Live member data** — DO NOT overwrite |
+| `/var/www/hocc/app/uploads/` | Member avatar uploads — DO NOT overwrite |
+| `/var/www/hocc/app/views/` | EJS templates |
+| `/etc/nginx/sites-available/hocc` | nginx server block (symlinked into `sites-enabled/`) |
+| `/etc/letsencrypt/live/houseofcardandcoin.com/` | TLS cert (auto-renewing) |
+| `/var/www/hocc-backup.sh` | Nightly backup (cron 3:17am, keeps 7) |
+| `/var/www/hocc-backups/` | Backup tarballs |
+| `/var/www/hocc-healthcheck.sh` | Watchdog (cron every 5 min) |
+| `/var/log/hocc-health.log`, `/var/log/hocc-backup.log` | Logs |
+
+### Process model
+
+- Node app under **pm2**, process name **`hocc`** (id 6), on **port 3000**
+- Script `/var/www/hocc/app/server.js`, cwd `/var/www/hocc/app`, Node 20.20.1
+- **nginx** terminates HTTPS on 443 and proxies everything to `127.0.0.1:3000`;
+  port 80 returns 301 to HTTPS. `client_max_body_size 30M` (avatar uploads)
+
+### Build model
+
+`build.js` generates the static pages (`index.html`, `guild.html`, …) from the
+fragments in `content/`. **Edit `content/` and `build.js`, not the generated HTML** —
+a rebuild overwrites the root `.html` files.
+
+> `build.js` line 2 hardcodes an absolute Windows path:
+> `const ROOT="C:/Users/Calyp/OneDrive/Documents/New project/houseofcardandcoin-site"`.
+> It still writes to the **old OneDrive folder**. Change it to `__dirname` (or to the
+> Downloads path) before running a build from this repo, or your output lands in
+> the wrong place.
+
+`serve.js` is a tiny local static server (port 4200) for previewing built pages
+without the members app.
+
+---
+
+## 4. pm2 / nginx commands (on the VPS)
+
+```bash
+pm2 status                       # all pm2 apps on the shared box
+pm2 logs hocc --lines 50         # app logs
+pm2 restart hocc --update-env    # restart, picking up env + code
+pm2 save                         # persist across reboots
+pm2 env $(pm2 id hocc)           # show the hocc process env
+
+nginx -t                         # test nginx config
+systemctl reload nginx           # apply nginx changes
+certbot certificates             # list certs / expiry
+```
+
+### Environment variables the app reads
+
+| Var | Default in code | Set in production? |
+|---|---|---|
+| `PORT` | `3000` | no (default is correct) |
+| `SESSION_SECRET` | `guild-faire-secret-change` | ❌ **no** |
+| `GUILD_INVITE_CODE` | `COIN-2026` | ❌ **no** |
+| `FORMSPREE_ENDPOINT` | `https://formspree.io/f/mojgjwqg` | no |
+
+⚠️ **`SESSION_SECRET` and `GUILD_INVITE_CODE` are not set on the running process**
+(verified 2026-08-07), so both hardcoded defaults are live. See §11.
+
+```bash
+SESSION_SECRET='<long-random>' GUILD_INVITE_CODE='<new-code>' \
+  pm2 restart hocc --update-env && pm2 save
+```
+
+---
+
+## 5. Deploying changes
+
+Source of truth: `C:\Users\Calyp\Downloads\houseofcardandcoin`.
+**Commit first, then deploy** — git and deploy are separate steps.
+
+### Quick — push a few changed files
+
+```powershell
+$root = "C:\Users\Calyp\Downloads\houseofcardandcoin"
+scp "$root\index.html"            root@187.124.235.109:/var/www/hocc/index.html
+scp "$root\assets\css\style.css"  root@187.124.235.109:/var/www/hocc/assets/css/style.css
+scp "$root\app\views\guild.ejs"   root@187.124.235.109:/var/www/hocc/app/views/guild.ejs
+# only if server.js or a view changed:
+ssh root@187.124.235.109 "pm2 restart hocc --update-env"
+```
+
+### Full redeploy — site + app code, preserving live member data
+
+```powershell
+$root = "C:\Users\Calyp\Downloads\houseofcardandcoin"
+$tmp  = "$env:TEMP\hocc.tar.gz"
+tar -czf $tmp --exclude=node_modules --exclude=app/uploads --exclude=app/data --exclude=.git -C $root .
+
+ssh root@187.124.235.109 "rm -rf /var/www/hocc/assets /var/www/hocc/*.html"
+scp $tmp root@187.124.235.109:/var/www/hocc/
+ssh root@187.124.235.109 "cd /var/www/hocc && tar -xzf hocc.tar.gz && rm -f hocc.tar.gz && npm install --prefix app --omit=dev && pm2 restart hocc --update-env && pm2 save"
+```
+
+> The tarball **excludes `app/data` and `app/uploads`**, so members, bunks, and
+> avatars are never clobbered. Take a backup first anyway (§7) — the `rm -rf` step
+> is destructive and there is no undo.
+
+### Verify after deploying
+
+```bash
+curl -s -o /dev/null -w "%{http_code}\n" https://houseofcardandcoin.com/
+ssh root@187.124.235.109 "pm2 status hocc && pm2 logs hocc --err --lines 20 --nostream"
+```
+
+---
+
+## 6. Member logins
+
+Members sign in at <https://houseofcardandcoin.com/members/login> with their
+**login handle** (not an email address) + password.
+
+🔑 **The handle/password list is in `.hocc-members-secret`** — local only,
+gitignored, never committed.
+
+New members self-register at the login page with the invite code
+(`GUILD_INVITE_CODE`; see §4 and §11). Members can change their own password in
+the Guild Hall; the Guild Elder can reset anyone's from the Administration panel.
+
+To reset a password on the VPS:
+
+```bash
+cd /var/www/hocc/app
+node -e "const fs=require('fs'),b=require('bcryptjs');const f='data/guild.json';const d=JSON.parse(fs.readFileSync(f));const u=d.users.find(x=>x.email==='HANDLE');u.passhash=b.hashSync(process.env.NEWPW,10);fs.writeFileSync(f,JSON.stringify(d,null,2));console.log('reset')"
+pm2 restart hocc --update-env
+```
+
+Pass the new password as `NEWPW=...` rather than typing it inline, so it doesn't
+land in shell history.
+
+---
+
+## 7. Health, backups, recovery
+
+- **Watchdog** — `hocc-healthcheck.sh` every 5 min: curls `127.0.0.1:3000/health`
+  and the public site, restarts pm2/nginx if either is down.
+  Public endpoint: <https://houseofcardandcoin.com/health>
+- **Backups** — nightly ~3:17am, tarball of `app/data` + `app/uploads` into
+  `/var/www/hocc-backups/` (keeps the latest 7)
+
+Take a backup on demand (do this before any full redeploy):
+
+```bash
+ssh root@187.124.235.109 "/var/www/hocc-backup.sh && ls -lt /var/www/hocc-backups | head -3"
+```
+
+Restore:
+
+```bash
+cd /var/www/hocc
+tar -xzf /var/www/hocc-backups/hocc-YYYYMMDD-HHMMSS.tgz
+pm2 restart hocc --update-env
+```
+
+> Backups cover **member data only** — not site code. Site code recovery is
+> `git clone` + §5.
+
+---
+
+## 8. HTTPS / DNS
+
+Cert for `houseofcardandcoin.com` + `www` at
+`/etc/letsencrypt/live/houseofcardandcoin.com/`, auto-renewing (current cert
+issued 2026-08-05, expires 2026-11-03).
+
+```bash
+certbot --nginx -d houseofcardandcoin.com -d www.houseofcardandcoin.com \
+  --non-interactive --agree-tos -m houseofcardandcoin@gmail.com --redirect
+```
+
+---
+
+## 9. Contact form / Formspree
+
+The Carrier Pigeon form (`/pigeon.html`) posts to the app's `/pigeon` route, which
+forwards to Formspree. It currently reuses the calypsostar form
+(`https://formspree.io/f/mojgjwqg`) — submissions arrive with the subject
+"New pigeon — House of Card and Coin." To give the House its own inbox:
+
+```bash
+FORMSPREE_ENDPOINT=https://formspree.io/f/NEWID pm2 restart hocc --update-env && pm2 save
+```
+
+The form has a `_gotcha` honeypot field for spam.
+
+---
+
+## 10. Local dev
+
+```powershell
+cd C:\Users\Calyp\Downloads\houseofcardandcoin\app
+npm install
+$env:PORT="8080"; $env:SESSION_SECRET="local-test"
+node server.js
+# → http://localhost:8080 (static site + members app)
+```
+
+`app/data/` and `app/uploads/` are gitignored, so a fresh clone starts with no
+members. Seed a local dev database with `node seed.js` (see §11 first).
+
+---
+
+## 11. Known issues
+
+Full findings, with measurements and fixes, in [`AUDIT.md`](AUDIT.md).
+The security-relevant ones:
+
+1. **`SESSION_SECRET` unset in production** — the app falls back to
+   `'guild-faire-secret-change'`, which is in this repo. Sessions are stored
+   server-side, so this is not direct account takeover, but it's the wrong
+   default. Set a real one (§4). Related: the default `MemoryStore` drops all
+   sessions on restart and leaks memory — worth a file/SQLite store eventually.
+2. **`GUILD_INVITE_CODE` unset in production** — falls back to `COIN-2026`.
+   Anyone who learns it can register a guild account. Set a real one (§4).
+3. **`app/seed.js` no longer hardcodes a password** — it reads `SEED_PASSWORD`
+   from the environment and refuses to run without it. Seed with:
+   `SEED_PASSWORD='...' node seed.js`
+4. **No security headers** on responses (HSTS, CSP, `X-Frame-Options`,
+   `nosniff`), and `X-Powered-By: Express` is exposed. Fix in the nginx block
+   plus `app.disable('x-powered-by')`.
+5. **No CSRF protection** on the login/register/board POST routes — worth
+   reviewing given the app has real auth and public posting.
+
+Non-security, highest-impact first:
+
+6. **Mobile navigation is unreachable** on every phone — `.brand` has
+   `flex-shrink:0`, pushing the hamburger off-screen while the nav links are
+   hidden. 4-line CSS fix in `AUDIT.md` §P1.
+7. **`assets/css/style.css` is 442 KB and 93% duplicate** — the base stylesheet
+   is emitted 16× by `build.js`. Deduplicating gives ~30 KB.
+8. **No gzip and `Cache-Control: max-age=0`** on all static assets.
+9. **`og:image` tags use relative paths** — every shared link previews without an
+   image.
+10. **No `robots.txt`, `sitemap.xml`, or canonical tags**, and `www` serves a full
+    duplicate of the site instead of redirecting to the apex.

@@ -1,0 +1,1449 @@
+{
+  "home": [
+    {
+      "top": 24,
+      "maxTop": 453,
+      "items": [
+        {
+          "type": "text",
+          "top": 24,
+          "left": 711,
+          "text": "Forsee the future"
+        },
+        {
+          "type": "image",
+          "top": 59,
+          "left": 72,
+          "local": {
+            "file": "019.png",
+            "size": 939409
+          },
+          "alt": ""
+        },
+        {
+          "type": "image",
+          "top": 59,
+          "left": 72,
+          "local": {
+            "file": "019.png",
+            "size": 939409
+          },
+          "alt": ""
+        },
+        {
+          "type": "button",
+          "top": 64,
+          "left": 144,
+          "text": "Guild",
+          "href": "/guild"
+        },
+        {
+          "type": "button",
+          "top": 64,
+          "left": 267,
+          "text": "Great Hall",
+          "href": "/"
+        },
+        {
+          "type": "text",
+          "top": 70,
+          "left": 0,
+          "text": "Guild House of Card and Coin"
+        },
+        {
+          "type": "text",
+          "top": 101,
+          "left": 515,
+          "text": "Mercenaries"
+        },
+        {
+          "type": "text",
+          "top": 130,
+          "left": 515,
+          "text": "SellSword"
+        },
+        {
+          "type": "text",
+          "top": 133,
+          "left": 943,
+          "text": "You didn’t come this far to stop"
+        },
+        {
+          "type": "text",
+          "top": 176,
+          "left": 0,
+          "text": "Where Fortunes Shift, Destinies Unfurl, and Every Bargain Has Its Price."
+        },
+        {
+          "type": "text",
+          "top": 179,
+          "left": 515,
+          "text": "Readers"
+        },
+        {
+          "type": "text",
+          "top": 203,
+          "left": 515,
+          "text": "Dealers"
+        },
+        {
+          "type": "text",
+          "top": 221,
+          "left": 721,
+          "text": "The Life of a Beggar Ends with a Coin"
+        },
+        {
+          "type": "text",
+          "top": 259,
+          "left": 515,
+          "text": "Brokers"
+        },
+        {
+          "type": "text",
+          "top": 264,
+          "left": 0,
+          "text": "House of Card and Coin"
+        },
+        {
+          "type": "text",
+          "top": 276,
+          "left": 0,
+          "text": "houseofcardandcoin@gmail.com"
+        },
+        {
+          "type": "image",
+          "top": 280,
+          "left": 644,
+          "local": {
+            "file": "024.jpg",
+            "size": 1254130
+          },
+          "alt": ""
+        },
+        {
+          "type": "text",
+          "top": 283,
+          "left": 515,
+          "text": "TradeRs"
+        },
+        {
+          "type": "text",
+          "top": 348,
+          "left": 721,
+          "text": "Experience the Renaissance Faire with our skilled Dealers, Readers, and Brokers at your service."
+        },
+        {
+          "type": "button",
+          "top": 444,
+          "left": 721,
+          "text": "Explore",
+          "href": "/guild"
+        },
+        {
+          "type": "text",
+          "top": 453,
+          "left": 0,
+          "text": "Hark, traveler, and step into a curious world beyond the pale of your comfort zone! We are weavers of fate, dealers of chance, and discreet facilitators of… interesting opportunities. If you tire of the mundane and seek a sprinkle of magic (or a carefully calculated risk!), you've stumbled upon the right path."
+        }
+      ]
+    },
+    {
+      "top": 99999,
+      "maxTop": 99999,
+      "items": [
+        {
+          "type": "button",
+          "top": 99999,
+          "left": 0,
+          "text": "Send your message to us",
+          "href": ""
+        },
+        {
+          "type": "button",
+          "top": 99999,
+          "left": 0,
+          "text": "Put me on the list!",
+          "href": ""
+        }
+      ]
+    }
+  ],
+  "guild": [
+    {
+      "top": 42,
+      "maxTop": 312,
+      "items": [
+        {
+          "type": "text",
+          "top": 42,
+          "left": 169,
+          "text": "Welcome to The House of Card and Coin"
+        },
+        {
+          "type": "image",
+          "top": 59,
+          "left": 72,
+          "local": {
+            "file": "019.png",
+            "size": 939409
+          },
+          "alt": ""
+        },
+        {
+          "type": "image",
+          "top": 59,
+          "left": 72,
+          "local": {
+            "file": "019.png",
+            "size": 939409
+          },
+          "alt": ""
+        },
+        {
+          "type": "button",
+          "top": 64,
+          "left": 144,
+          "text": "Guild",
+          "href": "/guild"
+        },
+        {
+          "type": "button",
+          "top": 64,
+          "left": 267,
+          "text": "Great Hall",
+          "href": "/"
+        },
+        {
+          "type": "text",
+          "top": 70,
+          "left": 0,
+          "text": "Guild House of Card and Coin"
+        },
+        {
+          "type": "text",
+          "top": 101,
+          "left": 515,
+          "text": "Mercenaries"
+        },
+        {
+          "type": "text",
+          "top": 108,
+          "left": 190,
+          "text": "We believe that an unparalleled Renaissance Faire experience is built on memorable encounters and unique discoveries. We aim to provide just that – a chance to engage, to be intrigued, and perhaps to walk away with more than you bargained for."
+        },
+        {
+          "type": "image",
+          "top": 120,
+          "left": 112,
+          "local": null,
+          "alt": ""
+        },
+        {
+          "type": "text",
+          "top": 130,
+          "left": 515,
+          "text": "SellSword"
+        },
+        {
+          "type": "text",
+          "top": 176,
+          "left": 0,
+          "text": "Where Fortunes Shift, Destinies Unfurl, and Every Bargain Has Its Price."
+        },
+        {
+          "type": "text",
+          "top": 179,
+          "left": 515,
+          "text": "Readers"
+        },
+        {
+          "type": "text",
+          "top": 203,
+          "left": 515,
+          "text": "Dealers"
+        },
+        {
+          "type": "text",
+          "top": 259,
+          "left": 515,
+          "text": "Brokers"
+        },
+        {
+          "type": "text",
+          "top": 276,
+          "left": 0,
+          "text": "houseofcardandcoin@gmail.com"
+        },
+        {
+          "type": "text",
+          "top": 283,
+          "left": 515,
+          "text": "TradeRs"
+        },
+        {
+          "type": "image",
+          "top": 312,
+          "left": 0,
+          "local": {
+            "file": "021.jpg",
+            "size": 706519
+          },
+          "alt": ""
+        },
+        {
+          "type": "image",
+          "top": 312,
+          "left": 285,
+          "local": {
+            "file": "014.jpg",
+            "size": 409015
+          },
+          "alt": ""
+        },
+        {
+          "type": "image",
+          "top": 312,
+          "left": 927,
+          "local": {
+            "file": "020.jpg",
+            "size": 489335
+          },
+          "alt": ""
+        }
+      ]
+    },
+    {
+      "top": 704,
+      "maxTop": 704,
+      "items": [
+        {
+          "type": "text",
+          "top": 704,
+          "left": 0,
+          "text": "Where Chance, Destiny, and Deals AlignGreetings, discerning Faire-goer! If you find yourself drawn to the more intriguing corners of the marketplace, where wit is as valuable as coin and opportunity often wears a disguise, then you've found your way to us.We are a unique consortium, a gathering of specialists dedicated to life's more... artful pursuits:The Dealer of Dares & Delights: Step up to the table of our resident card maestro! Whether you crave the thrill of a game of chance, a test of your strategic mind, or simply an amusing diversion, you'll find it here. Expect lively play and sharp wits. Remember – the house doesn't always win, but it certainly enjoys the attempt.The Interpreter of Inner Trails: Curious about what the threads of fate may hold? Our gifted Tarot reader offers consultations to illuminate your path, explore your questions, and offer fresh perspectives. Let the ancient wisdom of the cards provide a moment of reflection or a spark of inspiration.The Broker of Balanced Bargains: In a world of grand gestures, sometimes the most valuable things are found in carefully crafted agreements. Our astute accountant and broker navigate the nuances of the exchange, facilitate unique transactions, and ensure that all ledgers – both visible and invisible – are meticulously kept. If you've a particular need or a proposition requiring discretion and a keen eye for value, your query is welcome.The Gambits & Games Arena"
+        }
+      ]
+    },
+    {
+      "top": 99999,
+      "maxTop": 99999,
+      "items": [
+        {
+          "type": "button",
+          "top": 99999,
+          "left": 0,
+          "text": "Put me on the list!",
+          "href": ""
+        }
+      ]
+    }
+  ],
+  "camp": [
+    {
+      "top": 0,
+      "maxTop": 304,
+      "items": [
+        {
+          "type": "text",
+          "top": 0,
+          "left": 530,
+          "text": "RVRV Camping (includes Fifth Wheel, Bumper Pull or Pop Up Trailers) lets you park your recreational vehicle in the campsite and build your own weekend oasis for larger groups of family and friends. Vacation your way and enjoy a special experience under the stars of the Renaissance. RV camping days are Thursday, Friday, Saturday, and Sunday.***This is a dry camping space. No dump station or servicing provided by Clark County, contact Las Vegas Toilet Rentals to make individual arrangements. ***Includes:- Four night stay in your own RV in a designated space next to the campground- (6) 3-day passes, (6) festival T-shirt vouchers*, (6) festival poster vouchers*- Earliest access to the campground beginning Thursday at 10:00 AM- Access to the private campground including designated potties, private entertainment, and option to purchase exclusive DINNER FEAST SHOW passes for Saturday evening.- Voucher redemption will take place at the Clark County Merchandise Booth inside vendor village. Must be picked up during festival hours. Merch Sizes first come first served.Camp spots are very limited and will be available on a first-come first-serve basis (while supplies last).Note: RV Trailers must unhook from vehicle, no vehicles can remain hitched to unit during event!"
+        },
+        {
+          "type": "image",
+          "top": 40,
+          "left": 0,
+          "local": {
+            "file": "023.webp",
+            "size": 62123
+          },
+          "alt": ""
+        },
+        {
+          "type": "image",
+          "top": 40,
+          "left": 618,
+          "local": {
+            "file": "008.jpg",
+            "size": 1196688
+          },
+          "alt": ""
+        },
+        {
+          "type": "image",
+          "top": 59,
+          "left": 72,
+          "local": {
+            "file": "019.png",
+            "size": 939409
+          },
+          "alt": ""
+        },
+        {
+          "type": "image",
+          "top": 59,
+          "left": 72,
+          "local": {
+            "file": "019.png",
+            "size": 939409
+          },
+          "alt": ""
+        },
+        {
+          "type": "button",
+          "top": 64,
+          "left": 144,
+          "text": "Guild",
+          "href": "/guild"
+        },
+        {
+          "type": "button",
+          "top": 64,
+          "left": 267,
+          "text": "Great Hall",
+          "href": "/"
+        },
+        {
+          "type": "text",
+          "top": 70,
+          "left": 0,
+          "text": "Guild House of Card and Coin"
+        },
+        {
+          "type": "text",
+          "top": 80,
+          "left": 0,
+          "text": "We have passes for only 6 people, and you know who you are!"
+        },
+        {
+          "type": "text",
+          "top": 80,
+          "left": 0,
+          "text": "Earliest access to the campground begins Thursday at 10:00 AMSUNSET PARK2601 E Sunset Rd, Las Vegas, NV 89120"
+        },
+        {
+          "type": "text",
+          "top": 80,
+          "left": 309,
+          "text": "Our Camp"
+        },
+        {
+          "type": "text",
+          "top": 80,
+          "left": 618,
+          "text": "Porta-potties are available outside, but there are no showers. Showering in the camper is not permitted due to the lack of dump and water hookups. You'll need to go home to shower. However, you're welcome to use the refrigerator and sleep in the designated area."
+        },
+        {
+          "type": "text",
+          "top": 101,
+          "left": 515,
+          "text": "Mercenaries"
+        },
+        {
+          "type": "text",
+          "top": 130,
+          "left": 515,
+          "text": "SellSword"
+        },
+        {
+          "type": "text",
+          "top": 176,
+          "left": 0,
+          "text": "Where Fortunes Shift, Destinies Unfurl, and Every Bargain Has Its Price."
+        },
+        {
+          "type": "text",
+          "top": 179,
+          "left": 515,
+          "text": "Readers"
+        },
+        {
+          "type": "text",
+          "top": 203,
+          "left": 515,
+          "text": "Dealers"
+        },
+        {
+          "type": "text",
+          "top": 259,
+          "left": 515,
+          "text": "Brokers"
+        },
+        {
+          "type": "text",
+          "top": 276,
+          "left": 0,
+          "text": "houseofcardandcoin@gmail.com"
+        },
+        {
+          "type": "text",
+          "top": 283,
+          "left": 515,
+          "text": "TradeRs"
+        },
+        {
+          "type": "text",
+          "top": 304,
+          "left": 0,
+          "text": "🪓 Task Assignment List (6 People, Example Split)Person 1: Camp Captain (Setup Leader)Directs where chairs, mat, and awning goEnsures RV is level, power is hooked upOversees tank management planPerson 2: Firepit & Cooking BossIn charge of grilling/propane stove/campfire cookingManages cooler + food supplies at campKeeps the firepit safe, brings cooking toolsPerson 3: Decorator & AtmosphereSets up string lights, lanterns, and bannersMaintains nighttime vibe at campHandles faire camp aestheticPerson 4: Water & SanitationManages freshwater refills (if needed)Keeps wipes, hand sanitizer, and paper goods stockedTracks when tanks might need dumpingPerson 5: Quartermaster (Gear/Logistics)Keeps track of shared items (games, tools, chargers)First-aid kit, duct tape, backup suppliesMakes sure nothing is left behind on departurePerson 6: Spirit Keeper (Entertainment & Morale)Handles music, party setup, and drinking gamesKeeps the group moving toward fair events on timeNight host — keeps energy up or chills down as neededArrival Day (Oct 9):Camp Captain directs setup, Firepit Boss prepares the first meal, and Decorator sets the lights.Faire Days (Oct 10–12):Morning: The cook handles breakfast, the Quartermaster checks camp supplies, and the Spirit Keeper queues music.Midday: Everyone goes to the fair, and the Water/Sanitation person ensures the camp bathrooms/water situation is okay.Night: Firepit Boss + Spirit Keeper run the campfire, Decorator flips lights, Camp Captain ensures tanks aren’t overloaded.Departure Day (Oct 13):Quartermaster + Camp Captain = secure/packSanitation person = tanks & trashDecorator = take down lightsEveryone strips bedding & clears their gearWhat You May Need to Bring (Unexpected Essentials)1. Water Management (No On-Site Water Hookup)Extra freshwater jugs (10–20 gal extra—filling once may not suffice for 4 days & 6 people)Collapsible buckets for dishwashing and camp tasksPortable water filter or large drinking jugs if you’d rather not fill the onboard tank frequently2. Waste Tactics (No Sewer Hookup)Extra RV-safe toilet paper & chemicals to control odor and slow breakdownBig black garbage bags for extra waste, and a plan to dump somewhere after the tripFlush-less options: Encourage group use of Faire facilities if possible to protect tank levels3. Comfort and Convenience ExtrasExtendable RV sewer hose, even if you're only using it to minimize splashes when you dump afterwardSurge protector and adapter (30-amp or 50-amp, depending on campsite)Bedding extras: Even though sheets are included, bring extra blankets or throw pillows for evening campfire comfortOutdoor rug and weatherproof mats to keep dust, sand, or dirt out of the RVFire extinguisher, just in case (often not included but essential with cooking and firepit use)Tool kit, duct tape, bungee cords, and zip ties – life-savers for quick fixesBug spray and citronella candles, especially for evenings outdoorsBattery backups or power banks, in case the RV’s converter is taxed by six people charging devices4. Health & SafetyFirst-aid kit (if not already in “bathroom essentials” pack)Backup sanitation supplies: gloves, disinfectant spray, wet wipes, hand sanitizer5. Nighttime and LightingExtra lanterns or battery-powered lights—especially outside the RV for safety at nightExtension cords—for powering more than just the RV (lights, speaker setup, decor)"
+        }
+      ]
+    },
+    {
+      "top": 99999,
+      "maxTop": 99999,
+      "items": [
+        {
+          "type": "button",
+          "top": 99999,
+          "left": 0,
+          "text": "Put me on the list!",
+          "href": ""
+        }
+      ]
+    }
+  ],
+  "sellsword": [
+    {
+      "top": 40,
+      "maxTop": 344,
+      "items": [
+        {
+          "type": "text",
+          "top": 40,
+          "left": 0,
+          "text": "Comprehensive Security SolutionsAdapting to your diverse operational security needs with skilled manpower and expertise."
+        },
+        {
+          "type": "image",
+          "top": 59,
+          "left": 72,
+          "local": {
+            "file": "019.png",
+            "size": 939409
+          },
+          "alt": ""
+        },
+        {
+          "type": "button",
+          "top": 64,
+          "left": 144,
+          "text": "Guild",
+          "href": "/guild"
+        },
+        {
+          "type": "button",
+          "top": 64,
+          "left": 267,
+          "text": "Great Hall",
+          "href": "/"
+        },
+        {
+          "type": "text",
+          "top": 70,
+          "left": 0,
+          "text": "Guild House of Card and Coin"
+        },
+        {
+          "type": "text",
+          "top": 101,
+          "left": 515,
+          "text": "Mercenaries"
+        },
+        {
+          "type": "text",
+          "top": 120,
+          "left": 103,
+          "text": "We thrive on the unexpected, celebrate cleverness, and understand that the most memorable experiences often lie just off the beaten path. Come, share a moment with us. You might be surprised by what you discover."
+        },
+        {
+          "type": "text",
+          "top": 130,
+          "left": 515,
+          "text": "SellSword"
+        },
+        {
+          "type": "image",
+          "top": 131,
+          "left": 385,
+          "local": null,
+          "alt": ""
+        },
+        {
+          "type": "text",
+          "top": 176,
+          "left": 0,
+          "text": "Where Fortunes Shift, Destinies Unfurl, and Every Bargain Has Its Price."
+        },
+        {
+          "type": "image",
+          "top": 176,
+          "left": 235,
+          "local": null,
+          "alt": ""
+        },
+        {
+          "type": "text",
+          "top": 179,
+          "left": 515,
+          "text": "Readers"
+        },
+        {
+          "type": "text",
+          "top": 184,
+          "left": 103,
+          "text": "Sellsword"
+        },
+        {
+          "type": "text",
+          "top": 184,
+          "left": 721,
+          "text": "Reinforcement for HoldingsBattle-Hardened Skill: Each member of our company carries the wisdom of the road and the scars of past conflicts. We understand tactics, terrain, and the fickle nature of fortune in a fight."
+        },
+        {
+          "type": "image",
+          "top": 185,
+          "left": 0,
+          "local": {
+            "file": "018.png",
+            "size": 983277
+          },
+          "alt": ""
+        },
+        {
+          "type": "text",
+          "top": 203,
+          "left": 515,
+          "text": "Dealers"
+        },
+        {
+          "type": "image",
+          "top": 225,
+          "left": 70,
+          "local": null,
+          "alt": ""
+        },
+        {
+          "type": "image",
+          "top": 225,
+          "left": 70,
+          "local": null,
+          "alt": ""
+        },
+        {
+          "type": "image",
+          "top": 225,
+          "left": 333,
+          "local": null,
+          "alt": ""
+        },
+        {
+          "type": "image",
+          "top": 225,
+          "left": 927,
+          "local": {
+            "file": "015.jpg",
+            "size": 651381
+          },
+          "alt": ""
+        },
+        {
+          "type": "text",
+          "top": 259,
+          "left": 515,
+          "text": "Brokers"
+        },
+        {
+          "type": "text",
+          "top": 264,
+          "left": 0,
+          "text": "Contractual Integrity: When a bargain is struck, we honor it. Your objectives become our objectives, pursued with diligence until the terms are met. Discretion and reliability are cornerstones of our reputation."
+        },
+        {
+          "type": "text",
+          "top": 276,
+          "left": 0,
+          "text": "houseofcardandcoin@gmail.com"
+        },
+        {
+          "type": "text",
+          "top": 283,
+          "left": 515,
+          "text": "TradeRs"
+        },
+        {
+          "type": "text",
+          "top": 344,
+          "left": 721,
+          "text": "Discreet Removal ServicesUnwavering Composure: Panic has no place in our ranks. We meet adversity with a steady hand and a clear head, ensuring disciplined action even amid chaos."
+        }
+      ]
+    },
+    {
+      "top": 510,
+      "maxTop": 510,
+      "items": [
+        {
+          "type": "text",
+          "top": 510,
+          "left": 721,
+          "text": "Tailored Guard ServicesAdaptable Force: From disciplined shield walls to swift flanking maneuvers, scouting dangerous territories to holding vital points, our collective experience allows us to tackle a wide array of martial challenges."
+        }
+      ]
+    },
+    {
+      "top": 99999,
+      "maxTop": 99999,
+      "items": [
+        {
+          "type": "button",
+          "top": 99999,
+          "left": 0,
+          "text": "Put me on the list!",
+          "href": ""
+        }
+      ]
+    }
+  ],
+  "ranks": [
+    {
+      "top": 40,
+      "maxTop": 320,
+      "items": [
+        {
+          "type": "text",
+          "top": 40,
+          "left": 255,
+          "text": "Do Quests Move up in RankBecome Our Next of Kin!"
+        },
+        {
+          "type": "image",
+          "top": 59,
+          "left": 72,
+          "local": {
+            "file": "019.png",
+            "size": 939409
+          },
+          "alt": ""
+        },
+        {
+          "type": "image",
+          "top": 59,
+          "left": 72,
+          "local": {
+            "file": "019.png",
+            "size": 939409
+          },
+          "alt": ""
+        },
+        {
+          "type": "button",
+          "top": 64,
+          "left": 144,
+          "text": "Guild",
+          "href": "/guild"
+        },
+        {
+          "type": "button",
+          "top": 64,
+          "left": 267,
+          "text": "Great Hall",
+          "href": "/"
+        },
+        {
+          "type": "text",
+          "top": 70,
+          "left": 0,
+          "text": "Guild House of Card and Coin"
+        },
+        {
+          "type": "text",
+          "top": 101,
+          "left": 515,
+          "text": "Mercenaries"
+        },
+        {
+          "type": "text",
+          "top": 130,
+          "left": 515,
+          "text": "SellSword"
+        },
+        {
+          "type": "text",
+          "top": 176,
+          "left": 0,
+          "text": "Where Fortunes Shift, Destinies Unfurl, and Every Bargain Has Its Price."
+        },
+        {
+          "type": "text",
+          "top": 179,
+          "left": 515,
+          "text": "Readers"
+        },
+        {
+          "type": "text",
+          "top": 203,
+          "left": 515,
+          "text": "Dealers"
+        },
+        {
+          "type": "text",
+          "top": 259,
+          "left": 515,
+          "text": "Brokers"
+        },
+        {
+          "type": "text",
+          "top": 276,
+          "left": 0,
+          "text": "houseofcardandcoin@gmail.com"
+        },
+        {
+          "type": "text",
+          "top": 283,
+          "left": 515,
+          "text": "TradeRs"
+        },
+        {
+          "type": "image",
+          "top": 320,
+          "left": 307,
+          "local": null,
+          "alt": ""
+        }
+      ]
+    },
+    {
+      "top": 699,
+      "maxTop": 699,
+      "items": [
+        {
+          "type": "text",
+          "top": 699,
+          "left": 267,
+          "text": "⚜️ Guild Rank Paths ⚜️⚜️ All Hail the Guild Leader of The House, Sir Caberk, and those who follow! Below are the honored ranks within our esteemed guild. ⚜️🔔 The Town Cryer (Master of Voice, Mischief, and Mayhem)Voice of the House – Revered herald, speaker of lore and decree.🛡️ The Mercenaries and Sell Swords (Blade for coin, steel with flair)Silent Purse – Elite enforcer, speaks with steel, never words.Steel of Fortune – Recognized swordsman, defender of the House.Coinblade – Initiate sellsword. He has a weapon and questionable loyalty.🔮 The Readers (Weavers of fate and whisperers of secrets)Oracle of Coin – The House’s mystic authority. Visions guide the guild.Vault Seer – Keeper of lore, interpreter of strange omens.Card Caster – Initiate reader. He knows just enough to sound prophetic.🛍️ The Traders (Hustlers, barkers, and barter lords)Living Ledger – Master of all trades, debts, and deals. Nothing forgotten.Purse Twister – Skilled negotiator, manipulator of value and wit.Coincaller – Initiate merchant. You can sell a rock as a relic.🧮 The Brokers (Game-makers, quest-writers, and schemers)Card Architect – Creator of games, quests, and conquests.Questbinder – Storyteller and organizer of riddles and chaos.Tokenmaster – Initiate broker. He hands out quests and rarely explains them."
+        }
+      ]
+    },
+    {
+      "top": 99999,
+      "maxTop": 99999,
+      "items": [
+        {
+          "type": "button",
+          "top": 99999,
+          "left": 0,
+          "text": "Put me on the list!",
+          "href": ""
+        }
+      ]
+    }
+  ],
+  "events": [
+    {
+      "top": 12,
+      "maxTop": 502,
+      "items": [
+        {
+          "type": "text",
+          "top": 12,
+          "left": 0,
+          "text": "Scroll of Events"
+        },
+        {
+          "type": "image",
+          "top": 28,
+          "left": 515,
+          "local": {
+            "file": "016.jpg",
+            "size": 282874
+          },
+          "alt": ""
+        },
+        {
+          "type": "image",
+          "top": 28,
+          "left": 515,
+          "local": {
+            "file": "016.jpg",
+            "size": 282874
+          },
+          "alt": ""
+        },
+        {
+          "type": "text",
+          "top": 28,
+          "left": 618,
+          "text": "Guild Quest Kickoff"
+        },
+        {
+          "type": "image",
+          "top": 59,
+          "left": 72,
+          "local": {
+            "file": "019.png",
+            "size": 939409
+          },
+          "alt": ""
+        },
+        {
+          "type": "button",
+          "top": 64,
+          "left": 144,
+          "text": "Guild",
+          "href": "/guild"
+        },
+        {
+          "type": "button",
+          "top": 64,
+          "left": 267,
+          "text": "Great Hall",
+          "href": "/"
+        },
+        {
+          "type": "text",
+          "top": 70,
+          "left": 0,
+          "text": "Guild House of Card and Coin"
+        },
+        {
+          "type": "text",
+          "top": 101,
+          "left": 515,
+          "text": "Mercenaries"
+        },
+        {
+          "type": "text",
+          "top": 112,
+          "left": 369,
+          "text": "Join us for quests, trading, and tales at the fair! Adventure awaits at our guild event."
+        },
+        {
+          "type": "text",
+          "top": 120,
+          "left": 0,
+          "text": "Guild Events"
+        },
+        {
+          "type": "image",
+          "top": 122,
+          "left": 0,
+          "local": {
+            "file": "012.png",
+            "size": 1260628
+          },
+          "alt": ""
+        },
+        {
+          "type": "text",
+          "top": 122,
+          "left": 618,
+          "text": "Friday, October 10🕙 Faire Hours: 10 a.m. – 10 p.m.1. Guild Quest Kickoff – 11:00 a.m.Stop by the Guild Tent to draw your first Quest Card! Easy challenges for all ages—deliver a secret message, retrieve a bizarre item, or speak in rhymes to a merchant.🏅Complete quests to earn rank sigils and small prizes.2. Trick or Trade – 2:00 p.m.Bring us any odd item, shiny rock, bad poem, or useless bauble. Guild traders will offer ridiculous deals in return.💰 Barter only! No real coin needed.3. Campfire Tales & Card Draw – 7:00 p.m.Join the guild by firelight for a round of storytelling and fortune card draws. Each card grants a small quest or curious blessing.🃏 Bonus: A secret “Curse Card” is in the deck…"
+        },
+        {
+          "type": "text",
+          "top": 130,
+          "left": 515,
+          "text": "SellSword"
+        },
+        {
+          "type": "text",
+          "top": 176,
+          "left": 0,
+          "text": "Where Fortunes Shift, Destinies Unfurl, and Every Bargain Has Its Price."
+        },
+        {
+          "type": "text",
+          "top": 179,
+          "left": 515,
+          "text": "Readers"
+        },
+        {
+          "type": "text",
+          "top": 184,
+          "left": 0,
+          "text": "Aye, noble members and guildmates of the House of Card and Coin, here is your Guild Event Schedule for the three glorious days of revelry, riddles, and righteous chaos at the Ren Faire. Each day includes three fitting events steeped in the spirit of trade, trickery, and theatrical bravado, with quest prizes and rank rewards woven throughout."
+        },
+        {
+          "type": "text",
+          "top": 203,
+          "left": 515,
+          "text": "Dealers"
+        },
+        {
+          "type": "text",
+          "top": 259,
+          "left": 515,
+          "text": "Brokers"
+        },
+        {
+          "type": "text",
+          "top": 276,
+          "left": 0,
+          "text": "houseofcardandcoin@gmail.com"
+        },
+        {
+          "type": "text",
+          "top": 283,
+          "left": 515,
+          "text": "TradeRs"
+        },
+        {
+          "type": "text",
+          "top": 376,
+          "left": 0,
+          "text": "Location"
+        },
+        {
+          "type": "text",
+          "top": 397,
+          "left": 0,
+          "text": "Renaissance Festival, Sunset Park 2601 E. Sunset Rd.Las Vegas, NV, 89120"
+        },
+        {
+          "type": "text",
+          "top": 481,
+          "left": 0,
+          "text": "Hours"
+        },
+        {
+          "type": "text",
+          "top": 502,
+          "left": 0,
+          "text": "Friday, October 10: 10 a.m.–10 p.m. Saturday, October 11: 10 a.m.–10 p.m. Sunday, October 12: 10 a.m.–5 p.m."
+        }
+      ]
+    },
+    {
+      "top": 746,
+      "maxTop": 782,
+      "items": [
+        {
+          "type": "image",
+          "top": 746,
+          "left": 0,
+          "local": {
+            "file": "013.png",
+            "size": 2562385
+          },
+          "alt": ""
+        },
+        {
+          "type": "text",
+          "top": 782,
+          "left": 618,
+          "text": "Saturday, October 11🕙 Faire Hours: 10 a.m. – 10 p.m.1. Fool’s Errand Scavenger Hunt – 11:30 a.m.Pick up your Errand Scroll from the guild tent. Tasks include:Find a noble and get their “blessing.”Mimic a bardTrade a joke for a trinket🏅Return your completed list to claim a prize and a rank ribbon.2. Guild Trials: Rock, Scroll, Sword – 3:00 p.m.Compete in our silly medieval twist on rock-paper-scissors. The winner of the mini-tournament gets a token of guild honor and a loud public cheer.3. The Masked Mischief Walk – 6:30 p.m.Throw on a cloak or mask, stay anonymous, and act suspiciously fancy or foolish. A roaming judge will award the most convincingly mysterious guest with a secret quest."
+        }
+      ]
+    },
+    {
+      "top": 1400,
+      "maxTop": 1426,
+      "items": [
+        {
+          "type": "image",
+          "top": 1400,
+          "left": 0,
+          "local": {
+            "file": "022.png",
+            "size": 3071823
+          },
+          "alt": ""
+        },
+        {
+          "type": "text",
+          "top": 1426,
+          "left": 618,
+          "text": "Sunday, October 12🕙 Faire Hours: 10 a.m. – 5 p.m.1. One Last Quest – 11:00 a.m.Final chance to draw a quest, level up your guild rank, or earn your spot in the House’s inner circle. Limited edition rank tags will be given.2. Court of Coin (Mini Roleplay Skits) – 1:00 p.m.Guildies and guests may bring “cases” to the Court:“He stole my turkey leg,” “She hexed my dice,” etc.Judged by the “Blind Justice of the House.”🎭 Fun, fast, and full of dramatic nonsense.3. 🔥 The Roast of the Town Cryer – 4:00 p.m.Captured and bound (lightly), our beloved Fool faces comedic judgment from the crowd. Step up and hurl your best jests, barbs, and roasts.🏆 Funniest roast wins the Jester’s Purse and a high rank in the guild (if they survive)."
+        }
+      ]
+    },
+    {
+      "top": 99999,
+      "maxTop": 99999,
+      "items": [
+        {
+          "type": "button",
+          "top": 99999,
+          "left": 0,
+          "text": "Put me on the list!",
+          "href": ""
+        }
+      ]
+    }
+  ],
+  "cryer": [
+    {
+      "top": 24,
+      "maxTop": 283,
+      "items": [
+        {
+          "type": "text",
+          "top": 24,
+          "left": 309,
+          "text": "Town Cryer"
+        },
+        {
+          "type": "image",
+          "top": 59,
+          "left": 72,
+          "local": {
+            "file": "019.png",
+            "size": 939409
+          },
+          "alt": ""
+        },
+        {
+          "type": "image",
+          "top": 59,
+          "left": 72,
+          "local": {
+            "file": "019.png",
+            "size": 939409
+          },
+          "alt": ""
+        },
+        {
+          "type": "button",
+          "top": 64,
+          "left": 144,
+          "text": "Guild",
+          "href": "/guild"
+        },
+        {
+          "type": "button",
+          "top": 64,
+          "left": 267,
+          "text": "Great Hall",
+          "href": "/"
+        },
+        {
+          "type": "text",
+          "top": 70,
+          "left": 0,
+          "text": "Guild House of Card and Coin"
+        },
+        {
+          "type": "text",
+          "top": 101,
+          "left": 515,
+          "text": "Mercenaries"
+        },
+        {
+          "type": "text",
+          "top": 130,
+          "left": 515,
+          "text": "SellSword"
+        },
+        {
+          "type": "text",
+          "top": 176,
+          "left": 0,
+          "text": "Where Fortunes Shift, Destinies Unfurl, and Every Bargain Has Its Price."
+        },
+        {
+          "type": "text",
+          "top": 179,
+          "left": 515,
+          "text": "Readers"
+        },
+        {
+          "type": "text",
+          "top": 203,
+          "left": 515,
+          "text": "Dealers"
+        },
+        {
+          "type": "text",
+          "top": 259,
+          "left": 515,
+          "text": "Brokers"
+        },
+        {
+          "type": "text",
+          "top": 276,
+          "left": 0,
+          "text": "houseofcardandcoin@gmail.com"
+        },
+        {
+          "type": "text",
+          "top": 283,
+          "left": 515,
+          "text": "TradeRs"
+        }
+      ]
+    },
+    {
+      "top": 99999,
+      "maxTop": 99999,
+      "items": [
+        {
+          "type": "button",
+          "top": 99999,
+          "left": 0,
+          "text": "Put me on the list!",
+          "href": ""
+        }
+      ]
+    }
+  ],
+  "wanted": [
+    {
+      "top": 0,
+      "maxTop": 283,
+      "items": [
+        {
+          "type": "text",
+          "top": 0,
+          "left": 309,
+          "text": "Wanted Board"
+        },
+        {
+          "type": "image",
+          "top": 59,
+          "left": 72,
+          "local": {
+            "file": "019.png",
+            "size": 939409
+          },
+          "alt": ""
+        },
+        {
+          "type": "image",
+          "top": 59,
+          "left": 72,
+          "local": {
+            "file": "019.png",
+            "size": 939409
+          },
+          "alt": ""
+        },
+        {
+          "type": "button",
+          "top": 64,
+          "left": 144,
+          "text": "Guild",
+          "href": "/guild"
+        },
+        {
+          "type": "button",
+          "top": 64,
+          "left": 267,
+          "text": "Great Hall",
+          "href": "/"
+        },
+        {
+          "type": "text",
+          "top": 70,
+          "left": 0,
+          "text": "Guild House of Card and Coin"
+        },
+        {
+          "type": "text",
+          "top": 101,
+          "left": 515,
+          "text": "Mercenaries"
+        },
+        {
+          "type": "text",
+          "top": 104,
+          "left": 243,
+          "text": "Hark, good gentles and fair ladies! A call goes forth!"
+        },
+        {
+          "type": "text",
+          "top": 130,
+          "left": 515,
+          "text": "SellSword"
+        },
+        {
+          "type": "text",
+          "top": 176,
+          "left": 0,
+          "text": "Where Fortunes Shift, Destinies Unfurl, and Every Bargain Has Its Price."
+        },
+        {
+          "type": "text",
+          "top": 179,
+          "left": 515,
+          "text": "Readers"
+        },
+        {
+          "type": "text",
+          "top": 203,
+          "left": 515,
+          "text": "Dealers"
+        },
+        {
+          "type": "text",
+          "top": 259,
+          "left": 515,
+          "text": "Brokers"
+        },
+        {
+          "type": "text",
+          "top": 276,
+          "left": 0,
+          "text": "houseofcardandcoin@gmail.com"
+        },
+        {
+          "type": "text",
+          "top": 283,
+          "left": 515,
+          "text": "TradeRs"
+        }
+      ]
+    },
+    {
+      "top": 99999,
+      "maxTop": 99999,
+      "items": [
+        {
+          "type": "button",
+          "top": 99999,
+          "left": 0,
+          "text": "Put me on the list!",
+          "href": ""
+        }
+      ]
+    }
+  ],
+  "pigeon": [
+    {
+      "top": 59,
+      "maxTop": 404,
+      "items": [
+        {
+          "type": "image",
+          "top": 59,
+          "left": 72,
+          "local": {
+            "file": "019.png",
+            "size": 939409
+          },
+          "alt": ""
+        },
+        {
+          "type": "image",
+          "top": 59,
+          "left": 72,
+          "local": {
+            "file": "019.png",
+            "size": 939409
+          },
+          "alt": ""
+        },
+        {
+          "type": "button",
+          "top": 64,
+          "left": 144,
+          "text": "Guild",
+          "href": "/guild"
+        },
+        {
+          "type": "button",
+          "top": 64,
+          "left": 267,
+          "text": "Great Hall",
+          "href": "/"
+        },
+        {
+          "type": "text",
+          "top": 70,
+          "left": 0,
+          "text": "Guild House of Card and Coin"
+        },
+        {
+          "type": "text",
+          "top": 101,
+          "left": 515,
+          "text": "Mercenaries"
+        },
+        {
+          "type": "text",
+          "top": 130,
+          "left": 515,
+          "text": "SellSword"
+        },
+        {
+          "type": "text",
+          "top": 176,
+          "left": 0,
+          "text": "Where Fortunes Shift, Destinies Unfurl, and Every Bargain Has Its Price."
+        },
+        {
+          "type": "text",
+          "top": 179,
+          "left": 515,
+          "text": "Readers"
+        },
+        {
+          "type": "text",
+          "top": 203,
+          "left": 515,
+          "text": "Dealers"
+        },
+        {
+          "type": "text",
+          "top": 259,
+          "left": 515,
+          "text": "Brokers"
+        },
+        {
+          "type": "text",
+          "top": 276,
+          "left": 0,
+          "text": "houseofcardandcoin@gmail.com"
+        },
+        {
+          "type": "text",
+          "top": 283,
+          "left": 515,
+          "text": "TradeRs"
+        },
+        {
+          "type": "image",
+          "top": 404,
+          "left": 721,
+          "local": {
+            "file": "017.png",
+            "size": 804085
+          },
+          "alt": ""
+        }
+      ]
+    },
+    {
+      "top": 824,
+      "maxTop": 824,
+      "items": [
+        {
+          "type": "text",
+          "top": 824,
+          "left": 0,
+          "text": "Carrier Pigeon"
+        }
+      ]
+    },
+    {
+      "top": 99999,
+      "maxTop": 99999,
+      "items": [
+        {
+          "type": "button",
+          "top": 99999,
+          "left": 0,
+          "text": "Send your Pigeon!",
+          "href": ""
+        },
+        {
+          "type": "button",
+          "top": 99999,
+          "left": 0,
+          "text": "Put me on the list!",
+          "href": ""
+        }
+      ]
+    }
+  ]
+}
