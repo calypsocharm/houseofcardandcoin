@@ -92,12 +92,12 @@ fs.writeFileSync(path.join(ROOT,"sellsword.html"),sellsword);
 
 // ---------- RANKS ----------
 const ranks=`${head("/ranks.html")}
-<section class="pagehero"><div class="pagehero__bg" style="background-image:url('${I}007.jpg')"></div><div class="container pagehero__inner"><span class="eyebrow">Guild Rank Paths</span><h1>From Pledgeling to Elder</h1><p>All hail the Guild Leader, Sir Caberk, and the Guild Elder, Mama Bear. Your rank rises with the faires you've camped with the House.</p></div></section>
-<section class="section"><div class="container"><div class="bannerhead"><span class="eyebrow">? Guild Rank Paths ?</span><h2>From Pledgeling to Elder</h2><div class="rule"></div></div>
-<p class="lead center" style="margin-bottom:40px">All hail the Guild Leader, <b>Sir Caberk</b>, and the Guild Elder, <b>Mama Bear</b>. Your rank rises with the number of faires you've camped with the House � from Pledgeling to Elder.</p>
+<section class="pagehero"><div class="pagehero__bg" style="background-image:url('${I}007.jpg')"></div><div class="container pagehero__inner"><span class="eyebrow">Guild Rank Paths</span><h1>From Pledge to Elder</h1><p>All hail the Guild Leader, Sir Caberk, and the Guild Elder, Mama Bear. Your rank rises with the faires you've camped with the House.</p></div></section>
+<section class="section"><div class="container"><div class="bannerhead"><span class="eyebrow">? Guild Rank Paths ?</span><h2>From Pledge to Elder</h2><div class="rule"></div></div>
+<p class="lead center" style="margin-bottom:40px">All hail the Guild Leader, <b>Sir Caberk</b>, and the Guild Elder, <b>Mama Bear</b>. Your rank rises with the number of faires you've camped with the House. Anyone may sign up as a <b>Pledge</b>; the Guild Leader welcomes pledges into the House.</p>
 <div class="grid grid--4">
-<div class="rank"><h4>1 � Pledgeling</h4><p>0 faires � newly sworn to the House, yet to camp your first faire.</p></div>
-<div class="rank"><h4>2 � Guildmate</h4><p>1+ faire � a Sir or Lady of the guild; you've camped with the House.</p></div>
+<div class="rank"><h4>1 � Pledge</h4><p>Signed up, awaiting the Guild Leader’s welcome into the House.</p></div>
+<div class="rank"><h4>2 � Guildmate</h4><p>Accepted and sworn to the House � a Sir or Lady of the guild.</p></div>
 <div class="rank"><h4>3 � Veteran</h4><p>3+ faires � a seasoned hand around the campfire.</p></div>
 <div class="rank"><h4>4 � Elder</h4><p>6+ faires � a keeper of the House's tales and traditions.</p></div>
 </div></div></section>
