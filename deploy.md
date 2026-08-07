@@ -329,15 +329,37 @@ The security-relevant ones:
 5. **No CSRF protection** on the login/register/board POST routes — worth
    reviewing given the app has real auth and public posting.
 
-Non-security, highest-impact first:
+✅ **Fixed and deployed 2026-08-07:**
 
-6. **Mobile navigation is unreachable** on every phone — `.brand` has
-   `flex-shrink:0`, pushing the hamburger off-screen while the nav links are
-   hidden. 4-line CSS fix in `AUDIT.md` §P1.
-7. **`assets/css/style.css` is 442 KB and 93% duplicate** — the base stylesheet
-   is emitted 16× by `build.js`. Deduplicating gives ~30 KB.
-8. **No gzip and `Cache-Control: max-age=0`** on all static assets.
-9. **`og:image` tags use relative paths** — every shared link previews without an
-   image.
-10. **No `robots.txt`, `sitemap.xml`, or canonical tags**, and `www` serves a full
-    duplicate of the site instead of redirecting to the apex.
+6. **Mobile navigation** — `.brand{flex-shrink:0}` pushed the hamburger to x=450,
+   off-screen on every phone, while `.nav-links` stayed hidden below 980px. A
+   `@media (max-width:479px)` block at the end of `style.css` lets the brand
+   shrink and drops its tagline. Verified reachable at 320–479px.
+7. **gzip** — `gzip on` was set globally but `gzip_proxied` was commented out,
+   and everything here is proxied to Express, so only HTML was compressed.
+   Now set in the `hocc` server block: **style.css 443 KB → 11.8 KB (97.3%)**.
+8. **Caching** — was `max-age=0` on everything. Now 30 days for media, 1 day for
+   css/js. Deliberately not a year: filenames aren't fingerprinted, so a long
+   TTL would strand edits.
+9. **`og:image`** — was root-relative, so every shared link previewed blank.
+   Absolute now, on the static pages and in `_top.ejs`, which also gained the
+   missing `twitter:title`/`description`/`image`.
+10. **`robots.txt`, `sitemap.xml`, canonical tags** — all added; `www` now 301s
+    to the apex instead of serving a duplicate site.
+11. **Security headers** — HSTS, `nosniff`, `X-Frame-Options`, `Referrer-Policy`.
+12. **`&amp;amp;`** on the homepage — rendered as a literal `&amp;`; fixed.
+
+Still open:
+
+13. **`style.css` is 93% duplicate text** — the base stylesheet appears 16× in
+    the file (29.5 KB unique of 443 KB). gzip hides most of the cost now, but
+    deduplicating is still the right fix.
+14. **4.2 MB of video on the homepage** (`vid.mp4` + `vid-space.mp4`). Worth
+    `preload="none"` with a poster, or a static hero below 768px.
+15. **No CSRF protection** on the login/register/board POST routes.
+16. `X-Powered-By: Express` still exposed — `app.disable('x-powered-by')`.
+
+> **nginx note:** the `hocc` server block now carries gzip, caching and security
+> headers, and there is a separate `www` → apex redirect server. Config backed up
+> to `/root/hocc-nginx.bak-*` before the change. The other eight sites on the box
+> share `nginx.conf` but not this file — the changes are scoped here.
