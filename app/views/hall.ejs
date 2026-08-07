@@ -1,5 +1,37 @@
 <%- include('_top',{title:'Guild Hall',u:u}) %>
 <% if(typeof err!=="undefined"&&err){ %><div class="container" style="max-width:600px;margin:90px auto 0"><div class="scroll" style="border-color:var(--wine);color:var(--wine)"><%= err %></div></div><% } %>
+<% if(typeof q!=="undefined" && q.new && u.pledge){ %>
+<section class="section" style="padding-top:118px;padding-bottom:0"><div class="container" style="max-width:720px">
+  <div class="pledgewelcome">
+    <span class="pledgewelcome__mark">✦</span>
+    <h2>Welcome to the House, <%= u.name %></h2>
+    <p class="pledgewelcome__lead">Your account is made. You stand as a <b>Pledge</b> — one step from the fire.</p>
+    <div class="pledgewelcome__cols">
+      <div>
+        <h4>What you can do now</h4>
+        <ul>
+          <li>Talk in the Tavern and put questions to the House</li>
+          <li>Take a card each night toward your hand for the faire</li>
+          <li>Claim items off the camp bring-list</li>
+          <li>Set your name, your face and your class below</li>
+        </ul>
+      </div>
+      <div>
+        <h4>What comes when you're accepted</h4>
+        <ul>
+          <li>A camp bunk of your own for the nights you'll stay</li>
+          <li>Your rank on the public guild roster</li>
+          <li>The run of the House</li>
+        </ul>
+      </div>
+    </div>
+    <p class="pledgewelcome__foot"><b>The Guild Leader accepts pledges by hand.</b>
+      You don't need to do anything or ask anyone — sign in whenever you like, and the moment
+      you're accepted a <span class="pledgewelcome__pip">✦ new</span> mark appears in the bar at the
+      top of every page telling you so.</p>
+  </div>
+</div></section>
+<% } %>
 <section class="section section--parch2" style="padding-top:120px"><div class="container"><div class="bannerhead"><span class="eyebrow">Guild Hall</span><h2>Welcome, <%= u.name %></h2><div class="rule"></div></div>
 <div style="display:flex;gap:18px;align-items:center;flex-wrap:wrap;justify-content:center"><% if(u.avatar){ %><img src="<%= u.avatar %>" style="width:96px;height:96px;border-radius:50%;border:3px solid var(--gold);object-fit:cover"><% } else { %><div class="member" style="padding:0;background:transparent;border:0;box-shadow:none"><div class="avatar"><%= u.name.slice(0,2).toUpperCase() %></div></div><% } %><div style="text-align:center"><div style="font-family:var(--display);font-size:1.2rem;color:var(--wine)"><%= rank %></div><div class="muted"><% if(u.class){ %>Class: <b><%= u.class %></b> &middot; <% } %>Faires with the guild: <b><%= u.faires %></b></div></div></div>
 </div></section>

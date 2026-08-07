@@ -168,7 +168,9 @@ app.post('/members/register',up.single('avatar'),shrinkAvatar,(req,res)=>{const{
   // Signing up does not make you a guildmate — you join as a Pledge until the
   // Guild Leader promotes you. The very first account is the leader, not a pledge.
   const u={id:nid(),name:display,email:String(email).toLowerCase().trim(),passhash:bcrypt.hashSync(password,10),avatar:req.file?('/uploads/'+req.file.filename):'',class:'',faires:0,role:first?'leader':'member',pledge:!first};
-  db.users.push(u);save();req.session.uid=u.id;res.redirect('/members');});
+  db.users.push(u);save();req.session.uid=u.id;// A new pledge lands on a page that explains what a pledge is and what
+  // happens next, rather than being dropped into the Hall unexplained.
+  res.redirect(first?'/members':'/members?new=1');});
 app.post('/members/login',(req,res)=>{const{email,password}=req.body;const u=db.users.find(x=>x.email===email.toLowerCase());
   if(!u||!bcrypt.compareSync(password,u.passhash))return res.redirect('/members/login?e='+encodeURIComponent('Bad email or password'));
   req.session.uid=u.id;res.redirect('/members');});

@@ -3240,3 +3240,40 @@ main:focus{outline:none}
   padding:5px 11px;border-radius:11px;background:var(--wine);color:#f8e9cc;
   border:1px solid var(--wine-l);text-decoration:none}
 .newsbell:hover{background:var(--wine-l);color:#fff}
+
+/* ── The welcome a new Pledge lands on ────────────────────────────────────
+   Registering used to drop you in the Guild Hall with no explanation of what
+   a Pledge is or what happens next. This says both, and sets the expectation
+   that acceptance arrives here rather than by email. */
+.pledgewelcome{
+  position:relative;background:var(--ivory);border:1px solid var(--line2);
+  border-top:3px solid var(--wine);border-radius:3px;
+  padding:30px 30px 26px;box-shadow:0 22px 44px -34px rgba(60,40,15,.85);
+}
+.pledgewelcome__mark{
+  position:absolute;top:-15px;left:50%;transform:translateX(-50%);
+  width:30px;height:30px;border-radius:50%;display:grid;place-items:center;
+  background:var(--wine);color:var(--gold-l);font-size:.8rem;
+  box-shadow:0 0 0 4px var(--ivory);
+}
+.pledgewelcome h2{margin:6px 0 4px;font-size:clamp(1.3rem,3.2vw,1.7rem);text-align:center}
+.pledgewelcome__lead{margin:0 0 20px;text-align:center;color:var(--ink2);font-size:1.02rem}
+.pledgewelcome__lead b{color:var(--wine)}
+.pledgewelcome__cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:22px}
+.pledgewelcome h4{
+  font-family:var(--display);text-transform:uppercase;letter-spacing:.11em;
+  font-size:.62rem;color:var(--gold-d);margin:0 0 8px;
+}
+.pledgewelcome ul{margin:0;padding-left:18px;font-size:.94rem;line-height:1.65;color:var(--ink2)}
+.pledgewelcome li{margin-bottom:3px}
+.pledgewelcome__foot{
+  margin:22px 0 0;padding-top:16px;border-top:1px solid var(--line);
+  font-size:.94rem;color:var(--ink2);line-height:1.6;
+}
+.pledgewelcome__foot b{color:var(--wine)}
+.pledgewelcome__pip{
+  display:inline-block;background:var(--wine);color:#f8e9cc;border-radius:10px;
+  padding:1px 8px;font-family:var(--display);text-transform:uppercase;
+  letter-spacing:.1em;font-size:.55rem;vertical-align:1px;
+}
+@media (max-width:560px){ .pledgewelcome{padding:26px 20px 22px} }
