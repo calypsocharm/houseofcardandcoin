@@ -23,6 +23,12 @@ app.use('/assets',express.static(path.join(__dirname,'..','assets')));
 app.use('/uploads',express.static(path.join(__dirname,'uploads')));
 app.get('/guild.html',(req,res)=>{const members=db.users.map(function(m){const bunks=db.bunks.filter(function(b){return b.userId===m.id;}).sort(function(a,b){return a.night<b.night?-1:1;}).map(function(b){return b.night+' \u00b7 Bunk '+b.bunk;});return{name:m.name,avatar:m.avatar,class:m.class,rank:rank(m),faires:m.faires||0,title:m.title||'',role:m.role||'',rsvp:!!m.rsvp,bunks:bunks};}).sort(function(a,b){const k=function(x){if(x.title==='Guild Leader')return 0;if(x.role==='leader'||x.title==='Guild Elder')return 1;return 2;};const ka=k(a),kb=k(b);if(ka!==kb)return ka-kb;return (b.faires||0)-(a.faires||0);});const bunkBoard=NIGHTS.map(function(n){return{night:n,bunks:BUNKS.map(function(b){const o=db.bunks.find(function(x){return x.night===n&&x.bunk===b;});return{bunk:b,taken:!!o,who:o?db.users.find(function(y){return y.id===o.userId;}):null};})};});res.render('guild',{members:members,bunkBoard:bunkBoard,comingCount:db.users.filter(function(x){return x.rsvp;}).length});});
 app.post('/pigeon',async(req,res)=>{const{Name,Email,Reason,Message}=req.body||{};const ep=process.env.FORMSPREE_ENDPOINT;if(!ep){console.log('FORMSPREE_ENDPOINT not set; pigeon dropped');return res.redirect('/pigeon.html?e=1');}try{const r=await fetch(ep,{method:'POST',headers:{'Content-Type':'application/json','Accept':'application/json'},body:JSON.stringify({Name:Name||'',Email:Email||'',Reason:Reason||'',Message:Message||'',_subject:'New pigeon — House of Card and Coin',_replyto:Email||''})});if(!r.ok)throw new Error('formspree '+r.status);res.redirect('/pigeon.html?sent=1');}catch(e){console.log('pigeon forward error',e.message);res.redirect('/pigeon.html?e=1');}});
+// The static mount below is rooted at /var/www/hocc, which also contains app/ and
+// content/. Without this guard, /app/data/guild.json (every member's record and
+// bcrypt hash), /app/server.js, /app/seed.js, and the build scripts are all
+// publicly downloadable. Block them before static gets a chance to serve them.
+const BLOCKED=/^\/(app|content)(\/|$)|^\/(build|serve)\.js$|^\/\./i;
+app.use((req,res,next)=>BLOCKED.test(req.path)?res.status(404).send('Not found'):next());
 app.use(express.static(path.join(__dirname,'..'))); // marketing site (index.html etc.)
 const up=multer({dest:path.join(__dirname,'uploads'),limits:{fileSize:25e6}});
 function au(req,res,next){if(req.session.uid)return next();res.redirect('/members/login');}
@@ -32,13 +38,21 @@ function cur(req){return db.users.find(x=>x.id===req.session.uid);}
 if(!db.items.length){[
 ['Extra camp chairs',6],['Firewood for the fire pit',8],['Period-accurate decor',4],['Cooler / ice',2],['Propane tanks',3],['String lights / lanterns',4],['Paper goods & utensils',2],['Trash bags',3],['Marshmallows & s\'more fixings',2],['BBQ grill / charcoal',1]
 ].forEach(x=>db.items.push({id:nid(),name:x[0],need:x[1]}));save();}
-app.get('/members/login',(req,res)=>res.render('login',{err:req.query.e||''}));
-app.post('/members/register',(req,res)=>{const{name,email,password,invite}=req.body;
-  if(invite!==INVITE)return res.redirect('/members/login?e='+encodeURIComponent('Wrong invite code'));
-  if(!name||!email||!password)return res.redirect('/members/login?e='+encodeURIComponent('All fields required'));
-  if(db.users.find(u=>u.email.toLowerCase()===email.toLowerCase()))return res.redirect('/members/login?e='+encodeURIComponent('Email already registered'));
+// Invite codes are compared loosely — trimmed, spaces stripped, case-insensitive.
+// Phone keyboards autocapitalise and add trailing spaces, which silently rejected
+// guildies who had typed the right code.
+const normCode=s=>String(s||'').replace(/[^a-z0-9]/gi,'').toUpperCase();
+app.get('/members/login',(req,res)=>res.render('login',{err:req.query.e||'',code:req.query.code||''}));
+// Share https://houseofcardandcoin.com/join?code=XXXX and the invite field is pre-filled.
+app.get('/join',(req,res)=>res.render('login',{err:req.query.e||'',code:req.query.code||''}));
+app.post('/members/register',up.single('avatar'),(req,res)=>{const{name,email,password,invite}=req.body;
+  // keep a valid code in the URL on failure so they don't have to re-enter it
+  const keep=normCode(invite)===normCode(INVITE)?'&code='+encodeURIComponent(invite):'';
+  if(normCode(invite)!==normCode(INVITE))return res.redirect('/members/login?e='+encodeURIComponent('That invite code was not recognised — ask the Guild Leader'));
+  if(!name||!email||!password)return res.redirect('/members/login?e='+encodeURIComponent('Name, username and password are all required')+keep);
+  if(db.users.find(u=>String(u.email||'').toLowerCase()===String(email).toLowerCase()))return res.redirect('/members/login?e='+encodeURIComponent('That username is already taken')+keep);
   const first=db.users.length===0;
-  const u={id:nid(),name,email:email.toLowerCase(),passhash:bcrypt.hashSync(password,10),avatar:'',class:'',faires:0,role:first?'leader':'member'};
+  const u={id:nid(),name,email:String(email).toLowerCase().trim(),passhash:bcrypt.hashSync(password,10),avatar:req.file?('/uploads/'+req.file.filename):'',class:'',faires:0,role:first?'leader':'member'};
   db.users.push(u);save();req.session.uid=u.id;res.redirect('/members');});
 app.post('/members/login',(req,res)=>{const{email,password}=req.body;const u=db.users.find(x=>x.email===email.toLowerCase());
   if(!u||!bcrypt.compareSync(password,u.passhash))return res.redirect('/members/login?e='+encodeURIComponent('Bad email or password'));
