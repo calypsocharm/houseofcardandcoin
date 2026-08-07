@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+Disallow: /members/
+Disallow: /app/
+Disallow: /content/
+
+Sitemap: https://houseofcardandcoin.com/sitemap.xml

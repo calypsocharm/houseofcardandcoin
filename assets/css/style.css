@@ -2805,3 +2805,15 @@ body.tavern-page .note__open{color:#5a4226}
 .whisper-msg .muted{font-size:.72rem;display:block;margin-top:4px}
 .whisper-msg--me{background:rgba(194,161,77,.18);border-color:var(--gold-d)}
 .whisper-btn{padding:6px 14px;font-size:.66rem;margin-top:12px}
+
+/* ── Mobile navigation fix ───────────────────────────────────────────────
+   .brand carried flex-shrink:0 at 360px wide inside a 319px content box, so
+   it overflowed and pushed .menu-toggle (margin-left:auto) out to x=414-450 —
+   off-screen on every phone. With .nav-links hidden below 980px, that left
+   phones with no way to navigate at all. Let the brand shrink and drop the
+   tagline on small screens so the hamburger stays reachable. */
+@media (max-width:479px){
+  .brand{flex-shrink:1;min-width:0}
+  .brand small{display:none}
+  .brand span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+}

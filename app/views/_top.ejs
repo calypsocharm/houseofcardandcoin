@@ -3,11 +3,24 @@
 <meta name="description" content="<%= typeof desc!=='undefined'?desc:'A Renaissance Faire guild of dealers, readers, brokers and sellswords — the House of Card and Coin at the Age of Chivalry Renaissance Festival, Las Vegas.' %>">
 <meta property="og:title" content="<%= typeof title!=='undefined'?title:'House of Card and Coin' %> — House of Card and Coin">
 <meta property="og:description" content="<%= typeof desc!=='undefined'?desc:'A Renaissance Faire guild of dealers, readers, brokers and sellswords.' %>">
-<meta property="og:image" content="<%= typeof image!=='undefined'?image:'/assets/img/000.jpg' %>">
-<meta property="og:url" content="<%= typeof url!=='undefined'?url:'https://houseofcardandcoin.com/' %>">
+<%
+  /* Open Graph requires ABSOLUTE image URLs — Facebook, Discord and iMessage
+     will not resolve a root-relative path, so shared links previewed blank. */
+  var _site='https://houseofcardandcoin.com';
+  var _img=(typeof image!=='undefined'&&image)?image:'/assets/img/000.jpg';
+  if(_img.charAt(0)==='/') _img=_site+_img;
+  var _ttl=(typeof title!=='undefined'?title:'House of Card and Coin')+' — House of Card and Coin';
+  var _dsc=(typeof desc!=='undefined'&&desc)?desc:'A Renaissance Faire guild of dealers, readers, brokers and sellswords.';
+%>
+<meta property="og:image" content="<%= _img %>">
+<meta property="og:url" content="<%= typeof url!=='undefined'?url:_site+'/' %>">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="House of Card and Coin">
 <meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="<%= _ttl %>">
+<meta name="twitter:description" content="<%= _dsc %>">
+<meta name="twitter:image" content="<%= _img %>">
+<link rel="canonical" href="<%= typeof url!=='undefined'?url:_site+'/' %>">
 <link rel="icon" href="/assets/img/019.png">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
