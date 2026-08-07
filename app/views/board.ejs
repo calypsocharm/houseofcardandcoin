@@ -92,16 +92,15 @@
         </div>
 
         <% if(hand.length>=5){ %>
-          <p class="muted">Your hand is dealt. Five-card stud — these are the cards you play.</p>
+          <p class="muted">That's your five. Bring them to the faire and see how they stack up.</p>
         <% } else if(ration.canDraw){ %>
           <div class="tav-ration">
             <form method="post" action="/board/ration">
               <button class="tav-draw" type="submit"><span>Take<br>tonight's<br>card</span></button>
             </form>
             <div>
-              <h4>Take another card</h4>
-              <p class="muted">One a night from your own deck — no card comes twice, and no card can be traded away.
-                <b><%= 5-hand.length %></b> more if you keep coming back.</p>
+              <h4>There's a card here for you</h4>
+              <p class="muted">One a night, just for stopping by. <b><%= 5-hand.length %></b> more to go if you keep turning up.</p>
             </div>
           </div>
         <% } else { %>
@@ -115,18 +114,17 @@
             <% if(handRank.short){ %><br><span class="muted">You hold <%= hand.length %>. Come back for the rest —
               a straight or a flush needs all five.</span><% } %></p>
         <% } else { %>
-          <p class="muted tav-prize-hint">Come back each night for a card. Whatever you have when the gates open is the hand you play.</p>
+          <p class="muted tav-prize-hint">Drop in each night and collect a card. Whatever you have when the gates open is what you play — no pressure.</p>
         <% } %>
       </div>
     <% } %>
 
     <!-- every hand on the table, best first -->
     <% if(tableHands.length){ %>
-      <div class="tav-mark"><span>♠ Hands on the Table</span></div>
+      <div class="tav-mark"><span>♠ What everyone's holding</span></div>
       <div class="tav-showdown">
-        <% tableHands.forEach(function(h,n){ %>
+        <% tableHands.forEach(function(h){ %>
           <div class="tav-showrow<%= (i && h.name===i.name)?' is-mine':'' %>">
-            <span class="tav-showpos"><%= n+1 %></span>
             <% if(h.avatar){ %><img class="tav-face tav-face--sm" src="<%= h.avatar %>" alt="<%= h.name %>">
             <% } else { %><span class="tav-face tav-face--sm"><%= h.name.slice(0,2).toUpperCase() %></span><% } %>
             <span class="tav-showname"><%= h.name %></span>
@@ -141,7 +139,7 @@
             <span class="tav-showrank"><%= h.rank ? h.rank.name : '—' %></span>
           </div>
         <% }); %>
-        <p class="tav-showfoot">Every card is dealt at random from that player's own deck, and no card can be traded. Whatever you hold when the gates open is what you show.</p>
+        <p class="tav-showfoot">A card a night for turning up, dealt blind from your own deck. No trading, no takebacks — bring whatever you have to the faire and we will see who got lucky.</p>
       </div>
     <% } %>
 
