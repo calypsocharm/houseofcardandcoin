@@ -376,3 +376,48 @@
   .pcard--tiny{width:22px;height:31px}
   .tav-showtile{padding:9px 10px}
 }
+
+/* ── The House's card back ────────────────────────────────────────────────
+   Her own damask (assets/img/damask-v4.jpg), cropped to card proportions.
+   Used for the deck you draw from and for the slots not yet dealt, so an
+   unfinished hand reads as face-down cards rather than empty boxes.      */
+.tav-draw{
+  background:
+    linear-gradient(rgba(20,10,4,.34),rgba(20,10,4,.34)),
+    url("/assets/img/card-back.jpg") center/cover no-repeat;
+  border:1px solid #8a6d2a;
+  box-shadow:0 1px 0 rgba(255,226,160,.28) inset, 0 8px 18px -10px rgba(0,0,0,.9);
+  position:relative;
+}
+.tav-draw span{
+  position:relative;z-index:2;
+  text-shadow:0 1px 3px #000, 0 0 10px rgba(0,0,0,.9);
+  color:#f6e4b6;
+}
+/* the thin gold rule a real card back carries */
+.tav-draw::before{
+  content:"";position:absolute;inset:5px;border:1px solid rgba(226,190,110,.45);
+  border-radius:3px;pointer-events:none;
+}
+.tav-draw:hover{box-shadow:0 0 22px -4px rgba(226,190,110,.6), 0 10px 20px -10px #000}
+.tav-draw.is-drawn{
+  background:linear-gradient(165deg,#f6ecd2,#dcc79a);
+  border-color:var(--gold);
+}
+.tav-draw.is-drawn::before{border-color:rgba(120,95,45,.45)}
+.tav-draw.is-drawn span{color:#3a2a14;text-shadow:none}
+
+/* cards still to come, face down */
+.pcard.is-empty{
+  background:
+    linear-gradient(rgba(20,10,4,.28),rgba(20,10,4,.28)),
+    url("/assets/img/card-back.jpg") center/cover no-repeat;
+  border:1px solid rgba(138,109,42,.75);
+  border-style:solid;
+  box-shadow:0 4px 10px -7px rgba(0,0,0,.8);
+  opacity:.72;
+}
+.pcard.is-empty::after{
+  content:"";position:absolute;inset:3px;border:1px solid rgba(226,190,110,.3);border-radius:3px;
+}
+.pcard--tiny.is-empty::after{inset:2px}
