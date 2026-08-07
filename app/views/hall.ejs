@@ -20,9 +20,28 @@
 <p class="lead center">Three bunks, three nights. Claim yours for the night(s) you'll camp — release it if plans change so a guildmate can take it.</p>
 <% if(u.pledge){ %><p class="lead center" style="max-width:640px;margin:0 auto 6px;font-size:1rem;color:var(--wine)"><b>You stand as a Pledge.</b> The bunks are for sworn guildmates — once the Guild Leader accepts you into the House, the camp is yours to book.</p><% } %>
 <div class="grid grid--3" style="margin-top:24px">
-<% bunkBoard.forEach(function(d){ %><div class="day"><div class="day__hd"><span class="d"><%= d.night %></span><span class="h">3 bunks</span></div><div class="day__bd">
+<% bunkBoard.forEach(function(d){ %><div class="day"><div class="day__hd"><span class="d"><%= d.night %></span><span class="h"><%= d.open ? d.open+' of 3 open' : 'full' %></span></div><div class="day__bd">
 <% d.bunks.forEach(function(b){ %><div class="event"><span class="t">Bunk <%= b.bunk %></span><span class="b"><% if(b.mine){ %><b style="color:var(--wine)">YOURS</b> <form method="post" action="/members/bunk/release" style="display:inline"><input type="hidden" name="night" value="<%= d.night %>"><input type="hidden" name="bunk" value="<%= b.bunk %>"><button class="btn btn--ghost" style="padding:5px 12px;font-size:.62rem">Release</button></form><% } else if(b.taken){ %><span class="muted">Taken by <%= b.who?b.who.name:'?' %></span><% } else if(u.pledge){ %><b>Open</b> <span class="muted" style="font-size:.72rem">— guildmates only</span><% } else { %><b>Open</b> <form method="post" action="/members/bunk" style="display:inline"><input type="hidden" name="night" value="<%= d.night %>"><input type="hidden" name="bunk" value="<%= b.bunk %>"><button class="btn btn--gold" style="padding:5px 12px;font-size:.62rem">Claim</button></form><% } %></span></div><% }) %>
-</div></div><% }) %></div></div></section>
+<% if(d.full && !d.iHaveOne && !u.pledge){ %>
+  <div class="event" style="border-top:1px solid var(--line2)">
+    <span class="t" style="font-size:.72rem">Waitlist</span>
+    <span class="b">
+      <% if(d.myPlace){ %>
+        <b style="color:var(--forest)">You're #<%= d.myPlace %></b>
+        <form method="post" action="/members/waitlist/leave" style="display:inline"><input type="hidden" name="night" value="<%= d.night %>"><button class="btn btn--ghost" style="padding:5px 10px;font-size:.6rem">Leave</button></form>
+      <% } else { %>
+        <form method="post" action="/members/waitlist" style="display:inline"><input type="hidden" name="night" value="<%= d.night %>"><button class="btn btn--wine" style="padding:5px 12px;font-size:.62rem">Wait for one</button></form>
+      <% } %>
+    </span>
+  </div>
+<% } %>
+<% if(d.waiting){ %><div class="event"><span class="t" style="font-size:.68rem;color:var(--muted)">In line</span><span class="b muted" style="font-size:.72rem"><%= d.queueNames.join(' · ') %></span></div><% } %>
+</div></div><% }) %></div>
+<p class="lead center" style="margin-top:22px;font-size:1rem">
+  <% if(bunksLeft>0){ %><b style="color:var(--forest)"><%= bunksLeft %></b> of 9 bunks still open across the three nights.
+  <% } else { %><b style="color:var(--wine)">All nine bunks are taken.</b> Join a waitlist — if someone releases theirs, it passes to whoever has waited longest.<% } %>
+</p>
+</div></section>
 
 <section class="section" id="bring"><div class="container"><div class="bannerhead"><span class="eyebrow">What We Need</span><h2>Volunteer Bring-List</h2><div class="rule"></div></div>
 <p class="lead center">Check off what you can bring to camp — period-accurate, of course.</p>

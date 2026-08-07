@@ -14,6 +14,7 @@ if(!Array.isArray(db.threads))db.threads=[];
 if(!Array.isArray(db.polls))db.polls=[];
 if(!Array.isArray(db.notices))db.notices=[];
 if(!Array.isArray(db.whispers))db.whispers=[];
+if(!Array.isArray(db.waitlist))db.waitlist=[];
 const nid=()=>{db.seq++;save();return db.seq;};
 const NIGHTS=['Friday, Oct 9','Saturday, Oct 10','Sunday, Oct 11'];
 const BUNKS=[1,2,3];
@@ -151,9 +152,23 @@ app.post('/members/login',(req,res)=>{const{email,password}=req.body;const u=db.
 app.post('/members/logout',(req,res)=>{req.session.destroy(()=>res.redirect('/'));});
 app.get('/members',au,(req,res)=>{
   const u=cur(req);
-  const bunkBoard=NIGHTS.map(n=>({night:n,bunks:BUNKS.map(b=>{const o=db.bunks.find(x=>x.night===n&&x.bunk===b);return{bunk:b,taken:!!o,who:o?db.users.find(y=>y.id===o.userId):null,mine:o&&o.userId===u.id};})}));
+  const bunkBoard=NIGHTS.map(n=>{
+    const bunks=BUNKS.map(b=>{const o=db.bunks.find(x=>x.night===n&&x.bunk===b);return{bunk:b,taken:!!o,who:o?db.users.find(y=>y.id===o.userId):null,mine:o&&o.userId===u.id};});
+    const queue=db.waitlist.filter(w=>w.night===n).sort((a,b)=>a.ts-b.ts);
+    const myIdx=queue.findIndex(w=>w.userId===u.id);
+    return{
+      night:n, bunks:bunks,
+      open:bunks.filter(x=>!x.taken).length,
+      full:bunks.every(x=>x.taken),
+      iHaveOne:bunks.some(x=>x.mine),
+      waiting:queue.length,
+      myPlace:myIdx<0?0:myIdx+1,
+      queueNames:queue.map(w=>{const p=db.users.find(x=>x.id===w.userId);return p?p.name:'?';})
+    };
+  });
+  const bunksLeft=NIGHTS.length*BUNKS.length-db.bunks.length;
   const items=db.items.map(it=>{const cl=db.claims.filter(c=>c.itemId===it.id);const claimed=cl.reduce((s,c)=>s+c.qty,0);return{...it,claimed,remaining:Math.max(0,it.need-claimed),claims:cl.map(c=>({qty:c.qty,who:db.users.find(y=>y.id===c.userId)})),mine:cl.find(c=>c.userId===u.id)};});
-  res.render('hall',{u,rank:rank(u),classes:CLASSES,bunkBoard,items,leader:u.role==='leader',users:u.role==='leader'?db.users.map(function(m){return{name:m.name,class:m.class,faires:m.faires,rank:rank(m),pledge:!!m.pledge,leader:m.role==='leader',title:m.title||'',avatar:m.avatar,id:m.id,contactEmail:m.contactEmail||'',phone:m.phone||'',bunks:db.bunks.filter(function(b){return b.userId===m.id}).map(function(b){return b.night+' \u00b7 Bunk '+b.bunk;})};}):[],announcements:db.announcements,outreach:{emails:db.users.filter(function(x){return x.contactEmail;}).map(function(x){return x.contactEmail;}),phones:db.users.filter(function(x){return x.phone;}).map(function(x){return x.phone;})},invite:INVITE,err:req.query.e||"",q:req.query});
+  res.render('hall',{u,rank:rank(u),classes:CLASSES,bunkBoard,bunksLeft,items,leader:u.role==='leader',users:u.role==='leader'?db.users.map(function(m){return{name:m.name,class:m.class,faires:m.faires,rank:rank(m),pledge:!!m.pledge,leader:m.role==='leader',title:m.title||'',avatar:m.avatar,id:m.id,contactEmail:m.contactEmail||'',phone:m.phone||'',bunks:db.bunks.filter(function(b){return b.userId===m.id}).map(function(b){return b.night+' \u00b7 Bunk '+b.bunk;})};}):[],announcements:db.announcements,outreach:{emails:db.users.filter(function(x){return x.contactEmail;}).map(function(x){return x.contactEmail;}),phones:db.users.filter(function(x){return x.phone;}).map(function(x){return x.phone;})},invite:INVITE,err:req.query.e||"",q:req.query});
 });
 app.post('/members/profile',au,up.single('avatar'),shrinkAvatar,(req,res)=>{const u=cur(req);if(!u)return res.redirect('/members/login');
   if(String(req.body.name||'').trim())u.name=String(req.body.name).trim();
@@ -167,7 +182,51 @@ app.post('/members/bunk',au,sworn,(req,res)=>{const u=cur(req);const{night,bunk}
   // limit a member to one bunk per night
   db.bunks=db.bunks.filter(x=>!(x.night===night&&x.userId===u.id));
   db.bunks.push({id:nid(),night,bunk:b,userId:u.id});save();res.redirect('/members#bunks');});
-app.post('/members/bunk/release',au,sworn,(req,res)=>{const u=cur(req);db.bunks=db.bunks.filter(x=>!(x.night===req.body.night&&x.bunk===parseInt(req.body.bunk)&&x.userId===u.id));save();res.redirect('/members#bunks');});
+// Nine bunks for a growing roster, so a freed bunk should not sit idle waiting
+// for someone to notice. Hand it straight to whoever has waited longest.
+function fillFromWaitlist(night,bunk,exceptUserId){
+  const queue=db.waitlist.filter(w=>w.night===night).sort((a,b)=>a.ts-b.ts);
+  for(const w of queue){
+    if(w.userId===exceptUserId)continue;              // don't hand it back to the releaser
+    const cand=db.users.find(x=>x.id===w.userId);
+    if(!cand||cand.pledge){                            // no longer eligible
+      db.waitlist=db.waitlist.filter(x=>x.id!==w.id); continue;
+    }
+    if(db.bunks.find(x=>x.night===night&&x.userId===cand.id)){ // already bunked that night
+      db.waitlist=db.waitlist.filter(x=>x.id!==w.id); continue;
+    }
+    db.bunks.push({id:nid(),night:night,bunk:bunk,userId:cand.id});
+    db.waitlist=db.waitlist.filter(x=>x.id!==w.id);
+    notify('member',cand.id,'A bunk opened up — '+night+', bunk '+bunk+' is yours. Release it in the Guild Hall if your plans have changed.');
+    return cand;
+  }
+  return null;
+}
+// Deliberately NOT behind `sworn`: releasing gives a bunk back. A pledge who
+// claimed one before the rule existed must still be able to let it go, or the
+// bunk is stuck forever.
+app.post('/members/bunk/release',au,(req,res)=>{
+  const u=cur(req);
+  const night=req.body.night, bunk=parseInt(req.body.bunk);
+  const had=db.bunks.find(x=>x.night===night&&x.bunk===bunk&&x.userId===u.id);
+  db.bunks=db.bunks.filter(x=>!(x.night===night&&x.bunk===bunk&&x.userId===u.id));
+  if(had)fillFromWaitlist(night,bunk,u.id);
+  save();res.redirect('/members#bunks');
+});
+// Waiting for a bunk is only worth anything if you could hold one.
+app.post('/members/waitlist',au,sworn,(req,res)=>{
+  const u=cur(req);const night=req.body.night;
+  if(!NIGHTS.includes(night))return res.redirect('/members#bunks');
+  if(db.bunks.find(x=>x.night===night&&x.userId===u.id))return res.redirect('/members#bunks');
+  if(!db.waitlist.find(w=>w.night===night&&w.userId===u.id))
+    db.waitlist.push({id:nid(),night:night,userId:u.id,ts:Date.now()});
+  save();res.redirect('/members#bunks');
+});
+app.post('/members/waitlist/leave',au,(req,res)=>{
+  const u=cur(req);
+  db.waitlist=db.waitlist.filter(w=>!(w.night===req.body.night&&w.userId===u.id));
+  save();res.redirect('/members#bunks');
+});
 app.post('/members/bring/claim',au,(req,res)=>{const u=cur(req);const itemId=parseInt(req.body.itemId);const it=db.items.find(x=>x.id===itemId);if(!it)return res.redirect('/members#bring');
   const qty=Math.max(1,parseInt(req.body.qty||1));const existing=db.claims.find(c=>c.itemId===itemId&&c.userId===u.id);
   if(existing)existing.qty=qty;else db.claims.push({id:nid(),itemId,userId:u.id,qty});save();res.redirect('/members#bring');});
