@@ -19,7 +19,7 @@ const footer=`<footer><div class="container"><div class="footer-grid">
 <div><h4>The Guild</h4><ul>${NAV.slice(0,5).map(([l,h])=>`<li><a href="${h}">${l}</a></li>`).join("")}</ul></div>
 <div><h4>Faire</h4><ul><li><a href="/camp.html">Ren Faire Camp</a></li><li><a href="/events.html">Scroll of Events</a></li></ul></div>
 <div><h4>Send a Pigeon</h4><ul><li><a href="mailto:${SITE.email}">${SITE.email}</a></li><li>${SITE.loc}</li><li>${SITE.dates}</li></ul></div></div>
-<div class="footer-bottom"><span>&copy; 2024 � 2026 ${SITE.name}. All rights reserved.</span><span>${SITE.motto}</span></div></div></footer><script defer src="/assets/js/auth-signal.js"></script><script defer src="/assets/js/countdown.js"></script></body></html>`;
+<div class="footer-bottom"><span>&copy; 2024 � 2026 ${SITE.name}. All rights reserved.</span><span>${SITE.motto}</span></div></div></footer><script defer src="/assets/js/auth-signal.js?v=20260807d"></script><script defer src="/assets/js/countdown.js?v=20260807d"></script><script>(function(){var r=new URLSearchParams(location.search).get("reason");if(!r)return;var s=document.querySelector('select[name="Reason"]');if(!s)return;for(var i=0;i<s.options.length;i++){if(s.options[i].value===r){s.selectedIndex=i;break;}}var m=document.querySelector('textarea[name="Message"]');if(m&&r==="Locked out of my account"&&!m.value){m.value="I cannot sign in to the Guild Hall. My login is: ";m.focus();}})();</script></body></html>`;
 const CTA=`<section class="section section--dark"><div class="container cta"><div><span class="eyebrow">Join the House</span><h2>Put me on the list!</h2><p>Quests, trading, tales, and a seat by the campfire await. Send your pigeon and claim your place in the House of Card and Coin.</p></div><div class="cta__actions"><a class="btn btn--gold" href="/pigeon.html">Send a Pigeon</a><a class="btn btn--ghost" href="/events.html">View the Scroll of Events</a></div></div></section>`;
 const fig=(local,aspect,cap,sub)=>`<figure class="fig fig--${aspect}"><img src="${I}${local}" alt="${esc(cap||"House of Card and Coin")}" loading="lazy">${cap?`<figcaption>${esc(cap)}${sub?`<span style="display:block;font-size:.74rem;letter-spacing:.1em;color:var(--gold-l);text-transform:uppercase">${esc(sub)}</span>`:""}</figcaption>`:""}</figure>`;
 
@@ -219,7 +219,7 @@ const pigeon=`${head("/pigeon.html")}
 <form action="mailto:${SITE.email}" method="post" enctype="text/plain">
 <div class="field"><label for="n">Your Name</label><input id="n" name="Name" required placeholder="Good gentles' name"></div>
 <div class="field"><label for="e">Email</label><input id="e" type="email" name="Email" required placeholder="your@email.com"></div>
-<div class="field"><label for="r">Reason</label><select id="r" name="Reason"><option>Put me on the list!</option><option>Join the guild</option><option>Hire a sellsword</option><option>Camper / camp list</option><option>Strike a bargain</option></select></div>
+<div class="field"><label for="r">Reason</label><select id="r" name="Reason"><option>Put me on the list!</option><option>Join the guild</option><option>Hire a sellsword</option><option>Camper / camp list</option><option>Strike a bargain</option><option value="Locked out of my account">Locked out of my account</option></select></div>
 <div class="field"><label for="m">Your Message</label><textarea id="m" name="Message" placeholder="Your message to the House�"></textarea></div>
 <button type="submit" class="btn btn--wine" style="width:100%;justify-content:center">Send Your Pigeon</button>
 </form></div></div></section>

@@ -3232,3 +3232,11 @@ body.tavern-page .note__open{color:#5a4226}
 .skip-link{position:absolute;left:-9999px;top:0;z-index:200;background:var(--wine);color:#f6e7c4;padding:10px 18px;font-family:var(--display);text-transform:uppercase;letter-spacing:.12em;font-size:.6rem;border-radius:0 0 3px 0}
 .skip-link:focus{left:0}
 main:focus{outline:none}
+
+/* Unread notices, in the header on every page. With no email, the site has
+   to be the thing that tells you something happened. */
+.newsbell{display:inline-flex;align-items:center;gap:5px;white-space:nowrap;
+  font-family:var(--display);text-transform:uppercase;letter-spacing:.11em;font-size:.56rem;
+  padding:5px 11px;border-radius:11px;background:var(--wine);color:#f8e9cc;
+  border:1px solid var(--wine-l);text-decoration:none}
+.newsbell:hover{background:var(--wine-l);color:#fff}

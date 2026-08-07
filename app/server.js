@@ -62,6 +62,10 @@ app.use(session({
 app.use(function(req,res,next){
   res.locals.u = req.session.uid ? (db.users.find(function(x){return x.id===req.session.uid;})||null) : null;
   res.locals.patron = (!res.locals.u && req.session.pid) ? (db.patrons.find(function(x){return x.id===req.session.pid;})||null) : null;
+  // Unread notices drive the header badge, so news reaches someone wherever
+  // they land — there is no email, so the site itself has to carry the word.
+  var me = res.locals.u ? {t:'member',id:res.locals.u.id} : (res.locals.patron ? {t:'patron',id:res.locals.patron.id} : null);
+  res.locals.unread = me ? (db.notices||[]).filter(function(n){return n.toT===me.t&&n.toId===me.id&&!n.read;}).length : 0;
   next();
 });
 app.use('/assets',express.static(path.join(__dirname,'..','assets')));
@@ -140,8 +144,9 @@ app.get('/api/me',(req,res)=>{
   const u=req.session.uid?db.users.find(x=>x.id===req.session.uid):null;
   const p=(!u&&req.session.pid)?db.patrons.find(x=>x.id===req.session.pid):null;
   res.set('Cache-Control','no-store');
-  if(u)return res.json({signedIn:true,kind:'member',name:u.name});
-  if(p&&!p.banned)return res.json({signedIn:true,kind:'patron',name:p.name});
+  const unread=function(t,id){return (db.notices||[]).filter(function(n){return n.toT===t&&n.toId===id&&!n.read;}).length;};
+  if(u)return res.json({signedIn:true,kind:'member',name:u.name,unread:unread('member',u.id)});
+  if(p&&!p.banned)return res.json({signedIn:true,kind:'patron',name:p.name,unread:unread('patron',p.id)});
   res.json({signedIn:false});
 });
 app.get('/members/login',(req,res)=>res.render('login',{err:req.query.e||'',code:req.query.code||'',needCode:INVITE_REQUIRED}));
@@ -272,7 +277,7 @@ app.post('/members/bring/unclaim',au,(req,res)=>{const u=cur(req);const itemId=p
 app.post('/members/bring/add',au,al,(req,res)=>{const{name,need}=req.body;if(!name)return res.redirect('/members#bring');db.items.push({id:nid(),name,need:Math.max(1,parseInt(need||1))});save();res.redirect('/members#bring');});
 app.post('/members/bring/remove',au,al,(req,res)=>{const id=parseInt(req.body.itemId);db.items=db.items.filter(x=>x.id!==id);db.claims=db.claims.filter(c=>c.itemId!==id);save();res.redirect('/members#bring');});
 app.post('/members/password',au,(req,res)=>{const u=cur(req);if(!u)return res.redirect('/members/login');const curp=req.body.current||'',np=(req.body.new||'').trim();if(!bcrypt.compareSync(curp,u.passhash))return res.redirect('/members?pw=bad#profile');if(np.length<6)return res.redirect('/members?pw=short#profile');u.passhash=bcrypt.hashSync(np,10);save();res.redirect('/members?pw=ok#profile');});// Accept a Pledge into the guild (or put someone back to Pledge by mistake-fix).
-app.post('/members/admin/promote',al,(req,res)=>{const u=db.users.find(x=>x.id===parseInt(req.body.id));if(u){u.pledge=false;save();}res.redirect('/members#admin');});
+app.post('/members/admin/promote',al,(req,res)=>{const u=db.users.find(x=>x.id===parseInt(req.body.id));if(u&&u.pledge){u.pledge=false;notify('member',u.id,'You have been accepted into the House of Card and Coin. You are a Guildmate now — the camp bunks are yours to claim.');save();}res.redirect('/members#admin');});
 app.post('/members/admin/demote',al,(req,res)=>{const u=db.users.find(x=>x.id===parseInt(req.body.id));if(u&&u.role!=='leader'){u.pledge=true;save();}res.redirect('/members#admin');});
 // Someone taps Claim, realises they don't need the night, and never releases
 // it — the bunk then sits dead. The Guild Leader can free any of them, and it

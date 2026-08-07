@@ -26,6 +26,16 @@
       }
 
       // Signed in: swap the login link for the hall and a sign-out control.
+      // unread notices, so news reaches you on the static pages too
+      if (me.unread) {
+        var bell = document.createElement('a');
+        bell.className = 'newsbell';
+        bell.href = '/board/notices';
+        bell.textContent = '✦ ' + me.unread + ' new';
+        bell.title = me.unread + ' unread notice' + (me.unread === 1 ? '' : 's');
+        nav.insertBefore(bell, loginLink || null);
+      }
+
       var hall = document.createElement('a');
       hall.href = me.kind === 'patron' ? '/board' : '/members';
       hall.textContent = me.kind === 'patron' ? 'Tavern' : 'Guild Hall';
