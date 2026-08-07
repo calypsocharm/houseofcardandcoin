@@ -1,6 +1,9 @@
 const express=require('express'),session=require('express-session'),bcrypt=require('bcryptjs'),multer=require('multer'),path=require('path'),fs=require('fs');
 const app=express();const PORT=process.env.PORT||3000;
-const INVITE=process.env.GUILD_INVITE_CODE||'COIN-2026';
+// Set GUILD_INVITE_CODE='' (blank) to open registration to anyone — that is the
+// current setting. Put a code back in the env var to require one again; no code
+// change needed either way.
+const INVITE=process.env.GUILD_INVITE_CODE===undefined?'COIN-2026':process.env.GUILD_INVITE_CODE;
 const DATA=path.join(__dirname,'data','guild.json');
 let db={users:[],bunks:[],items:[],claims:[],seq:1};
 try{db=JSON.parse(fs.readFileSync(DATA,'utf8'));}catch{}
@@ -42,13 +45,16 @@ if(!db.items.length){[
 // Phone keyboards autocapitalise and add trailing spaces, which silently rejected
 // guildies who had typed the right code.
 const normCode=s=>String(s||'').replace(/[^a-z0-9]/gi,'').toUpperCase();
-app.get('/members/login',(req,res)=>res.render('login',{err:req.query.e||'',code:req.query.code||''}));
-// Share https://houseofcardandcoin.com/join?code=XXXX and the invite field is pre-filled.
-app.get('/join',(req,res)=>res.render('login',{err:req.query.e||'',code:req.query.code||''}));
+const INVITE_REQUIRED=normCode(INVITE)!=='';
+app.get('/members/login',(req,res)=>res.render('login',{err:req.query.e||'',code:req.query.code||'',needCode:INVITE_REQUIRED}));
+// /join is the share link. If an invite code is required, ?code=XXXX pre-fills it.
+app.get('/join',(req,res)=>res.render('login',{err:req.query.e||'',code:req.query.code||'',needCode:INVITE_REQUIRED}));
 app.post('/members/register',up.single('avatar'),(req,res)=>{const{name,email,password,invite}=req.body;
+  // honeypot: real people never fill this hidden field, bots do
+  if(req.body.website)return res.redirect('/members/login');
   // keep a valid code in the URL on failure so they don't have to re-enter it
-  const keep=normCode(invite)===normCode(INVITE)?'&code='+encodeURIComponent(invite):'';
-  if(normCode(invite)!==normCode(INVITE))return res.redirect('/members/login?e='+encodeURIComponent('That invite code was not recognised — ask the Guild Leader'));
+  const keep=INVITE_REQUIRED&&normCode(invite)===normCode(INVITE)?'&code='+encodeURIComponent(invite):'';
+  if(INVITE_REQUIRED&&normCode(invite)!==normCode(INVITE))return res.redirect('/members/login?e='+encodeURIComponent('That invite code was not recognised — ask the Guild Leader'));
   if(!name||!email||!password)return res.redirect('/members/login?e='+encodeURIComponent('Name, username and password are all required')+keep);
   if(db.users.find(u=>String(u.email||'').toLowerCase()===String(email).toLowerCase()))return res.redirect('/members/login?e='+encodeURIComponent('That username is already taken')+keep);
   const first=db.users.length===0;
