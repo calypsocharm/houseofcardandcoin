@@ -1,5 +1,7 @@
 const express=require('express'),session=require('express-session'),bcrypt=require('bcryptjs'),multer=require('multer'),path=require('path'),fs=require('fs');
-const app=express();const PORT=process.env.PORT||3000;
+const app=express();
+app.disable('x-powered-by'); // stop advertising the stack
+const PORT=process.env.PORT||3000;
 // Set GUILD_INVITE_CODE='' (blank) to open registration to anyone — that is the
 // current setting. Put a code back in the env var to require one again; no code
 // change needed either way.
