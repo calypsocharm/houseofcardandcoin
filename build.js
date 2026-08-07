@@ -19,7 +19,7 @@ const footer=`<footer><div class="container"><div class="footer-grid">
 <div><h4>The Guild</h4><ul>${NAV.slice(0,5).map(([l,h])=>`<li><a href="${h}">${l}</a></li>`).join("")}</ul></div>
 <div><h4>Faire</h4><ul><li><a href="/camp.html">Ren Faire Camp</a></li><li><a href="/events.html">Scroll of Events</a></li></ul></div>
 <div><h4>Send a Pigeon</h4><ul><li><a href="mailto:${SITE.email}">${SITE.email}</a></li><li>${SITE.loc}</li><li>${SITE.dates}</li></ul></div></div>
-<div class="footer-bottom"><span>&copy; 2024 � 2026 ${SITE.name}. All rights reserved.</span><span>${SITE.motto}</span></div></div></footer><script defer src="/assets/js/auth-signal.js"></script></body></html>`;
+<div class="footer-bottom"><span>&copy; 2024 � 2026 ${SITE.name}. All rights reserved.</span><span>${SITE.motto}</span></div></div></footer><script defer src="/assets/js/auth-signal.js"></script><script defer src="/assets/js/countdown.js"></script></body></html>`;
 const CTA=`<section class="section section--dark"><div class="container cta"><div><span class="eyebrow">Join the House</span><h2>Put me on the list!</h2><p>Quests, trading, tales, and a seat by the campfire await. Send your pigeon and claim your place in the House of Card and Coin.</p></div><div class="cta__actions"><a class="btn btn--gold" href="/pigeon.html">Send a Pigeon</a><a class="btn btn--ghost" href="/events.html">View the Scroll of Events</a></div></div></section>`;
 const fig=(local,aspect,cap,sub)=>`<figure class="fig fig--${aspect}"><img src="${I}${local}" alt="${esc(cap||"House of Card and Coin")}" loading="lazy">${cap?`<figcaption>${esc(cap)}${sub?`<span style="display:block;font-size:.74rem;letter-spacing:.1em;color:var(--gold-l);text-transform:uppercase">${esc(sub)}</span>`:""}</figcaption>`:""}</figure>`;
 
@@ -30,7 +30,7 @@ const home=`${head("/index.html")}
 <h1>House of Card &amp; Coin</h1>
 <p class="sub">Whispers, wagers, and well-kept secrets. Hark, traveler � step into a curious world beyond the pale of your comfort zone, where fortunes shift, destinies unfurl, and every bargain has its price.</p>
 <div class="hero__cta"><a class="btn btn--gold" href="/guild.html">Enter the Guild</a><a class="btn btn--ghost" href="/events.html">Scroll of Events</a></div>
-<div class="hero__meta"><span class="chip"><b>${SITE.dates}</b></span><span class="chip">Gates 10AM�10PM</span><span class="chip">Sunset Park, Las Vegas</span></div></div></section>
+<div class="hero__meta"><span class="chip chip--count" id="gatesCountdown" hidden></span><span class="chip"><b>${SITE.dates}</b></span><span class="chip">Gates 10AM�10PM</span><span class="chip">Sunset Park, Las Vegas</span></div></div></section>
 
 <section class="section"><div class="container"><div class="bannerhead"><span class="eyebrow">The Specialists of the House</span><h2>Dealers � Readers � Brokers</h2><div class="rule"></div></div>
 <div class="grid grid--3">

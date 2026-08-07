@@ -3223,3 +3223,7 @@ body.tavern-page .note__open{color:#5a4226}
   .bringers__table .num{text-align:left;width:auto}
   .bringers__table .num::before{content:"Items: ";color:var(--gold-d);font-size:.7rem}
 }
+
+/* the countdown chip in the hero, so the date row reads as urgent */
+.chip--count{background:rgba(110,26,26,.9);border-color:var(--wine-l);color:#f6e7c4}
+.chip--count b{color:#fff;font-variant-numeric:tabular-nums}
