@@ -55,10 +55,14 @@ app.post('/members/register',up.single('avatar'),(req,res)=>{const{name,email,pa
   // keep a valid code in the URL on failure so they don't have to re-enter it
   const keep=INVITE_REQUIRED&&normCode(invite)===normCode(INVITE)?'&code='+encodeURIComponent(invite):'';
   if(INVITE_REQUIRED&&normCode(invite)!==normCode(INVITE))return res.redirect('/members/login?e='+encodeURIComponent('That invite code was not recognised — ask the Guild Leader'));
-  if(!name||!email||!password)return res.redirect('/members/login?e='+encodeURIComponent('Name, username and password are all required')+keep);
-  if(db.users.find(u=>String(u.email||'').toLowerCase()===String(email).toLowerCase()))return res.redirect('/members/login?e='+encodeURIComponent('That username is already taken')+keep);
+  if(!email||!password)return res.redirect('/members/login?e='+encodeURIComponent('Email and password are required')+keep);
+  if(db.users.find(u=>String(u.email||'').toLowerCase()===String(email).toLowerCase()))return res.redirect('/members/login?e='+encodeURIComponent('That email is already registered')+keep);
   const first=db.users.length===0;
-  const u={id:nid(),name,email:String(email).toLowerCase().trim(),passhash:bcrypt.hashSync(password,10),avatar:req.file?('/uploads/'+req.file.filename):'',class:'',faires:0,role:first?'leader':'member'};
+  // Signup asks only for email + password. Everything else — display name,
+  // avatar, class — is set afterwards in the Guild Hall, so seed a readable
+  // placeholder name from the email rather than leaving the roster blank.
+  const display=String(name||'').trim()||String(email).split('@')[0].replace(/[._-]+/g,' ').trim().replace(/\b\w/g,c=>c.toUpperCase())||'New Guildmate';
+  const u={id:nid(),name:display,email:String(email).toLowerCase().trim(),passhash:bcrypt.hashSync(password,10),avatar:req.file?('/uploads/'+req.file.filename):'',class:'',faires:0,role:first?'leader':'member'};
   db.users.push(u);save();req.session.uid=u.id;res.redirect('/members');});
 app.post('/members/login',(req,res)=>{const{email,password}=req.body;const u=db.users.find(x=>x.email===email.toLowerCase());
   if(!u||!bcrypt.compareSync(password,u.passhash))return res.redirect('/members/login?e='+encodeURIComponent('Bad email or password'));
@@ -71,6 +75,7 @@ app.get('/members',au,(req,res)=>{
   res.render('hall',{u,rank:rank(u),classes:CLASSES,bunkBoard,items,leader:u.role==='leader',users:u.role==='leader'?db.users.map(function(m){return{name:m.name,class:m.class,faires:m.faires,rank:rank(m),avatar:m.avatar,id:m.id,contactEmail:m.contactEmail||'',phone:m.phone||'',bunks:db.bunks.filter(function(b){return b.userId===m.id}).map(function(b){return b.night+' \u00b7 Bunk '+b.bunk;})};}):[],announcements:db.announcements,outreach:{emails:db.users.filter(function(x){return x.contactEmail;}).map(function(x){return x.contactEmail;}),phones:db.users.filter(function(x){return x.phone;}).map(function(x){return x.phone;})},invite:INVITE,err:req.query.e||"",q:req.query});
 });
 app.post('/members/profile',au,up.single('avatar'),(req,res)=>{const u=cur(req);if(!u)return res.redirect('/members/login');
+  if(String(req.body.name||'').trim())u.name=String(req.body.name).trim();
   if(req.body.class)u.class=req.body.class;u.faires=Math.max(0,parseInt(req.body.faires||0));
   u.contactEmail=(req.body.contactEmail||'').trim();u.phone=(req.body.phone||'').trim();if(req.file)u.avatar='/uploads/'+req.file.filename;save();res.redirect('/members#profile');});
 app.post('/members/bunk',au,(req,res)=>{const u=cur(req);const{night,bunk}=req.body;b=parseInt(bunk);
