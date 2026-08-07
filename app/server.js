@@ -30,8 +30,21 @@ function rank(u){if(u.pledge)return 'Pledge';if(u.title)return u.title;const n=u
 // they are full guildmates, not pledges. Runs once; new users set it explicitly.
 (function(){let changed=false;db.users.forEach(u=>{if(u.pledge===undefined){u.pledge=false;changed=true;}});if(changed)save();})();
 app.set('view engine','ejs');app.set('views',path.join(__dirname,'views'));
+// Cache-buster for the stylesheet. Assets are cached for a day now, so without
+// this a CSS change does not reach anyone who has already visited — the page
+// renders with stale rules and unstyled images blow up to full size.
+try{ app.locals.cssv = String(Math.floor(fs.statSync(path.join(__dirname,'..','assets','css','style.css')).mtimeMs)); }
+catch(e){ app.locals.cssv = String(Date.now()); }
 app.use(express.urlencoded({extended:true}));app.use(express.json());
 app.use(session({secret:process.env.SESSION_SECRET||'guild-faire-secret-change',resave:false,saveUninitialized:false,cookie:{maxAge:7*864e5}}));
+// The header decides whether you are signed in from res.locals.u — but only the
+// Guild Hall was passing it, so every other page (tavern, guild, threads…) drew
+// "Guild Login" even while you were signed in. Set it once, for everyone.
+app.use(function(req,res,next){
+  res.locals.u = req.session.uid ? (db.users.find(function(x){return x.id===req.session.uid;})||null) : null;
+  res.locals.patron = (!res.locals.u && req.session.pid) ? (db.patrons.find(function(x){return x.id===req.session.pid;})||null) : null;
+  next();
+});
 app.use('/assets',express.static(path.join(__dirname,'..','assets')));
 app.use('/uploads',express.static(path.join(__dirname,'uploads')));
 app.get('/guild.html',(req,res)=>{const members=db.users.map(function(m){const bunks=db.bunks.filter(function(b){return b.userId===m.id;}).sort(function(a,b){return a.night<b.night?-1:1;}).map(function(b){return b.night+' \u00b7 Bunk '+b.bunk;});return{name:m.name,avatar:m.avatar,class:m.class,rank:rank(m),pledge:!!m.pledge,faires:m.faires||0,title:m.title||'',role:m.role||'',rsvp:!!m.rsvp,bunks:bunks};}).sort(function(a,b){const k=function(x){if(x.title==='Guild Leader')return 0;if(x.role==='leader'||x.title==='Guild Elder')return 1;if(x.pledge)return 3;return 2;};const ka=k(a),kb=k(b);if(ka!==kb)return ka-kb;return (b.faires||0)-(a.faires||0);});const bunkBoard=NIGHTS.map(function(n){return{night:n,bunks:BUNKS.map(function(b){const o=db.bunks.find(function(x){return x.night===n&&x.bunk===b;});return{bunk:b,taken:!!o,who:o?db.users.find(function(y){return y.id===o.userId;}):null};})};});res.render('guild',{members:members,bunkBoard:bunkBoard,comingCount:db.users.filter(function(x){return x.rsvp;}).length});});
@@ -43,7 +56,30 @@ app.post('/pigeon',async(req,res)=>{const{Name,Email,Reason,Message}=req.body||{
 const BLOCKED=/^\/(app|content)(\/|$)|^\/(build|serve)\.js$|^\/\./i;
 app.use((req,res,next)=>BLOCKED.test(req.path)?res.status(404).send('Not found'):next());
 app.use(express.static(path.join(__dirname,'..'))); // marketing site (index.html etc.)
-const up=multer({dest:path.join(__dirname,'uploads'),limits:{fileSize:25e6}});
+const sharp=require('sharp');
+// Only images, and only ones we can actually process. Without a filter any file
+// type at all could be dropped into /uploads.
+const up=multer({
+  dest:path.join(__dirname,'uploads'),
+  limits:{fileSize:25e6},
+  fileFilter:function(req,file,cb){
+    if(/^image\/(jpeg|png|webp|gif|avif|heic|heif)$/i.test(file.mimetype))return cb(null,true);
+    cb(null,false); // silently ignore, the route just sees no req.file
+  }
+});
+// Squash whatever anyone uploads down to a sane avatar. A phone photo arrives at
+// several megabytes and gets drawn as a 34px circle; this makes that ~30 KB.
+// .rotate() honours EXIF orientation so phone shots aren't sideways.
+function shrinkAvatar(req,res,next){
+  if(!req.file)return next();
+  var p=req.file.path;
+  sharp(p).rotate()
+    .resize(512,512,{fit:'cover',position:sharp.strategy.attention})
+    .jpeg({quality:82,mozjpeg:true})
+    .toBuffer()
+    .then(function(buf){ fs.writeFileSync(p,buf); req.file.size=buf.length; next(); })
+    .catch(function(e){ console.log('avatar resize failed, keeping original:',e.message); next(); });
+}
 function au(req,res,next){if(req.session.uid)return next();res.redirect('/members/login');}
 function al(req,res,next){const u=db.users.find(x=>x.id===req.session.uid);if(u&&u.role==='leader')return next();res.status(403).send('Leader only');}
 function cur(req){return db.users.find(x=>x.id===req.session.uid);}
@@ -56,6 +92,16 @@ if(!db.items.length){[
 // guildies who had typed the right code.
 const normCode=s=>String(s||'').replace(/[^a-z0-9]/gi,'').toUpperCase();
 const INVITE_REQUIRED=normCode(INVITE)!=='';
+// The static marketing pages (index.html, camp.html…) have a header baked in at
+// build time, so they cannot know who you are. They ask here instead.
+app.get('/api/me',(req,res)=>{
+  const u=req.session.uid?db.users.find(x=>x.id===req.session.uid):null;
+  const p=(!u&&req.session.pid)?db.patrons.find(x=>x.id===req.session.pid):null;
+  res.set('Cache-Control','no-store');
+  if(u)return res.json({signedIn:true,kind:'member',name:u.name});
+  if(p&&!p.banned)return res.json({signedIn:true,kind:'patron',name:p.name});
+  res.json({signedIn:false});
+});
 app.get('/members/login',(req,res)=>res.render('login',{err:req.query.e||'',code:req.query.code||'',needCode:INVITE_REQUIRED}));
 // /join is the share link. If an invite code is required, ?code=XXXX pre-fills it.
 app.get('/join',(req,res)=>res.render('login',{err:req.query.e||'',code:req.query.code||'',needCode:INVITE_REQUIRED}));
@@ -132,16 +178,50 @@ app.post('/tavern/login',(req,res)=>{
   req.session.pid=p.id;res.redirect('/board');
 });
 app.post('/tavern/logout',(req,res)=>{delete req.session.pid;res.redirect('/board');});
+// Who has been in the tavern lately, and how recently anyone spoke. The room
+// shows presence over time rather than pretending to be a live chat — with a
+// guild this size it would usually be empty, and an empty "live" room reads
+// worse than a quiet one.
+function tavernFolk(){
+  var acts=[];
+  db.threads.forEach(function(t){
+    acts.push({t:t.authorType,id:t.authorId,name:t.authorName,avatar:t.authorAvatar,ts:t.ts});
+    (t.replies||[]).forEach(function(r){
+      acts.push({t:r.authorType,id:r.authorId,name:r.authorName,avatar:r.authorAvatar,ts:r.ts});
+    });
+  });
+  acts.sort(function(a,b){return b.ts-a.ts;});
+  var seen={}, folk=[];
+  acts.forEach(function(a){
+    var k=a.t+':'+a.id;
+    if(seen[k]||folk.length>=5)return;
+    seen[k]=1; folk.push(a);
+  });
+  return {folk:folk, last:acts.length?acts[0].ts:0};
+}
 app.get('/board',(req,res)=>{
   const i=identRich(req);
   const today=dayKey();
-  const threads=db.threads.slice().sort((a,b)=>b.ts-a.ts);
+  const pres=tavernFolk();
+  // hours since anyone spoke — the hearth burns down as the room goes quiet
+  const quietHrs=pres.last?Math.floor((Date.now()-pres.last)/3600000):999;
+  // Most recently active conversation first, so opening the tavern shows what
+  // just happened. Inside a conversation the opener still leads its replies.
+  const lastTouch=function(t){
+    return (t.replies&&t.replies.length)?Math.max(t.ts,t.replies[t.replies.length-1].ts):t.ts;
+  };
+  const threads=db.threads.slice().sort(function(a,b){return lastTouch(b)-lastTouch(a);});
   const polls=db.polls.slice().sort((a,b)=>b.ts-a.ts).map(function(p){const total=p.options.reduce((s,o)=>s+o.votes.length,0);const voted=i?!!p.options.find(o=>o.votes.find(v=>v.t===i.t&&v.id===i.id)):false;return Object.assign({},p,{total:total,voted:voted});});
-  res.render('board',{i:i,threads:threads,polls:polls,cats:BOARDCATS,q:req.query,leader:!!(i&&i.leader),ration:{canDraw:!!(i&&i.lastRation!==today),card:i?i.lastCard:null},special:SPECIALS[dayOfYear()%SPECIALS.length],gates:countdown(),notices:i?(db.notices||[]).filter(function(n){return n.toT===i.t&&n.toId===i.id&&!n.read;}).length:0});
+  res.render('board',{i:i,threads:threads,polls:polls,cats:BOARDCATS,q:req.query,leader:!!(i&&i.leader),ration:{canDraw:!!(i&&i.lastRation!==today),card:i?i.lastCard:null},special:SPECIALS[dayOfYear()%SPECIALS.length],gates:countdown(),notices:i?(db.notices||[]).filter(function(n){return n.toT===i.t&&n.toId===i.id&&!n.read;}).length:0,folk:pres.folk,quietHrs:quietHrs});
 });
 app.post('/board/thread',canPost,(req,res)=>{
-  const i=ident(req);const title=(req.body.title||'').trim(),body=(req.body.body||'').trim();let category=(req.body.category||'General').trim();
-  if(!title||!body)return res.redirect('/board?e='+encodeURIComponent('A title and a message are required'));
+  const i=ident(req);const body=(req.body.body||'').trim();let category=(req.body.category||'General').trim();
+  // The tavern is a conversation, not a forum — you type a message, nothing else.
+  // A title is still stored so the thread page and notices keep working; if none
+  // was given, take the opening words of the message.
+  let title=(req.body.title||'').trim();
+  if(!title&&body) title=body.length>52?body.slice(0,52).replace(/\s+\S*$/,'')+'…':body;
+  if(!body)return res.redirect('/board?e='+encodeURIComponent('Say something first'));
   if(BOARDCATS.indexOf(category)<0)category='General';
   db.threads.push({id:nid(),category:category,title:title,body:body,authorType:i.t,authorId:i.id,authorName:i.name,authorAvatar:i.avatar,ts:Date.now(),replies:[]});
   save();res.redirect('/board');

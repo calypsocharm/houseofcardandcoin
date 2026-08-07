@@ -2817,3 +2817,336 @@ body.tavern-page .note__open{color:#5a4226}
   .brand small{display:none}
   .brand span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 }
+
+/* ═══ The Tavern — a room, not a notice board ══════════════════════════════
+   Committed to night on purpose: this section is dark even though the rest of
+   the site is parchment. The stage stays pinned while the talk scrolls past. */
+.tav{--tav-scrap:#f2e6c8;--tav-smoke:#bfa980;
+  background:#120c07;color:#efe0be;margin:0 calc(50% - 50vw);
+  padding:0 max(18px,calc(50vw - 500px));min-height:100vh}
+.tav *{box-sizing:border-box}
+
+.tav-stage{position:sticky;top:78px;z-index:20;padding-top:14px;
+  background:linear-gradient(to bottom,#120c07 0 90%,rgba(18,12,7,0))}
+
+.tav-room{position:relative;width:100%;height:clamp(210px,32vh,290px);
+  border:1px solid #4a3820;border-radius:3px;overflow:hidden;background:#0e0905;
+  box-shadow:0 30px 70px -46px #000,inset 0 0 80px 26px rgba(0,0,0,.72)}
+.tav-wall{position:absolute;inset:0;
+  background:linear-gradient(to bottom,rgba(0,0,0,.6) 0,transparent 26%,transparent 60%,rgba(0,0,0,.7) 100%),
+    repeating-linear-gradient(90deg,#2a1d10 0 62px,#241909 62px 64px,#2e2013 64px 126px,#241909 126px 128px),#241909}
+.tav-beam{position:absolute;left:0;right:0;top:0;height:9%;
+  background:linear-gradient(to bottom,#1a1208,#100b05);border-bottom:2px solid #0a0704;
+  box-shadow:0 6px 18px -6px #000}
+.tav-floor{position:absolute;left:0;right:0;bottom:0;height:28%;
+  background:linear-gradient(to bottom,rgba(0,0,0,.5),rgba(0,0,0,.85)),
+    repeating-linear-gradient(90deg,#33240f 0 90px,#2a1d0c 90px 93px);border-top:1px solid #0d0904}
+.tav-fx{position:absolute;inset:0;width:100%;height:100%;display:block}
+.tav-hearth{position:absolute;left:50%;transform:translateX(-50%);bottom:27%;
+  width:96px;height:104px;background:linear-gradient(to bottom,#3b2c18,#1c1409);
+  border:2px solid #14100a;border-radius:52% 52% 5% 5%;box-shadow:inset 0 -14px 30px -8px #000}
+.tav-hearth::after{content:"";position:absolute;left:16%;right:16%;bottom:0;height:62%;
+  background:radial-gradient(70% 100% at 50% 100%,#75340c,#200f04 72%,#120902);border-radius:50% 50% 3% 3%}
+.tav-lantern{position:absolute;top:9%;width:16px;height:25px;
+  background:linear-gradient(#5c4620,#2a1d0c);border:1px solid #6b5124;border-radius:3px}
+.tav-lantern::after{content:"";position:absolute;inset:3px;border-radius:2px;
+  background:radial-gradient(circle at 50% 40%,#e4c77f,#a8791f 60%,transparent 78%);
+  animation:tavLamp 3.6s cubic-bezier(.2,.7,.2,1) infinite alternate}
+.tav-lantern--l{left:13%}
+.tav-lantern--r{right:13%}
+.tav-lantern--r::after{animation-delay:-1.4s}
+@keyframes tavLamp{from{opacity:.6}to{opacity:1}}
+
+.tav-folk{position:absolute;inset:0}
+.tav-body{position:absolute;transform:translateX(-50%);display:flex;flex-direction:column;
+  align-items:center;text-decoration:none;
+  animation:tavIdle 5.5s cubic-bezier(.2,.7,.2,1) infinite alternate}
+@keyframes tavIdle{from{transform:translateX(-50%) translateY(0)}to{transform:translateX(-50%) translateY(-3px)}}
+.tav-body:focus-visible{outline:2px solid var(--gold);outline-offset:5px;border-radius:6px}
+.tav-head{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;object-fit:cover;
+  font-family:var(--display);font-size:.62rem;font-weight:700;color:#241a0c;
+  background:linear-gradient(150deg,#e4c77f,#8a6d2a);
+  box-shadow:0 0 0 1px #0d0904,0 0 18px -4px rgba(226,190,110,.45)}
+.tav-cloak{width:56px;height:40px;margin-top:-8px;
+  background:linear-gradient(to bottom,#3a2a14,#1a1208);
+  border-radius:50% 50% 12% 12%/70% 70% 14% 14%;box-shadow:inset 0 6px 14px -8px rgba(255,214,140,.25)}
+.tav-body.is-me .tav-head{background:linear-gradient(150deg,#b45050,var(--wine));color:#f7e6c6}
+.tav-body.is-me .tav-cloak{background:linear-gradient(to bottom,#5a1d1d,#2a0f0f)}
+.tav-plate{margin-top:5px;font-family:var(--display);text-transform:uppercase;letter-spacing:.1em;
+  font-size:.46rem;color:var(--tav-smoke);white-space:nowrap;text-shadow:0 1px 4px #000}
+.tav-body[data-depth=far]{filter:brightness(.74)}
+.tav-body[data-depth=far] .tav-head{width:28px;height:28px;font-size:.54rem}
+.tav-body[data-depth=far] .tav-cloak{width:46px;height:33px}
+.tav-empty{position:absolute;left:50%;top:38%;transform:translate(-50%,-50%);width:82%;
+  text-align:center;color:var(--tav-smoke);font-size:.9rem;text-shadow:0 1px 6px #000}
+
+.tav-strip{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:10px;padding:9px 14px;
+  background:var(--dark2);border:1px solid #3e2f18;border-radius:3px;font-size:.8rem;color:var(--tav-smoke)}
+.tav-dot{width:7px;height:7px;border-radius:50%;background:var(--forest);
+  box-shadow:0 0 8px 1px rgba(70,140,95,.7);flex-shrink:0}
+.tav-special{flex:1;min-width:190px}
+.tav-gates b{color:#f0e2c0}
+.tav-purse{margin-left:auto;display:flex;align-items:center;gap:6px;white-space:nowrap;
+  color:var(--gold-l);text-decoration:none;font-variant-numeric:tabular-nums}
+.tav-coin{width:17px;height:17px;border-radius:50%;display:grid;place-items:center;
+  background:radial-gradient(circle at 34% 30%,#e4c77f,#8a6d2a);color:#3a2a08;
+  font-size:.55rem;font-weight:700;font-family:var(--display)}
+
+.tav-doors{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:8px}
+.tav-doors a,.tav-doors button{font-family:var(--display);text-transform:uppercase;letter-spacing:.12em;
+  font-size:.56rem;color:var(--tav-smoke);text-decoration:none;border:1px solid #3e2f18;
+  background:transparent;border-radius:2px;padding:6px 11px;cursor:pointer;
+  transition:border-color .2s,color .2s}
+.tav-doors a:hover,.tav-doors button:hover{border-color:var(--gold-d);color:#f0e2c0}
+.tav-pip{background:var(--wine);color:#f6e7c4;border-radius:9px;padding:0 5px;font-size:.55rem}
+
+.tav-err{margin:12px 0 0;padding:10px 14px;border:1px solid var(--wine-l);border-left:3px solid var(--wine);
+  background:rgba(110,26,26,.18);color:#f0d8d8;border-radius:2px;font-size:.88rem}
+
+/* ── the record ─────────────────────────────────────────────────────────── */
+.tav-log{display:flex;flex-direction:column;gap:16px;padding:22px 0 14px}
+.tav-bare{color:var(--tav-smoke)}
+.tav-mark{display:flex;align-items:center;gap:13px;color:var(--tav-smoke)}
+.tav-mark::before,.tav-mark::after{content:"";flex:1;height:1px;background:rgba(138,109,42,.42)}
+.tav-mark span{font-family:var(--display);text-transform:uppercase;letter-spacing:.16em;
+  font-size:.56rem;white-space:nowrap}
+
+.tav-said{display:flex;gap:11px;align-items:flex-start}
+.tav-said.is-me{flex-direction:row-reverse}
+.tav-face{width:34px;height:34px;flex-shrink:0;border-radius:50%;display:grid;place-items:center;
+  object-fit:cover;font-family:var(--display);font-size:.6rem;font-weight:700;color:#241a0c;
+  background:linear-gradient(150deg,#e4c77f,#8a6d2a);box-shadow:0 0 0 1px #0d0904}
+.tav-face--sm{width:26px;height:26px;font-size:.52rem}
+.tav-said.is-me>.tav-face{background:linear-gradient(150deg,#b45050,var(--wine));color:#f7e6c6}
+.tav-col{max-width:74%;min-width:0;flex:1}
+.tav-col--wide{max-width:100%}
+.tav-who{display:flex;align-items:baseline;gap:7px;flex-wrap:wrap;margin:0 0 4px 3px;
+  font-size:.72rem;color:var(--tav-smoke)}
+.tav-said.is-me>.tav-col>.tav-who{justify-content:flex-end}
+.tav-who b{font-family:var(--display);text-transform:uppercase;letter-spacing:.07em;
+  font-size:.62rem;color:#eaddba;font-weight:700}
+.tav-tag{font-family:var(--display);text-transform:uppercase;letter-spacing:.09em;font-size:.48rem;
+  padding:1px 6px;border-radius:2px;border:1px solid var(--gold-d);color:var(--gold-d)}
+.tav-when{font-variant-numeric:tabular-nums;font-size:.68rem;opacity:.72}
+
+/* torn parchment, not a chat pill */
+.tav-scrap{background:var(--tav-scrap);color:#2a1d0c;border:1px solid #b99a55;
+  border-radius:13px 3px 13px 3px;padding:10px 14px;box-shadow:0 12px 26px -20px #000}
+.tav-scrap p{margin:0;white-space:pre-wrap}
+.tav-title{display:block;font-family:var(--display);font-size:.95rem;letter-spacing:.02em;
+  color:#3a2a10;margin-bottom:3px}
+.tav-said.is-me>.tav-col>.tav-scrap{background:#5f1717;color:#f7e7c8;border-color:var(--wine-l);
+  border-radius:3px 13px 3px 13px}
+.tav-said.is-me>.tav-col>.tav-scrap .tav-title{color:#f3dcb4}
+.tav-scrap--reply{border-radius:10px 3px 10px 3px;padding:8px 12px;font-size:.94rem}
+
+.tav-reply{display:flex;gap:9px;margin:9px 0 0 16px;padding-left:12px;
+  border-left:1px solid rgba(138,109,42,.35)}
+.tav-reply>div{min-width:0;flex:1}
+.tav-reply.is-me .tav-scrap--reply{background:#5f1717;color:#f7e7c8;border-color:var(--wine-l)}
+
+.tav-acts{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:9px}
+.tav-replyform{display:flex;gap:6px;flex:1;min-width:200px}
+.tav-replyform input{flex:1;min-width:0;background:var(--dark2);border:1px solid #3e2f18;border-radius:2px;
+  color:#f2e6c9;font-family:var(--serif);font-size:.88rem;padding:7px 11px}
+.tav-replyform input::placeholder{color:#8a7856;font-style:italic}
+.tav-replyform input:focus{outline:none;border-color:var(--gold-d)}
+.tav-replyform button,.tav-open,.tav-del,.tav-cta{font-family:var(--display);text-transform:uppercase;
+  letter-spacing:.12em;font-size:.55rem;border-radius:2px;padding:7px 11px;cursor:pointer;
+  text-decoration:none;border:1px solid #3e2f18;background:transparent;color:var(--tav-smoke)}
+.tav-replyform button{border-color:var(--wine-l);background:var(--wine);color:#f6e7c4}
+.tav-replyform button:hover{background:var(--wine-l)}
+.tav-open:hover,.tav-cta:hover{border-color:var(--gold-d);color:#f0e2c0}
+.tav-del{border-color:#5a2020;color:#c98a8a}
+.tav-del:hover{background:rgba(110,26,26,.25)}
+
+/* ── cards: polls and the ration, inside the conversation ───────────────── */
+.tav-card{background:var(--dark2);border:1px solid #4a3820;border-radius:3px;padding:15px 17px}
+.tav-card h3{font-family:var(--display);font-size:.92rem;letter-spacing:.03em;margin:0 0 11px;color:#f2e2ba}
+.tav-card h4{font-family:var(--display);text-transform:uppercase;letter-spacing:.12em;
+  font-size:.66rem;margin:0 0 5px;color:var(--gold-l)}
+.tav-card p{margin:0 0 7px;font-size:.92rem}
+.tav-card .muted{color:var(--tav-smoke);font-size:.8rem}
+.tav-optform{margin:0 0 7px}
+.tav-opt{position:relative;display:block;width:100%;text-align:left;font-family:var(--serif);
+  font-size:.9rem;color:#efe0be;background:transparent;border:1px solid #3e2f18;border-radius:2px;
+  padding:9px 12px;margin-bottom:7px;overflow:hidden;cursor:pointer}
+.tav-optform .tav-opt{margin:0}
+.tav-opt.is-result{cursor:default}
+.tav-opt:hover:not(.is-result){border-color:var(--gold-d)}
+.tav-fill{position:absolute;inset:0 auto 0 0;background:rgba(194,161,77,.2)}
+.tav-lbl{position:relative;display:flex;justify-content:space-between;gap:12px}
+.tav-pct{color:var(--tav-smoke);font-variant-numeric:tabular-nums}
+.tav-tally{margin:8px 0 0;font-size:.78rem;color:var(--tav-smoke)}
+.tav-tally a{color:var(--gold-l)}
+
+.tav-ration{display:flex;gap:16px;align-items:center;flex-wrap:wrap}
+.tav-draw{width:84px;height:132px;flex-shrink:0;border-radius:4px;border:1px solid var(--gold-d);
+  display:grid;place-items:center;cursor:pointer;color:var(--gold-l);font-family:var(--display);
+  font-size:.56rem;letter-spacing:.14em;text-transform:uppercase;text-align:center;line-height:1.5;
+  background:repeating-linear-gradient(45deg,rgba(194,161,77,.09) 0 6px,transparent 6px 12px),
+    linear-gradient(160deg,#3a2a14,#1d1409);transition:box-shadow .3s,transform .3s}
+.tav-draw:hover{box-shadow:0 0 22px -6px rgba(194,161,77,.5);transform:translateY(-2px)}
+.tav-draw.is-drawn{background:linear-gradient(165deg,#f6ecd2,#dcc79a);color:#3a2a14;
+  border-color:var(--gold);cursor:default}
+.tav-ration>div:last-child{flex:1;min-width:170px}
+
+/* ── speak ──────────────────────────────────────────────────────────────── */
+.tav-dock{position:sticky;bottom:0;z-index:19;padding:10px 0 18px;
+  background:linear-gradient(to top,#120c07 68%,rgba(18,12,7,0))}
+.tav-bar{display:flex;gap:8px;flex-wrap:wrap;background:var(--dark2);border:1px solid #5b4522;
+  border-radius:3px;padding:8px;box-shadow:0 14px 34px -24px #000}
+.tav-bar:focus-within{border-color:var(--gold)}
+.tav-bar input,.tav-bar select{background:transparent;border:1px solid #3e2f18;border-radius:2px;
+  color:#f2e6c9;font-family:var(--serif);font-size:.95rem;padding:8px 11px}
+.tav-title-in{width:160px}
+.tav-body-in{flex:1;min-width:180px}
+.tav-bar input::placeholder{color:#8a7856;font-style:italic}
+.tav-bar input:focus,.tav-bar select:focus{outline:none;border-color:var(--gold-d)}
+.tav-bar select{color:#cbb894}
+.tav-bar button{border:0;border-radius:2px;background:var(--wine);color:#f6e7c4;cursor:pointer;
+  font-family:var(--display);text-transform:uppercase;letter-spacing:.14em;font-size:.58rem;padding:10px 18px}
+.tav-bar button:hover{background:var(--wine-l)}
+.tav-pollnew{margin-top:8px}
+.tav-pollnew summary{font-family:var(--display);text-transform:uppercase;letter-spacing:.12em;
+  font-size:.55rem;color:var(--tav-smoke);cursor:pointer;padding:6px 2px}
+.tav-pollnew summary:hover{color:#f0e2c0}
+.tav-pollnew form{display:flex;gap:7px;flex-wrap:wrap;margin-top:8px;background:var(--dark2);
+  border:1px solid #3e2f18;border-radius:3px;padding:10px}
+.tav-pollnew input{flex:1;min-width:130px;background:transparent;border:1px solid #3e2f18;
+  border-radius:2px;color:#f2e6c9;font-family:var(--serif);font-size:.9rem;padding:7px 10px}
+.tav-pollnew input::placeholder{color:#8a7856;font-style:italic}
+.tav-pollnew button{border:0;border-radius:2px;background:var(--gold-d);color:#241a08;cursor:pointer;
+  font-family:var(--display);text-transform:uppercase;letter-spacing:.12em;font-size:.56rem;padding:9px 16px}
+.tav-signin{margin:0;padding:13px 16px;background:var(--dark2);border:1px solid #3e2f18;
+  border-left:3px solid var(--gold-d);border-radius:2px;color:var(--tav-smoke);font-size:.9rem}
+.tav-signin a{color:var(--gold-l);font-weight:600}
+
+@media (max-width:640px){
+  .tav-room{height:clamp(180px,26vh,220px)}
+  .tav-col{max-width:82%}
+  .tav-title-in{width:100%}
+  .tav-plate{font-size:.42rem}
+}
+@media (prefers-reduced-motion:reduce){
+  .tav-lantern::after,.tav-body{animation:none}
+  .tav-draw{transition:none}
+}
+
+/* ── Tavern corrections ────────────────────────────────────────────────────
+   1. The sticky stage faded to transparent at its base, so the log scrolled
+      through it and text sat on top of text. It is opaque now.
+   2. Threads read as forum posts — titles, category chips, "Open" links.
+      A thread and its replies are now one run of chat bubbles instead.        */
+
+/* opaque stage, with a hard edge instead of a fade */
+.tav-stage{background:#120c07;padding-bottom:10px;
+  box-shadow:0 10px 22px -14px #000,0 1px 0 rgba(138,109,42,.35)}
+.tav-dock{background:#120c07;box-shadow:0 -12px 26px -18px #000}
+
+/* the log sits clear of the stage */
+.tav-log{padding-top:20px;gap:5px}
+
+/* a thread + its replies read as one exchange */
+.tav-run{display:flex;flex-direction:column;gap:5px;margin-bottom:19px}
+
+/* continuation lines from the same speaker: no repeated face or name */
+.tav-face--ghost{background:none;box-shadow:none;visibility:hidden}
+.tav-said.is-cont{margin-top:-1px}
+.tav-said.is-cont .tav-scrap{border-radius:5px 12px 12px 5px}
+.tav-said.is-cont.is-me .tav-scrap{border-radius:12px 5px 5px 12px}
+
+/* bubbles: softer, roomier, and readable */
+.tav-scrap{border-radius:4px 15px 15px 15px;padding:11px 15px;line-height:1.55;
+  font-size:1rem;box-shadow:0 8px 20px -18px #000}
+.tav-said.is-me>.tav-col>.tav-scrap{border-radius:15px 4px 15px 15px}
+.tav-scrap p{word-break:break-word;overflow-wrap:anywhere}
+.tav-who{margin:0 0 3px 4px;gap:8px}
+.tav-said.is-me>.tav-col>.tav-who{margin:0 4px 3px 0}
+
+/* actions: quiet until wanted, so they stop looking like a forum toolbar */
+.tav-acts{margin-top:7px;padding-left:45px;opacity:.62;transition:opacity .2s}
+.tav-run:hover .tav-acts,.tav-acts:focus-within{opacity:1}
+.tav-replyform input{font-size:.9rem;padding:8px 12px;border-radius:14px}
+.tav-replyform button{border-radius:14px}
+.tav-del{opacity:.55}
+.tav-del:hover{opacity:1}
+
+@media (max-width:640px){
+  .tav-acts{padding-left:0}
+  .tav-scrap{font-size:.97rem}
+}
+
+/* ── Figures: lay them along the floor instead of pinning percentages ──────
+   Absolute % positions collided with each other and pushed past the bottom of
+   a short room, so names were clipped and heads sat on top of nameplates.
+   A flex row along the floor cannot overlap and always fits.                 */
+.tav-folk{position:absolute;left:0;right:0;bottom:9%;top:auto;
+  display:flex;justify-content:center;align-items:flex-end;
+  gap:clamp(4px,3.4vw,30px);padding:0 14px;pointer-events:none}
+.tav-body{position:static;transform:none;pointer-events:auto;
+  flex:0 0 auto;max-width:96px;
+  animation:tavIdle2 5.5s cubic-bezier(.2,.7,.2,1) infinite alternate}
+@keyframes tavIdle2{from{transform:translateY(0)}to{transform:translateY(-3px)}}
+
+/* depth without moving anyone out of line */
+.tav-body[data-depth=far]{filter:brightness(.76);margin-bottom:14px}
+.tav-body[data-depth=near]{margin-bottom:0}
+
+/* names must never be clipped or collide */
+.tav-plate{max-width:92px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  text-align:center;font-size:.44rem}
+
+/* give the room enough headroom for heads, cloaks and names together */
+.tav-room{height:clamp(240px,30vh,300px)}
+
+@media (max-width:640px){
+  .tav-room{height:clamp(206px,25vh,240px)}
+  .tav-body{max-width:66px}
+  .tav-plate{max-width:64px;font-size:.4rem}
+  .tav-body[data-depth=far]{margin-bottom:9px}
+  .tav-head{width:29px;height:29px}
+  .tav-body[data-depth=far] .tav-head{width:25px;height:25px}
+  .tav-cloak{width:46px;height:33px}
+  .tav-body[data-depth=far] .tav-cloak{width:39px;height:28px}
+}
+
+/* ── Let the room scroll away ──────────────────────────────────────────────
+   Pinning the stage sounded good and read badly: the site header is already
+   78px fixed, and the stage added ~400px on top. On a laptop that left a
+   sliver for the conversation, with every line sliding under the room the
+   moment you scrolled. The room now sits at the top and scrolls off, so the
+   talk gets the whole screen. The composer stays docked, which is the part
+   you actually want within reach.                                           */
+.tav-stage{position:static;box-shadow:none;padding-bottom:4px}
+.tav-room{height:clamp(210px,26vh,260px)}
+.tav-log{padding-top:24px}
+
+/* the composer keeps its dock, with a solid ground so nothing shows through */
+.tav-dock{position:sticky;bottom:0;background:#120c07;
+  box-shadow:0 -14px 26px -18px #000,0 -1px 0 rgba(138,109,42,.28)}
+
+@media (max-width:640px){
+  .tav-room{height:clamp(190px,22vh,220px)}
+}
+
+/* the last message must clear the docked composer */
+.tav-log{padding-bottom:96px}
+
+/* ── Signed-in signal ──────────────────────────────────────────────────────
+   Green when you are in, red when you are safely out. It sits in the header on
+   every page, so you never have to guess whether you can post.               */
+.signal{display:inline-flex;align-items:center;gap:6px;white-space:nowrap;
+  font-family:var(--display);text-transform:uppercase;letter-spacing:.11em;
+  font-size:.56rem;padding:5px 11px;border-radius:11px;border:1px solid currentColor}
+.signal--in{color:#7fd6a0;background:rgba(44,74,54,.42)}
+.signal--out{color:#e08585;background:rgba(110,26,26,.34)}
+
+/* on the parchment pages the header is dark, so these read fine as-is;
+   inside the tavern keep them from glowing too hard against the black */
+.tav .signal{box-shadow:none}
+
+@media (max-width:980px){
+  /* in the drop-down menu the signal gets its own line, full width */
+  .nav-links .signal{align-self:flex-start;margin:10px 0 4px}
+}

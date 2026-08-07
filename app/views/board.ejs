@@ -1,36 +1,295 @@
-<%- include('_top',{title:'The Tavern',bodyClass:'tavern-page'}) %>
-<div class="tavern-band"><%- include('_tavern-scene') %><div class="ticker" aria-hidden="true"><div class="ticker__track"><% threads.slice(0,10).forEach(function(t){ %><span class="tk">&#10022; <%= t.title %></span><% }); if(!threads.length){ %><span class="tk">&#10022; The board is quiet &mdash; pull up a stool and pin the first note</span><% } %><% threads.slice(0,10).forEach(function(t){ %><span class="tk">&#10022; <%= t.title %></span><% }); if(!threads.length){ %><span class="tk">&#10022; The board is quiet &mdash; pull up a stool and pin the first note</span><% } %></div></div></div><section class="section" style="padding-top:32px"><div class="container">
-<div class="bannerhead"><span class="eyebrow" style="color:var(--gold-l)">The Tavern</span><h2 style="color:#f8edd1">Notice Board &amp; Polls</h2><div class="rule"></div></div>
-<% if(gates){ %><div class="countdown"><% if(gates.ended){ %>&#9873; The faire has sailed on &mdash; thank you, one and all.<% } else if(gates.open){ %>&#9873; The gates are open! Find us at Sunset Park.<% } else { %>&#9873; The gates open in <b><%= gates.days %></b> <%= gates.days===1?'day':'days' %> &mdash; October 9&ndash;11, 2026<% } %></div><% } %>
-<p class="lead">Pull up a stool. Read the notes, trade a deal, hitch a ride to camp, or put a question to the House. Anyone can read — to post, <% if(i){ %>you're seated as <b><%= i.name %></b> · &#129689; <b><%= i.coins %></b> doubloons &middot; <a href="/board/notices">&#128276;<% if(notices>0){ %> <b><%= notices %></b><% } %></a> &middot; <a href="/board/whispers">whispers</a> &middot; <a href="/tavern/logout">leave your seat</a><% } else { %><a href="/tavern">claim a seat</a> (a name + avatar)<% } %>.</p>
-<p class="muted" style="margin:6px 0 0">Wanted, dead or alive &mdash; browse the <a href="/board/rogues">Rogues' Gallery</a>.</p>
-<div class="grid grid--2" style="gap:18px;margin:22px 0">
-<div class="compose" id="ration" style="margin:0"><h3>&#127183; Daily Rum Ration</h3><% if(!i){ %><p class="muted" style="margin:0"><a href="/tavern">Claim a seat</a> to draw your daily card.</p><% } else if(ration.canDraw){ %><% if(i.streak>0){ %><p class="muted" style="margin:0 0 12px">&#128293; You are on a <%= i.streak %>-day streak &mdash; keep it going.</p><% } %><p class="muted" style="margin:0 0 12px">One free draw a day &mdash; a fortune and a purse of doubloons.</p><form method="post" action="/board/ration"><button class="btn btn--gold">Draw a Card</button></form><% } else if(ration.card){ %><div class="rationshow"><div class="rationshow__card"><b><%= ration.card.n %></b><p style="margin:6px 0 0;font-style:italic"><%= ration.card.f %></p><span class="tag" style="margin-top:10px;display:inline-block">+<%= ration.card.c %> &#129689; doubloons</span><% if(ration.card.streak>1){ %><span class="tag" style="margin-top:10px;display:inline-block">&#128293; <%= ration.card.streak %>-day streak &middot; +<%= ration.card.bonus %> bonus</span><% } %></div><p class="muted" style="margin:10px 0 0">Come back tomorrow for another draw.</p></div><% } else { %><p class="muted" style="margin:0">Come back tomorrow for another draw.</p><% } %></div>
-<div class="compose" style="margin:0"><h3>&#127769; Tavern Special of the Day</h3><p style="margin:0"><%= special %></p><% if(i){ %><a class="btn btn--outline" href="/board#compose" style="margin-top:12px">Answer this</a><% } else { %><p class="muted" style="margin:10px 0 0"><a href="/tavern">Claim a seat</a> to answer.</p><% } %></div>
-</div><% if(q&&q.e){ %><div class="compose" style="border-color:var(--wine);color:var(--wine);margin:18px 0"><%= q.e %></div><% } %>
-<% if(!i){ %>
-<div class="compose" style="margin:26px 0"><h3>Want to post or vote?</h3><p class="muted" style="margin-top:0">Reading is free for all. To pin a note, reply, or raise a hand in a poll, <a href="/tavern">claim a seat at the tavern</a> — just a name, email, and a face (avatar). No guild invite needed.</p><a class="btn btn--gold" href="/tavern">Claim a Seat</a><p class="muted" style="margin-top:12px;font-size:.92rem">Already a guild member? <a href="/members/login">Sign in at the Guild Login</a> to post as yourself.</p></div>
-<% } else { %>
-<div class="compose" id="compose" style="margin:26px 0"><h3>Pin a Note</h3><form method="post" action="/board/thread"><div class="grid grid--2" style="gap:14px"><div class="field" style="margin:0"><label>Category</label><select name="category"><% cats.forEach(function(c){ %><option value="<%= c %>"><%= c %></option><% }) %></select></div><div class="field" style="margin:0"><label>Title</label><input name="title" required placeholder="A short headline"></div></div><div class="field"><label>Your note</label><textarea name="body" required placeholder="Say your piece..."></textarea></div><button class="btn btn--gold">Pin the Note</button></form></div>
-<div class="compose" id="polls" style="margin:26px 0"><h3>Put a Question to the House</h3><form method="post" action="/board/poll"><div class="field"><label>Question</label><input name="question" required placeholder="Which night for the guild dinner?"></div><div class="field"><label>Options (at least 2)</label><input name="options" required placeholder="Saturday"><input name="options" required placeholder="Sunday" style="margin-top:8px"><input name="options" placeholder="Another..." style="margin-top:8px"></div><button class="btn btn--wine">Raise the Question</button></form></div>
-<% } %>
+<%- include('_top',{title:'The Tavern',active:'board',desc:'The Tavern of the House of Card and Coin — notices, wagers and talk by the fire before the Age of Chivalry Renaissance Festival.',image:'/assets/img/og/index.jpg',url:'https://houseofcardandcoin.com/board'}) %>
 
-<h3 style="color:#f8edd1;font-family:var(--display);margin:36px 0 10px">Polls to the House</h3>
-<% if(!polls.length){ %><p class="muted">No questions raised yet.</p><% } %>
-<% polls.forEach(function(p){ const total=p.total; %>
-<div class="note" id="poll<%= p.id %>" style="margin-bottom:18px"><div style="display:flex;gap:14px;align-items:flex-start"><%- include('_avatar',{name:p.authorName,avatar:p.authorAvatar}) %><div style="flex:1;min-width:0"><div style="display:flex;gap:10px;align-items:baseline;flex-wrap:wrap"><b style="color:var(--wine);font-size:1.12rem"><%= p.question %></b><span class="muted" style="font-size:.78rem">by <%= p.authorName %> · <%= new Date(p.ts).toLocaleDateString() %></span></div>
-<% p.options.forEach(function(o){ const pct=total?Math.round(o.votes.length/total*100):0; %>
-<div style="margin-top:12px"><div style="display:flex;justify-content:space-between;font-size:.9rem;color:var(--ink2)"><span><%= o.text %></span><span class="muted"><%= o.votes.length %> · <%= pct %>%</span></div><div class="pollbar" style="width:<%= pct %>%;margin-top:4px"></div></div>
-<% }); %>
-<% if(i){ %><form method="post" action="/board/poll/<%= p.id %>/vote" style="margin-top:14px;display:flex;gap:8px;flex-wrap:wrap"><% p.options.forEach(function(o){ %><button class="btn btn--outline" name="option" value="<%= o.id %>" type="submit" style="padding:8px 14px;font-size:.7rem"><%= o.text %></button><% }); %></form><% if(p.voted){ %><span class="tag" style="margin-top:8px;display:inline-block">Your hand is raised</span><% } %><% } else { %><p class="muted" style="font-size:.82rem;margin-top:10px"><a href="/tavern">Claim a seat</a> to vote.</p><% } %>
-<% if(leader){ %><form method="post" action="/board/poll/<%= p.id %>/delete" style="margin-top:12px"><button class="btn btn--wine" style="padding:6px 12px;font-size:.6rem">Strike the question</button></form><% } %>
-</div></div></div>
-<% }); %>
+<div class="tav">
 
-<h3 style="color:#f8edd1;font-family:var(--display);margin:36px 0 10px">Notes on the Board</h3><div class="tackboard">
-<% if(!threads.length){ %><p class="muted">The board is bare. Be the first to pin a note.</p><% } %>
-<% threads.forEach(function(t){ %>
-<div class="note" style="margin-bottom:18px"><div style="display:flex;gap:14px;align-items:flex-start"><%- include('_avatar',{name:t.authorName,avatar:t.authorAvatar}) %><div style="flex:1;min-width:0"><div style="display:flex;gap:10px;align-items:baseline;flex-wrap:wrap"><span class="tag"><%= t.category %></span><a class="note__title" href="/board/thread/<%= t.id %>"><b><%= t.title %></b> <span class="note__open">open the messages &rarr;</span></a></div><p class="muted" style="font-size:.78rem;margin:2px 0 8px">by <%= t.authorName %> · <%= new Date(t.ts).toLocaleDateString() %> · <%= t.replies.length %> <%= t.replies.length===1?'reply':'replies' %></p><p style="color:var(--ink2);margin:0;white-space:pre-wrap"><%= t.body %></p><div style="margin-top:12px;display:flex;gap:8px;align-items:center;flex-wrap:wrap"><a href="/board/thread/<%= t.id %>" class="btn btn--outline" style="padding:6px 14px;font-size:.66rem">Open the thread &rarr;</a><% if(leader){ %><form method="post" action="/board/thread/<%= t.id %>/delete"><button class="btn btn--wine" style="padding:6px 12px;font-size:.6rem">Strike</button></form><% } %></div><%- include('_toasts',{i:i,reacts:t.reacts,action:'/board/thread/'+t.id+'/react'}) %></div></div></div>
-<% }); %>
-</div></div></section>
+  <!-- ── the stage: the room, pinned while the talk scrolls past ───────── -->
+  <div class="tav-stage">
+    <div class="tav-room" data-quiet="<%= quietHrs %>">
+      <div class="tav-wall"></div>
+      <div class="tav-beam"></div>
+      <span class="tav-lantern tav-lantern--l"></span>
+      <span class="tav-lantern tav-lantern--r"></span>
+      <div class="tav-hearth"></div>
+      <canvas class="tav-fx" id="tavFx"></canvas>
+      <div class="tav-floor"></div>
+
+      <div class="tav-folk">
+        <% folk.slice(0,5).forEach(function(f,n){ var mine = i && f.t===i.t && f.id===i.id; %>
+          <a class="tav-body<%= mine?' is-me':'' %>" data-depth="<%= (n%2)?'near':'far' %>"
+             style="animation-delay:-<%= n*1.3 %>s"
+             href="/board/whisper/<%= f.t %>/<%= f.id %>"
+             title="Whisper to <%= f.name %>">
+            <% if(f.avatar){ %>
+              <img class="tav-head" src="<%= f.avatar %>" alt="<%= f.name %>">
+            <% } else { %>
+              <span class="tav-head"><%= f.name.slice(0,2).toUpperCase() %></span>
+            <% } %>
+            <span class="tav-cloak"></span>
+            <span class="tav-plate"><%= f.name %></span>
+          </a>
+        <% }); %>
+        <% if(!folk.length){ %>
+          <p class="tav-empty">The fire is banked and the room is quiet.<br>Be the first to speak tonight.</p>
+        <% } %>
+      </div>
+    </div>
+
+    <div class="tav-strip">
+      <span class="tav-dot"></span>
+      <span class="tav-special">🌙 <%= special %></span>
+      <span class="tav-gates">
+        <% if(gates.ended){ %>The faire has ended — until next year.
+        <% } else if(gates.open){ %><b>The gates are open.</b>
+        <% } else { %><b><%= gates.days %></b> days until the gates open<% } %>
+      </span>
+      <% if(i){ %>
+        <a class="tav-purse" href="/board/rogues"><span class="tav-coin">✦</span> <%= i.coins||0 %> coins</a>
+      <% } %>
+    </div>
+
+    <nav class="tav-doors">
+      <a href="/board/rogues">Rogues' Gallery</a>
+      <% if(i){ %>
+        <a href="/board/whispers">Whispers</a>
+        <a href="/board/notices">Notices<% if(notices){ %> <b class="tav-pip"><%= notices %></b><% } %></a>
+        <form method="post" action="/tavern/logout"><button type="submit">Leave the tavern</button></form>
+      <% } else { %>
+        <a href="/tavern">Claim a seat</a>
+        <a href="/members/login">Guild sign-in</a>
+      <% } %>
+    </nav>
+  </div>
+
+  <% if(q.e){ %><p class="tav-err"><%= q.e %></p><% } %>
+
+  <!-- ── the record: everything said, kept ─────────────────────────────── -->
+  <div class="tav-log">
+
+    <!-- rum ration -->
+    <% if(i){ %>
+      <div class="tav-mark"><span>🃏 Daily Rum Ration</span></div>
+      <div class="tav-card tav-ration">
+        <% if(ration.canDraw){ %>
+          <form method="post" action="/board/ration">
+            <button class="tav-draw" type="submit"><span>Draw<br>tonight's<br>card</span></button>
+          </form>
+          <div>
+            <h4>Your ration is waiting</h4>
+            <p class="muted">One draw a night. Keep the streak and the purse grows.</p>
+          </div>
+        <% } else if(ration.card){ %>
+          <div class="tav-draw is-drawn"><span><b><%= ration.card.n %></b></span></div>
+          <div>
+            <h4>You drew <%= ration.card.n %></h4>
+            <p><%= ration.card.f %></p>
+            <p class="muted">+<%= ration.card.c %> coins · come back tomorrow<% if(i.streak){ %> · streak <%= i.streak %><% } %></p>
+          </div>
+        <% } else { %>
+          <div class="tav-draw is-drawn"><span>Drawn</span></div>
+          <div><h4>Already drawn tonight</h4><p class="muted">Come back tomorrow.</p></div>
+        <% } %>
+      </div>
+    <% } %>
+
+    <!-- polls, in the conversation rather than behind a link -->
+    <% polls.forEach(function(p){ %>
+      <div class="tav-said">
+        <span class="tav-face"><%= (p.authorName||'?').slice(0,2).toUpperCase() %></span>
+        <div class="tav-col tav-col--wide">
+          <p class="tav-who"><b><%= p.authorName %></b> put a question to the House</p>
+          <div class="tav-card">
+            <h3>🗳 <%= p.question %></h3>
+            <% p.options.forEach(function(o){ var pct = p.total?Math.round(o.votes.length*100/p.total):0; %>
+              <% if(i && !p.voted){ %>
+                <form method="post" action="/board/poll/<%= p.id %>/vote" class="tav-optform">
+                  <input type="hidden" name="option" value="<%= o.id %>">
+                  <button class="tav-opt" type="submit"><span class="tav-lbl"><%= o.text %></span></button>
+                </form>
+              <% } else { %>
+                <div class="tav-opt is-result">
+                  <span class="tav-fill" style="width:<%= pct %>%"></span>
+                  <span class="tav-lbl"><%= o.text %><span class="tav-pct"><%= pct %>%</span></span>
+                </div>
+              <% } %>
+            <% }); %>
+            <p class="tav-tally">
+              <%= p.total %> vote<%= p.total===1?'':'s' %><% if(!i){ %> · <a href="/tavern">claim a seat to vote</a><% } %>
+            </p>
+            <% if(leader){ %>
+              <form method="post" action="/board/poll/<%= p.id %>/delete"><button class="tav-del" type="submit">Strike this poll</button></form>
+            <% } %>
+          </div>
+        </div>
+      </div>
+    <% }); %>
+
+    <div class="tav-mark"><span>Talk by the fire</span></div>
+
+    <% if(!threads.length){ %>
+      <p class="muted tav-bare">No one has spoken yet. Say the first thing.</p>
+    <% } %>
+
+    <%
+      /* Flatten each thread and its replies into one run of bubbles, the way a
+         conversation actually reads. Consecutive lines from the same person drop
+         the avatar and the name so it looks like someone still talking. */
+      function stamp(ts){ return new Date(ts).toLocaleDateString(undefined,{month:'short',day:'numeric'}); }
+    %>
+    <% threads.forEach(function(t){ %>
+      <% var run=[{who:t.authorName,av:t.authorAvatar,ty:t.authorType,uid:t.authorId,body:t.body,ts:t.ts}]
+             .concat((t.replies||[]).map(function(r){return {who:r.authorName,av:r.authorAvatar,ty:r.authorType,uid:r.authorId,body:r.body,ts:r.ts};})); %>
+      <div class="tav-run">
+        <% run.forEach(function(m,n){
+             var mine = i && m.ty===i.t && m.uid===i.id;
+             var prev = n>0 ? run[n-1] : null;
+             var same = prev && prev.ty===m.ty && prev.uid===m.uid; %>
+          <div class="tav-said<%= mine?' is-me':'' %><%= same?' is-cont':'' %>">
+            <% if(same){ %>
+              <span class="tav-face tav-face--ghost" aria-hidden="true"></span>
+            <% } else if(m.av){ %>
+              <img class="tav-face" src="<%= m.av %>" alt="<%= m.who %>">
+            <% } else { %>
+              <span class="tav-face"><%= (m.who||'?').slice(0,2).toUpperCase() %></span>
+            <% } %>
+            <div class="tav-col">
+              <% if(!same){ %>
+                <p class="tav-who"><b><%= mine?'You':m.who %></b><span class="tav-when"><%= stamp(m.ts) %></span></p>
+              <% } %>
+              <div class="tav-scrap"><p><%= m.body %></p></div>
+            </div>
+          </div>
+        <% }); %>
+
+        <div class="tav-acts">
+          <% if(i){ %>
+            <form class="tav-replyform" method="post" action="/board/thread/<%= t.id %>/reply">
+              <input name="body" placeholder="Answer…" aria-label="Answer this" required>
+              <button type="submit">Answer</button>
+            </form>
+          <% } else { %>
+            <a class="tav-cta" href="/tavern">Claim a seat to answer</a>
+          <% } %>
+          <% if(leader){ %>
+            <form method="post" action="/board/thread/<%= t.id %>/delete"><button class="tav-del" type="submit">Strike</button></form>
+          <% } %>
+        </div>
+      </div>
+    <% }); %>
+  </div>
+
+  <!-- ── speak ──────────────────────────────────────────────────────────── -->
+  <div class="tav-dock" id="compose">
+    <% if(i){ %>
+      <form class="tav-bar" method="post" action="/board/thread">
+        <input class="tav-body-in" name="body" placeholder="Say something to the House…" aria-label="Your message" required>
+        <select name="category" aria-label="Which corner of the tavern">
+          <% cats.forEach(function(c){ %><option value="<%= c %>"><%= c %></option><% }); %>
+        </select>
+        <button type="submit">Speak</button>
+      </form>
+      <details class="tav-pollnew">
+        <summary>Put a question to the House instead</summary>
+        <form method="post" action="/board/poll">
+          <input name="question" placeholder="Your question" aria-label="Poll question" required>
+          <input name="options" placeholder="Answer 1" aria-label="Answer 1" required>
+          <input name="options" placeholder="Answer 2" aria-label="Answer 2" required>
+          <input name="options" placeholder="Answer 3 (optional)" aria-label="Answer 3">
+          <input name="options" placeholder="Answer 4 (optional)" aria-label="Answer 4">
+          <button type="submit">Ask it</button>
+        </form>
+      </details>
+    <% } else { %>
+      <p class="tav-signin">
+        Anyone may read the tavern. To speak, <a href="/tavern">claim a seat</a> — a name and a face is all it takes —
+        or <a href="/members/login">sign in to the Guild Hall</a>.
+      </p>
+    <% } %>
+  </div>
+</div>
+
+<script>
+(function(){
+  var cv=document.getElementById('tavFx'); if(!cv) return;
+  var room=cv.closest('.tav-room');
+  var reduce=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  /* the hearth burns down as the room goes quiet */
+  var quiet=parseInt(room.getAttribute('data-quiet'),10)||0;
+  var heat=Math.max(0.30, 1 - Math.min(quiet,48)/48);
+
+  var ctx=cv.getContext('2d'), W=0,H=0;
+  function size(){
+    var dpr=Math.min(window.devicePixelRatio||1,2), r=cv.getBoundingClientRect();
+    W=r.width; H=r.height;
+    cv.width=Math.round(W*dpr); cv.height=Math.round(H*dpr);
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+  }
+  size(); window.addEventListener('resize',size);
+
+  var embers=[];
+  function ember(){
+    return {x:W*0.5+(Math.random()-0.5)*W*0.06, y:H*0.72,
+            vy:-(0.2+Math.random()*0.65)*heat, vx:(Math.random()-0.5)*0.3,
+            r:0.6+Math.random()*1.4, life:1};
+  }
+  for(var n=0;n<Math.round(24*heat);n++){var e=ember();e.y-=Math.random()*H*0.45;e.life=Math.random();embers.push(e);}
+
+  function paint(t){
+    ctx.clearRect(0,0,W,H);
+    var fx=W*0.5, fy=H*0.72;
+    var pulse=0.78+Math.sin(t*1.7)*0.07+Math.sin(t*3.9)*0.04;
+
+    var pool=ctx.createRadialGradient(fx,fy,6,fx,fy,W*0.52*pulse);
+    pool.addColorStop(0,'rgba(255,186,92,'+(0.50*heat)+')');
+    pool.addColorStop(0.28,'rgba(210,132,44,'+(0.24*heat)+')');
+    pool.addColorStop(0.62,'rgba(120,66,20,'+(0.10*heat)+')');
+    pool.addColorStop(1,'rgba(0,0,0,0)');
+    ctx.fillStyle=pool; ctx.fillRect(0,0,W,H);
+
+    ctx.globalCompositeOperation='lighter';
+    for(var k=0;k<5;k++){
+      var ph=t*2.1+k*1.27;
+      var h=H*(0.13+0.07*Math.abs(Math.sin(ph)))*heat;
+      var w=W*(0.026+0.011*Math.abs(Math.cos(ph*0.8)));
+      var ox=Math.sin(ph*1.3)*W*0.010;
+      var g=ctx.createRadialGradient(fx+ox,fy-h*0.42,1,fx+ox,fy-h*0.42,Math.max(h,1));
+      g.addColorStop(0,'rgba('+(k<2?'255,226,150':'244,150,50')+','+(0.58*heat)+')');
+      g.addColorStop(0.5,'rgba(214,104,26,'+(0.20*heat)+')');
+      g.addColorStop(1,'rgba(120,40,8,0)');
+      ctx.fillStyle=g;
+      ctx.beginPath(); ctx.ellipse(fx+ox,fy-h*0.42,w,h*0.68,0,0,Math.PI*2); ctx.fill();
+    }
+    for(var j=0;j<embers.length;j++){
+      var p=embers[j];
+      p.x+=p.vx; p.y+=p.vy; p.vy-=0.0016; p.life-=0.0055;
+      if(p.life<=0||p.y<H*0.08){ embers[j]=ember(); continue; }
+      ctx.globalAlpha=Math.max(0,p.life)*0.85;
+      ctx.fillStyle=p.life>0.55?'#ffd489':'#d9772a';
+      ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2); ctx.fill();
+    }
+    ctx.globalAlpha=1; ctx.globalCompositeOperation='source-over';
+  }
+
+  if(reduce){ paint(0); }
+  else{
+    var t=0;
+    (function loop(){ t+=0.045; paint(t); requestAnimationFrame(loop); })();
+  }
+
+  /* No auto-scroll: the room is the first thing you should see, and jumping
+     past it to the newest line meant you never laid eyes on it. */
+
+  /* Keep the last message clear of the docked composer. The dock is taller when
+     signed out (it carries the sign-in note), so measure it rather than guess. */
+  var dock=document.querySelector('.tav-dock'), logEl=document.querySelector('.tav-log');
+  function clearDock(){
+    if(!dock||!logEl) return;
+    logEl.style.paddingBottom=(dock.getBoundingClientRect().height+26)+'px';
+  }
+  clearDock();
+  window.addEventListener('resize',clearDock);
+  if(window.ResizeObserver && dock) new ResizeObserver(clearDock).observe(dock);
+})();
+</script>
+
 <%- include('_bot') %>
