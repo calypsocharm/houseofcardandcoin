@@ -13,3 +13,6 @@ app/uploads/
 
 # logs
 *.log
+
+# session store (runtime, not source)
+app/sessions/

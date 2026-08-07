@@ -37,7 +37,23 @@ app.set('view engine','ejs');app.set('views',path.join(__dirname,'views'));
 try{ app.locals.cssv = String(Math.floor(fs.statSync(path.join(__dirname,'..','assets','css','style.css')).mtimeMs)); }
 catch(e){ app.locals.cssv = String(Date.now()); }
 app.use(express.urlencoded({extended:true}));app.use(express.json());
-app.use(session({secret:process.env.SESSION_SECRET||'guild-faire-secret-change',resave:false,saveUninitialized:false,cookie:{maxAge:7*864e5}}));
+// Sessions were held in memory, so every pm2 restart signed everyone out — and
+// the watchdog restarts this app on its own. They live on disk now and survive
+// a restart, a deploy and a reboot.
+const FileStore=require('session-file-store')(session);
+app.use(session({
+  store:new FileStore({
+    path:path.join(__dirname,'sessions'),
+    ttl:7*86400,            // a week, matching the cookie
+    retries:0,
+    reapInterval:3600,      // sweep expired sessions hourly
+    logFn:function(){}      // the store is chatty by default
+  }),
+  secret:process.env.SESSION_SECRET||'guild-faire-secret-change',
+  resave:false,
+  saveUninitialized:false,
+  cookie:{maxAge:7*864e5,httpOnly:true,sameSite:'lax',secure:false} // nginx terminates TLS
+}));
 // The header decides whether you are signed in from res.locals.u — but only the
 // Guild Hall was passing it, so every other page (tavern, guild, threads…) drew
 // "Guild Login" even while you were signed in. Set it once, for everyone.
