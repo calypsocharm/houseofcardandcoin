@@ -315,7 +315,7 @@ app.get('/board',(req,res)=>{
   };
   const threads=db.threads.slice().sort(function(a,b){return lastTouch(b)-lastTouch(a);});
   const polls=db.polls.slice().sort((a,b)=>b.ts-a.ts).map(function(p){const total=p.options.reduce((s,o)=>s+o.votes.length,0);const voted=i?!!p.options.find(o=>o.votes.find(v=>v.t===i.t&&v.id===i.id)):false;return Object.assign({},p,{total:total,voted:voted});});
-  res.render('board',{i:i,threads:threads,polls:polls,cats:BOARDCATS,q:req.query,leader:!!(i&&i.leader),ration:{canDraw:!!(i&&i.lastRation!==today),card:i?i.lastCard:null},special:SPECIALS[dayOfYear()%SPECIALS.length],gates:countdown(),notices:i?(db.notices||[]).filter(function(n){return n.toT===i.t&&n.toId===i.id&&!n.read;}).length:0,folk:pres.folk,quietHrs:quietHrs});
+  res.render('board',{i:i,threads:threads,polls:polls,cats:BOARDCATS,q:req.query,leader:!!(i&&i.leader),ration:{canDraw:!!(i&&i.lastRation!==today),card:i?i.lastCard:null},hand:i?(i.hand||[]).map(cardInfo):[],pending:i&&i.pending?cardInfo(i.pending):null,handRank:i?handRank(i.hand||[]):null,handPrizes:HAND_PRIZES,special:SPECIALS[dayOfYear()%SPECIALS.length],gates:countdown(),notices:i?(db.notices||[]).filter(function(n){return n.toT===i.t&&n.toId===i.id&&!n.read;}).length:0,folk:pres.folk,quietHrs:quietHrs});
 });
 app.post('/board/thread',canPost,(req,res)=>{
   const i=ident(req);const body=(req.body.body||'').trim();let category=(req.body.category||'General').trim();
@@ -360,15 +360,118 @@ app.post('/board/poll/:id/delete',leaderOnly,(req,res)=>{db.polls=db.polls.filte
 app.post('/board/patron/:id/ban',leaderOnly,(req,res)=>{const p=db.patrons.find(x=>x.id==req.params.id);if(p)p.banned=true;save();res.redirect('/board');});
 
 // ===== Tavern: doubloons, daily ration, reactions, rogues' gallery =====
-const RATIONS=[{n:'The Fool',f:'A new road opens at the faire. Pack light, travel bold.',c:2},{n:'The Magician',f:'Your wits are sharp today; a bargain tips your way.',c:3},{n:'The Star',f:'A quiet hope lights the camp tonight.',c:1},{n:'The Tower',f:'Expect a merry upheaval by the fire.',c:4},{n:'Wheel of Fortune',f:'The dice roll your way \u2014 a round of doubloons.',c:5},{n:'The Moon',f:'Whispers after dark prove useful.',c:2},{n:'The Sun',f:'Warm company and a full cup.',c:3},{n:'The Devil',f:'A wager tempts you; the house is watching.',c:1},{n:'The Hermit',f:'Solitude brings a tidy sum.',c:2},{n:'Death',f:'An old plan ends; a richer one begins.',c:3},{n:'The Empress',f:'Generosity returns to you threefold.',c:3},{n:'The Chariot',f:'Momentum is yours \u2014 claim the spot early.',c:2}];
+// ── The Cardsharp's Hand ───────────────────────────────────────────────────
+// One card a night from your own deck, building toward a five-card poker hand
+// you show at the faire. Everyone deals from a private shuffled deck, so no
+// one ever holds the same card twice.
+const SUITS=[{k:'S',g:'♠',n:'Spades'},{k:'H',g:'♥',n:'Hearts'},{k:'D',g:'♦',n:'Diamonds'},{k:'C',g:'♣',n:'Clubs'}];
+const RANKS=[['2',2],['3',3],['4',4],['5',5],['6',6],['7',7],['8',8],['9',9],['T',10],['J',11],['Q',12],['K',13],['A',14]];
+const RANKNAME={T:'10',J:'Jack',Q:'Queen',K:'King',A:'Ace'};
+function freshDeck(){const d=[];SUITS.forEach(function(s){RANKS.forEach(function(r){d.push(r[0]+s.k);});});return d;}
+function shuffle(a){for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t;}return a;}
+function cardInfo(code){
+  var r=code.slice(0,-1), sk=code.slice(-1);
+  var s=SUITS.find(function(x){return x.k===sk;})||SUITS[0];
+  var rr=RANKS.find(function(x){return x[0]===r;});
+  return {code:code,r:r,label:RANKNAME[r]||r,suit:s.k,glyph:s.g,suitName:s.n,red:(sk==='H'||sk==='D'),v:rr?rr[1]:0};
+}
+// A card is worth a little coin on its own; face cards a little more.
+function cardCoins(code){return 1+Math.floor(cardInfo(code).v/5);}
+
+// Standard five-card ranking. Aces play high, or low in the 5-4-3-2-A wheel.
+function handRank(codes){
+  if(!codes||codes.length<5)return null;
+  var cs=codes.map(cardInfo);
+  var vs=cs.map(function(c){return c.v;}).sort(function(a,b){return b-a;});
+  var suits=cs.map(function(c){return c.suit;});
+  var flush=suits.every(function(s){return s===suits[0];});
+  var uniq=[];vs.forEach(function(v){if(uniq.indexOf(v)<0)uniq.push(v);});
+  var straight=false, high=vs[0];
+  if(uniq.length===5){
+    if(uniq[0]-uniq[4]===4){straight=true;}
+    else if(uniq[0]===14&&uniq[1]===5&&uniq[4]===2){straight=true;high=5;}
+  }
+  var counts={};vs.forEach(function(v){counts[v]=(counts[v]||0)+1;});
+  var groups=Object.keys(counts).map(function(k){return counts[k];}).sort(function(a,b){return b-a;});
+  var tier,name;
+  if(straight&&flush){tier=9;name=(high===14?'Royal Flush':'Straight Flush');}
+  else if(groups[0]===4){tier=8;name='Four of a Kind';}
+  else if(groups[0]===3&&groups[1]===2){tier=7;name='Full House';}
+  else if(flush){tier=6;name='Flush';}
+  else if(straight){tier=5;name='Straight';}
+  else if(groups[0]===3){tier=4;name='Three of a Kind';}
+  else if(groups[0]===2&&groups[1]===2){tier=3;name='Two Pair';}
+  else if(groups[0]===2){tier=2;name='A Pair';}
+  else {var hc=cs.find(function(c){return c.v===vs[0];});tier=1;name='High Card, '+(hc?hc.label:'');}
+  return {tier:tier,name:name};
+}
+// What the House pays out at the faire. She sets the actual prizes; these are
+// the tiers the hand is measured against.
+const HAND_PRIZES=[
+  '', 'A tip of the hat', 'A free draw at the Dealer’s table', 'A free draw at the Dealer’s table',
+  'A reading from the Reader', 'A reading from the Reader', 'A reading from the Reader',
+  'A token from the Broker', 'A token from the Broker', 'The House’s own prize'
+];
 const SPECIALS=['Tonight: Spiced Rum & a Tall Tale \u2014 tell us your first faire memory.','Tonight: Dice & Doubloons \u2014 what is the worst bargain you ever struck at faire?',"Tonight: The Hermit's Hour \u2014 share one piece of advice you would give a first-time camper.",'Tonight: Wheels & Whispers \u2014 who in the guild should be immortalized in a shanty, and why?','Tonight: A Round for the House \u2014 raise a toast to a guildmate in the replies.',"Tonight: The Reader's Lantern \u2014 what did the cards get right last faire?",'Tonight: Campfire Confessions \u2014 your most glorious faire mishap.','Tonight: Coin & Counsel \u2014 what do you still need to borrow or bring to camp?',"Tonight: The Sellsword's Tab \u2014 name the quest you would hire a mercenary for this faire.",'Tonight: Moonlit Wager \u2014 predict one thing that will absolutely go sideways this weekend.'];
 function tavernTitle(coins){coins=coins||0;if(coins>=120)return 'Captain';if(coins>=70)return 'Quartermaster';if(coins>=40)return 'Bosun';if(coins>=18)return 'Deckhand';if(coins>=5)return 'Sailor';return 'Landlubber';}
 function dayKey(){const d=new Date();return d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate();}
 function dayOfYear(){const now=new Date();const start=new Date(now.getFullYear(),0,0);return Math.floor((now-start)/86400000);}
-function identRich(req){const i=ident(req);if(!i)return null;const rec=i.t==='member'?db.users.find(function(x){return x.id===i.id;}):db.patrons.find(function(x){return x.id===i.id;});if(!rec)return i;return Object.assign({},i,{coins:rec.coins||0,lastRation:rec.lastRation||'',lastCard:rec.lastCard||null,streak:rec.streak||0});}
+function identRich(req){const i=ident(req);if(!i)return null;const rec=i.t==='member'?db.users.find(function(x){return x.id===i.id;}):db.patrons.find(function(x){return x.id===i.id;});if(!rec)return i;return Object.assign({},i,{coins:rec.coins||0,lastRation:rec.lastRation||'',lastCard:rec.lastCard||null,streak:rec.streak||0,hand:rec.hand||[],pending:rec.pending||null});}
 const REACTS=['\uD83C\uDF7A','\uD83E\uDE99','\uD83D\uDD25','\u2694\uFE0F'];
 function doReact(req,res,host){var i=ident(req);var e=(req.body.emoji||'').trim();if(REACTS.indexOf(e)<0)return res.redirect(req.get('Referrer')||'/board');if(!host.reacts)host.reacts={};var arr=host.reacts[e]=host.reacts[e]||[];var idx=arr.findIndex(function(v){return v.t===i.t&&v.id===i.id;});if(idx>=0){arr.splice(idx,1);}else{arr.push({t:i.t,id:i.id});if(host.authorType!==i.t||host.authorId!==i.id)notify(host.authorType,host.authorId,i.name+' raised a '+e+' to '+(host.title?('your note \u201c'+host.title+'\u201d'):'your reply'));}save();res.redirect(req.get('Referrer')||'/board');}
-app.post('/board/ration',canPost,(req,res)=>{var i=ident(req);var rec=i.t==='member'?db.users.find(function(x){return x.id===i.id;}):db.patrons.find(function(x){return x.id===i.id;});if(!rec)return res.redirect('/board');var today=dayKey();if(rec.lastRation===today)return res.redirect('/board#ration');var yest=yesterdayKey();var streak=(rec.lastRation===yest)?(rec.streak||0)+1:1;rec.streak=streak;var card=RATIONS[Math.floor(Math.random()*RATIONS.length)];var bonus=Math.min(streak,7);rec.coins=(rec.coins||0)+card.c+bonus;rec.lastRation=today;rec.lastCard={n:card.n,f:card.f,c:card.c,ts:Date.now(),streak:streak,bonus:bonus};save();res.redirect('/board#ration');});
+// Deal tonight's card. Below five cards it joins the hand outright; once the
+// hand is full the new card waits while you decide whether it is worth a swap.
+function holder(i){
+  return i.t==='member'
+    ? db.users.find(function(x){return x.id===i.id;})
+    : db.patrons.find(function(x){return x.id===i.id;});
+}
+function dealOne(rec){
+  if(!Array.isArray(rec.deck)||!rec.deck.length){
+    var held=(rec.hand||[]).concat(rec.pending?[rec.pending]:[]);
+    rec.deck=shuffle(freshDeck().filter(function(c){return held.indexOf(c)<0;}));
+  }
+  return rec.deck.pop();
+}
+app.post('/board/ration',canPost,(req,res)=>{
+  var i=ident(req);var rec=holder(i);
+  if(!rec)return res.redirect('/board');
+  var today=dayKey();
+  if(rec.lastRation===today)return res.redirect('/board#hand');
+  if(!Array.isArray(rec.hand))rec.hand=[];
+  var yest=yesterdayKey();
+  var streak=(rec.lastRation===yest)?(rec.streak||0)+1:1;
+  rec.streak=streak;
+  var card=dealOne(rec);
+  var bonus=Math.min(streak,7);
+  rec.coins=(rec.coins||0)+cardCoins(card)+bonus;
+  rec.lastRation=today;
+  if(rec.hand.length<5){ rec.hand.push(card); rec.pending=null; }
+  else { rec.pending=card; }
+  rec.lastCard={code:card,ts:Date.now(),streak:streak,bonus:bonus};
+  save();res.redirect('/board#hand');
+});
+// Swap the waiting card in for one you already hold.
+app.post('/board/hand/swap',canPost,(req,res)=>{
+  var i=ident(req);var rec=holder(i);
+  if(!rec||!rec.pending)return res.redirect('/board#hand');
+  var n=parseInt(req.body.slot,10);
+  if(!(n>=0&&n<(rec.hand||[]).length))return res.redirect('/board#hand');
+  rec.deck=rec.deck||[];
+  rec.deck.unshift(rec.hand[n]);   // the discard goes to the bottom
+  rec.hand[n]=rec.pending;
+  rec.pending=null;
+  save();res.redirect('/board#hand');
+});
+// Or let it go and keep the hand you have.
+app.post('/board/hand/keep',canPost,(req,res)=>{
+  var i=ident(req);var rec=holder(i);
+  if(!rec||!rec.pending)return res.redirect('/board#hand');
+  rec.deck=rec.deck||[];
+  rec.deck.unshift(rec.pending);
+  rec.pending=null;
+  save();res.redirect('/board#hand');
+});
 app.post('/board/thread/:id/react',canPost,(req,res)=>{const t=db.threads.find(function(x){return x.id==req.params.id;});if(!t)return res.redirect('/board');doReact(req,res,t);});
 app.post('/board/thread/:tid/reply/:rid/react',canPost,(req,res)=>{const t=db.threads.find(function(x){return x.id==req.params.tid;});if(!t)return res.redirect('/board');const r=t.replies.find(function(x){return x.id==req.params.rid;});if(!r)return res.redirect('/board/thread/'+t.id);doReact(req,res,r);});
 app.get('/board/rogues',(req,res)=>{const i=identRich(req);const counts={};function bump(k){counts[k]=(counts[k]||0)+1;}db.threads.forEach(function(t){bump(t.authorType+':'+t.authorId);t.replies.forEach(function(r){bump(r.authorType+':'+r.authorId);});});const rogues=[];db.patrons.forEach(function(p){if(p.banned)return;rogues.push({t:'patron',id:p.id,name:p.name,avatar:p.avatar,coins:p.coins||0,posts:counts['patron:'+p.id]||0,title:tavernTitle(p.coins||0),leader:false,guild:'',streak:p.streak||0});});db.users.forEach(function(u){rogues.push({t:'member',id:u.id,name:u.name,avatar:u.avatar,coins:u.coins||0,posts:counts['member:'+u.id]||0,title:u.title||tavernTitle(u.coins||0),leader:u.role==='leader',guild:u.class||'',streak:u.streak||0});});rogues.sort(function(a,b){return b.coins-a.coins||b.posts-a.posts;});res.render('rogues',{i:i,rogues:rogues});});

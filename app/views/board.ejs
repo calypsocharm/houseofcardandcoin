@@ -72,28 +72,65 @@
   <!-- ── the record: everything said, kept ─────────────────────────────── -->
   <div class="tav-log">
 
-    <!-- rum ration -->
+    <!-- the hand you are building for the faire -->
     <% if(i){ %>
-      <div class="tav-mark"><span>🃏 Daily Rum Ration</span></div>
-      <div class="tav-card tav-ration">
-        <% if(ration.canDraw){ %>
-          <form method="post" action="/board/ration">
-            <button class="tav-draw" type="submit"><span>Draw<br>tonight's<br>card</span></button>
-          </form>
-          <div>
-            <h4>Your ration is waiting</h4>
-            <p class="muted">One draw a night. Keep the streak and the purse grows.</p>
+      <div class="tav-mark" id="hand"><span>🂡 The Cardsharp's Hand</span></div>
+      <div class="tav-card tav-hand">
+        <h3>Your hand<% if(handRank){ %> — <b class="tav-rank"><%= handRank.name %></b><% } %></h3>
+
+        <div class="tav-cards">
+          <% for(var n=0;n<5;n++){ var card = hand[n]; %>
+            <% if(card){ %>
+              <span class="pcard<%= card.red?' is-red':'' %>">
+                <b class="pcard__r"><%= card.r==='T'?'10':card.r %></b>
+                <span class="pcard__s"><%= card.glyph %></span>
+              </span>
+            <% } else { %>
+              <span class="pcard is-empty" aria-label="empty slot"></span>
+            <% } %>
+          <% } %>
+        </div>
+
+        <% if(pending){ %>
+          <div class="tav-swap">
+            <p><b>You drew the <%= pending.label %> of <%= pending.suitName %>.</b> Your hand is full — trade it for one you hold, or let it go.</p>
+            <div class="tav-swaprow">
+              <span class="pcard pcard--new<%= pending.red?' is-red':'' %>">
+                <b class="pcard__r"><%= pending.r==='T'?'10':pending.r %></b>
+                <span class="pcard__s"><%= pending.glyph %></span>
+              </span>
+              <div class="tav-swapbtns">
+                <% hand.forEach(function(c,n){ %>
+                  <form method="post" action="/board/hand/swap" style="display:inline">
+                    <input type="hidden" name="slot" value="<%= n %>">
+                    <button class="tav-swapbtn" type="submit">Trade the <%= c.label %><%= c.glyph %></button>
+                  </form>
+                <% }); %>
+                <form method="post" action="/board/hand/keep" style="display:inline">
+                  <button class="tav-keepbtn" type="submit">Keep my hand</button>
+                </form>
+              </div>
+            </div>
           </div>
-        <% } else if(ration.card){ %>
-          <div class="tav-draw is-drawn"><span><b><%= ration.card.n %></b></span></div>
-          <div>
-            <h4>You drew <%= ration.card.n %></h4>
-            <p><%= ration.card.f %></p>
-            <p class="muted">+<%= ration.card.c %> coins · come back tomorrow<% if(i.streak){ %> · streak <%= i.streak %><% } %></p>
+        <% } else if(ration.canDraw){ %>
+          <div class="tav-ration">
+            <form method="post" action="/board/ration">
+              <button class="tav-draw" type="submit"><span>Draw<br>tonight's<br>card</span></button>
+            </form>
+            <div>
+              <h4><%= hand.length<5 ? 'Take another card' : 'Tonight\'s card is waiting' %></h4>
+              <p class="muted">One a night, from your own deck — no card comes twice.
+                <% if(hand.length<5){ %><%= 5-hand.length %> more to fill your hand.<% } %></p>
+            </div>
           </div>
         <% } else { %>
-          <div class="tav-draw is-drawn"><span>Drawn</span></div>
-          <div><h4>Already drawn tonight</h4><p class="muted">Come back tomorrow.</p></div>
+          <p class="muted">Drawn for tonight<% if(i.streak){ %> · streak <%= i.streak %><% } %>. Come back tomorrow for the next card.</p>
+        <% } %>
+
+        <% if(hand.length===5 && handRank){ %>
+          <p class="tav-prize"><b>Show this hand at the faire</b> — <%= handPrizes[handRank.tier] %>. Find the Dealer at the House of Card and Coin.</p>
+        <% } else { %>
+          <p class="muted tav-prize-hint">Fill all five and show the hand at the faire — the better it is, the better the House pays.</p>
         <% } %>
       </div>
     <% } %>

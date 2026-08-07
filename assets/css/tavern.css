@@ -278,3 +278,58 @@
   .tav-candle{width:6px;height:13px}
 }
 @media (prefers-reduced-motion:reduce){ .tav-candle::after{animation:none} }
+
+/* ── The Cardsharp's Hand ─────────────────────────────────────────────────
+   Real playing cards laid on the paper, not a tarot back. Five slots that
+   fill one night at a time, and once full you decide each night whether the
+   new card is worth breaking the hand for.                                */
+.tav-hand h3{margin-bottom:14px}
+.tav-rank{color:#7a3030;font-style:normal}
+
+.tav-cards{display:flex;gap:9px;flex-wrap:wrap;margin:0 0 14px}
+.pcard{
+  position:relative;width:58px;height:82px;flex-shrink:0;
+  background:linear-gradient(160deg,#fffdf6,#f0e7d2);
+  border:1px solid #b9a271;border-radius:5px;
+  box-shadow:0 6px 14px -8px rgba(0,0,0,.75), 0 1px 0 rgba(255,255,255,.7) inset;
+  color:#241a10;display:block;
+}
+.pcard__r{position:absolute;top:5px;left:7px;font-family:var(--display);font-size:1.05rem;line-height:1;font-weight:700}
+.pcard__s{position:absolute;bottom:6px;right:8px;font-size:1.45rem;line-height:1}
+.pcard.is-red{color:#9c1f1f}
+.pcard.is-empty{
+  background:repeating-linear-gradient(45deg,rgba(120,95,45,.13) 0 6px,transparent 6px 12px);
+  border-style:dashed;border-color:rgba(120,95,45,.5);box-shadow:none;
+}
+.pcard--new{
+  box-shadow:0 0 0 2px var(--gold), 0 10px 20px -10px #000;
+  transform:rotate(-3deg);
+}
+
+/* the nightly decision */
+.tav-swap{border-top:1px solid rgba(120,95,45,.3);padding-top:13px;margin-top:4px}
+.tav-swap p{color:#3c2c14}
+.tav-swaprow{display:flex;gap:15px;align-items:flex-start;flex-wrap:wrap;margin-top:10px}
+.tav-swapbtns{display:flex;gap:7px;flex-wrap:wrap;flex:1;min-width:200px}
+.tav-swapbtn,.tav-keepbtn{
+  font-family:var(--serif);font-size:.82rem;cursor:pointer;
+  border-radius:3px;padding:7px 11px;
+  border:1px solid rgba(120,95,45,.45);background:rgba(255,252,240,.6);color:#2b1e0e;
+}
+.tav-swapbtn:hover{border-color:#7a5514;background:#fffdf4}
+.tav-keepbtn{background:#6d1d1d;color:#f6e7c4;border-color:#8b2a2a}
+.tav-keepbtn:hover{background:#8b2a2a}
+
+.tav-prize{
+  margin-top:14px;padding:11px 14px;border-radius:3px;
+  background:rgba(122,85,20,.13);border-left:3px solid #7a5514;color:#3c2c14;font-size:.92rem;
+}
+.tav-prize b{color:#5c1b1b}
+.tav-prize-hint{margin-top:12px;font-size:.85rem}
+
+@media (max-width:640px){
+  .pcard{width:48px;height:68px}
+  .pcard__r{font-size:.9rem}
+  .pcard__s{font-size:1.2rem}
+  .tav-cards{gap:6px}
+}
