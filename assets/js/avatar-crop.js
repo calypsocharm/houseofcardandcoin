@@ -28,6 +28,7 @@
   var zoomVal = 1;
   var ox = 0, oy = 0;  // pan offset, in display px
   var dragging = false, lastX = 0, lastY = 0;
+  var dirty = false;   // has the framing been changed since the page loaded?
 
   function clampPan() {
     // never let the image pull away from the edge of the circle
@@ -53,7 +54,7 @@
     ctx.restore();
   }
 
-  function load(src) {
+  function load(src, fromPicker) {
     var im = new Image();
     im.onload = function () {
       img = im;
@@ -62,6 +63,7 @@
       if (zoom) { zoom.value = '1'; zoom.disabled = false; }
       if (reset) reset.disabled = false;
       root.classList.add('has-img');
+      if (fromPicker) dirty = true;
       if (hint) hint.textContent = 'Drag to move it. Use the slider to zoom.';
       paint();
     };
@@ -83,18 +85,20 @@
       return;
     }
     var fr = new FileReader();
-    fr.onload = function (e) { load(e.target.result); };
+    fr.onload = function (e) { load(e.target.result, true); };
     fr.readAsDataURL(f);
   });
 
   if (zoom) zoom.addEventListener('input', function () {
     zoomVal = parseFloat(zoom.value) || 1;
+    dirty = true;
     paint();
   });
 
   if (reset) reset.addEventListener('click', function () {
     zoomVal = 1; ox = 0; oy = 0;
     if (zoom) zoom.value = '1';
+    dirty = true;
     paint();
   });
 
@@ -108,6 +112,7 @@
     if (!dragging) return;
     ox += e.clientX - lastX; oy += e.clientY - lastY;
     lastX = e.clientX; lastY = e.clientY;
+    dirty = true;
     paint();
   });
   ['pointerup', 'pointercancel'].forEach(function (ev) {
@@ -120,13 +125,17 @@
     e.preventDefault();
     zoomVal = Math.max(1, Math.min(3, zoomVal + (e.deltaY < 0 ? 0.08 : -0.08)));
     if (zoom) zoom.value = String(zoomVal);
+    dirty = true;
     paint();
   }, { passive: false });
 
   // On submit, hand over the exact crop that was on screen.
   var submitting = false;
   form.addEventListener('submit', function (e) {
-    if (submitting || !img || !input.files || !input.files[0]) return; // nothing new chosen
+    // Save the crop whenever the framing was touched — including when the
+    // picture is the avatar you already had. Requiring a newly chosen file
+    // meant zooming your existing avatar silently saved nothing.
+    if (submitting || !img || !dirty) return;
     if (typeof DataTransfer === 'undefined' || !canvas.toBlob) return;  // let the raw file go
 
     e.preventDefault();
