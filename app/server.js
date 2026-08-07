@@ -46,7 +46,13 @@ app.use(function(req,res,next){
   next();
 });
 app.use('/assets',express.static(path.join(__dirname,'..','assets')));
-app.use('/uploads',express.static(path.join(__dirname,'uploads')));
+// multer stores uploads under random names with no extension, so express.static
+// serves them as application/octet-stream — and with X-Content-Type-Options:
+// nosniff set at the nginx level, browsers then refuse to draw them at all.
+// Every avatar is normalised to JPEG by shrinkAvatar, so say so explicitly.
+app.use('/uploads',express.static(path.join(__dirname,'uploads'),{
+  setHeaders:function(res){ res.setHeader('Content-Type','image/jpeg'); }
+}));
 app.get('/guild.html',(req,res)=>{const members=db.users.map(function(m){const bunks=db.bunks.filter(function(b){return b.userId===m.id;}).sort(function(a,b){return a.night<b.night?-1:1;}).map(function(b){return b.night+' \u00b7 Bunk '+b.bunk;});return{name:m.name,avatar:m.avatar,class:m.class,rank:rank(m),pledge:!!m.pledge,faires:m.faires||0,title:m.title||'',role:m.role||'',rsvp:!!m.rsvp,bunks:bunks};}).sort(function(a,b){const k=function(x){if(x.title==='Guild Leader')return 0;if(x.role==='leader'||x.title==='Guild Elder')return 1;if(x.pledge)return 3;return 2;};const ka=k(a),kb=k(b);if(ka!==kb)return ka-kb;return (b.faires||0)-(a.faires||0);});const bunkBoard=NIGHTS.map(function(n){return{night:n,bunks:BUNKS.map(function(b){const o=db.bunks.find(function(x){return x.night===n&&x.bunk===b;});return{bunk:b,taken:!!o,who:o?db.users.find(function(y){return y.id===o.userId;}):null};})};});res.render('guild',{members:members,bunkBoard:bunkBoard,comingCount:db.users.filter(function(x){return x.rsvp;}).length});});
 app.post('/pigeon',async(req,res)=>{const{Name,Email,Reason,Message}=req.body||{};const ep=process.env.FORMSPREE_ENDPOINT;if(!ep){console.log('FORMSPREE_ENDPOINT not set; pigeon dropped');return res.redirect('/pigeon.html?e=1');}try{const r=await fetch(ep,{method:'POST',headers:{'Content-Type':'application/json','Accept':'application/json'},body:JSON.stringify({Name:Name||'',Email:Email||'',Reason:Reason||'',Message:Message||'',_subject:'New pigeon — House of Card and Coin',_replyto:Email||''})});if(!r.ok)throw new Error('formspree '+r.status);res.redirect('/pigeon.html?sent=1');}catch(e){console.log('pigeon forward error',e.message);res.redirect('/pigeon.html?e=1');}});
 // The static mount below is rooted at /var/www/hocc, which also contains app/ and
@@ -73,11 +79,20 @@ const up=multer({
 function shrinkAvatar(req,res,next){
   if(!req.file)return next();
   var p=req.file.path;
-  sharp(p).rotate()
+  var input;
+  // Read through fs rather than handing sharp the path: multer has only just
+  // finished writing it, and opening it again directly fails on Windows.
+  try{ input=fs.readFileSync(p); }
+  catch(e){ console.log('avatar read failed, keeping original:',e.message); return next(); }
+  sharp(input).rotate()
     .resize(512,512,{fit:'cover',position:sharp.strategy.attention})
     .jpeg({quality:82,mozjpeg:true})
     .toBuffer()
-    .then(function(buf){ fs.writeFileSync(p,buf); req.file.size=buf.length; next(); })
+    .then(function(buf){
+      fs.writeFileSync(p,buf);
+      req.file.size=buf.length;
+      next();
+    })
     .catch(function(e){ console.log('avatar resize failed, keeping original:',e.message); next(); });
 }
 function au(req,res,next){if(req.session.uid)return next();res.redirect('/members/login');}
@@ -105,7 +120,7 @@ app.get('/api/me',(req,res)=>{
 app.get('/members/login',(req,res)=>res.render('login',{err:req.query.e||'',code:req.query.code||'',needCode:INVITE_REQUIRED}));
 // /join is the share link. If an invite code is required, ?code=XXXX pre-fills it.
 app.get('/join',(req,res)=>res.render('login',{err:req.query.e||'',code:req.query.code||'',needCode:INVITE_REQUIRED}));
-app.post('/members/register',up.single('avatar'),(req,res)=>{const{name,email,password,invite}=req.body;
+app.post('/members/register',up.single('avatar'),shrinkAvatar,(req,res)=>{const{name,email,password,invite}=req.body;
   // honeypot: real people never fill this hidden field, bots do
   if(req.body.website)return res.redirect('/members/login');
   // keep a valid code in the URL on failure so they don't have to re-enter it
@@ -132,7 +147,7 @@ app.get('/members',au,(req,res)=>{
   const items=db.items.map(it=>{const cl=db.claims.filter(c=>c.itemId===it.id);const claimed=cl.reduce((s,c)=>s+c.qty,0);return{...it,claimed,remaining:Math.max(0,it.need-claimed),claims:cl.map(c=>({qty:c.qty,who:db.users.find(y=>y.id===c.userId)})),mine:cl.find(c=>c.userId===u.id)};});
   res.render('hall',{u,rank:rank(u),classes:CLASSES,bunkBoard,items,leader:u.role==='leader',users:u.role==='leader'?db.users.map(function(m){return{name:m.name,class:m.class,faires:m.faires,rank:rank(m),pledge:!!m.pledge,leader:m.role==='leader',title:m.title||'',avatar:m.avatar,id:m.id,contactEmail:m.contactEmail||'',phone:m.phone||'',bunks:db.bunks.filter(function(b){return b.userId===m.id}).map(function(b){return b.night+' \u00b7 Bunk '+b.bunk;})};}):[],announcements:db.announcements,outreach:{emails:db.users.filter(function(x){return x.contactEmail;}).map(function(x){return x.contactEmail;}),phones:db.users.filter(function(x){return x.phone;}).map(function(x){return x.phone;})},invite:INVITE,err:req.query.e||"",q:req.query});
 });
-app.post('/members/profile',au,up.single('avatar'),(req,res)=>{const u=cur(req);if(!u)return res.redirect('/members/login');
+app.post('/members/profile',au,up.single('avatar'),shrinkAvatar,(req,res)=>{const u=cur(req);if(!u)return res.redirect('/members/login');
   if(String(req.body.name||'').trim())u.name=String(req.body.name).trim();
   // faires is deliberately NOT editable here — it drives rank, so only the Guild
   // Leader sets it via /members/admin/fares. Otherwise members self-promote.
@@ -164,7 +179,7 @@ function ident(req){
 function canPost(req,res,next){if(ident(req))return next();res.redirect('/tavern?e='+encodeURIComponent('Claim a seat to post'));}
 function leaderOnly(req,res,next){const i=ident(req);if(i&&i.leader)return next();res.status(403).send('Leader only');}
 app.get('/tavern',(req,res)=>res.render('tavern',{i:ident(req),err:req.query.e||'',q:req.query}));
-app.post('/tavern/register',up.single('avatar'),(req,res)=>{
+app.post('/tavern/register',up.single('avatar'),shrinkAvatar,(req,res)=>{
   const name=(req.body.name||'').trim(),email=(req.body.email||'').toLowerCase().trim(),password=(req.body.password||'').trim();
   if(!name||!email||password.length<6)return res.redirect('/tavern?e='+encodeURIComponent('Name, email, and a 6+ char password are required'));
   if(db.patrons.find(p=>p.email===email))return res.redirect('/tavern?e='+encodeURIComponent('That email already has a seat'));
