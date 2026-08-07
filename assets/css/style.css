@@ -3189,3 +3189,37 @@ body.tavern-page .note__open{color:#5a4226}
 @media (prefers-reduced-motion:reduce){
   .cropper__stage canvas{transition:none}
 }
+
+/* ── Admin: who is bringing what ──────────────────────────────────────────
+   The bring-list reads item by item, which is the wrong way round when you
+   are chasing people. This is the same data grouped by person.           */
+.bringers{max-width:860px;margin:0 auto 30px;padding:18px 20px;
+  background:var(--dark2);border:1px solid var(--gold-d);border-radius:3px}
+.bringers h3{font-family:var(--display);text-transform:uppercase;letter-spacing:.12em;
+  font-size:.72rem;color:var(--gold-l);margin:0 0 14px}
+.bringers__none{margin:0;color:#bfa980;font-size:.9rem}
+.bringers__table{width:100%;border-collapse:collapse;font-size:.9rem;color:#efe0be}
+.bringers__table th{
+  text-align:left;font-family:var(--display);text-transform:uppercase;
+  letter-spacing:.1em;font-size:.55rem;color:var(--gold-d);
+  padding:0 10px 8px 0;border-bottom:1px solid rgba(138,109,42,.45);font-weight:600;
+}
+.bringers__table td{padding:9px 10px 9px 0;border-bottom:1px solid rgba(138,109,42,.2);vertical-align:top}
+.bringers__table tr:last-child td{border-bottom:0}
+.bringers__table .num{text-align:right;font-variant-numeric:tabular-nums;padding-right:0;width:60px}
+.bringers__who{font-family:var(--display);text-transform:uppercase;letter-spacing:.05em;
+  font-size:.68rem;color:#f5e9c8;white-space:nowrap}
+.bringers__reach{font-size:.8rem;color:#cdb98f;word-break:break-word}
+.bringers__reach a{color:var(--gold-l)}
+.bringers__reach span{display:block}
+.bringers__foot{margin:13px 0 0;padding-top:11px;border-top:1px solid rgba(138,109,42,.35);
+  font-size:.84rem;color:#bfa980}
+.bringers__foot b{color:#f0e2c0}
+@media (max-width:620px){
+  .bringers__table,.bringers__table tbody,.bringers__table tr,.bringers__table td{display:block;width:100%}
+  .bringers__table thead{display:none}
+  .bringers__table tr{padding:10px 0;border-bottom:1px solid rgba(138,109,42,.25)}
+  .bringers__table td{border:0;padding:2px 0}
+  .bringers__table .num{text-align:left;width:auto}
+  .bringers__table .num::before{content:"Items: ";color:var(--gold-d);font-size:.7rem}
+}

@@ -182,9 +182,24 @@ app.get('/members',au,(req,res)=>{
       queueNames:queue.map(w=>{const p=db.users.find(x=>x.id===w.userId);return p?p.name:'?';})
     };
   });
+  // The bring-list reads item-by-item, which does not answer "who is actually
+  // bringing something". Group it by person for the Guild Leader.
+  const bringers=(function(){
+    const by={};
+    (db.claims||[]).forEach(function(c){
+      const who=db.users.find(function(x){return x.id===c.userId;});
+      const item=db.items.find(function(x){return x.id===c.itemId;});
+      if(!who||!item)return;
+      if(!by[who.id])by[who.id]={name:who.name,avatar:who.avatar,phone:who.phone||'',contactEmail:who.contactEmail||'',items:[],total:0};
+      by[who.id].items.push({name:item.name,qty:c.qty});
+      by[who.id].total+=c.qty;
+    });
+    return Object.keys(by).map(function(k){return by[k];})
+      .sort(function(a,b){return b.total-a.total;});
+  })();
   const bunksLeft=NIGHTS.length*BUNKS.length-db.bunks.length;
   const items=db.items.map(it=>{const cl=db.claims.filter(c=>c.itemId===it.id);const claimed=cl.reduce((s,c)=>s+c.qty,0);return{...it,claimed,remaining:Math.max(0,it.need-claimed),claims:cl.map(c=>({qty:c.qty,who:db.users.find(y=>y.id===c.userId)})),mine:cl.find(c=>c.userId===u.id)};});
-  res.render('hall',{u,rank:rank(u),classes:CLASSES,bunkBoard,bunksLeft,items,leader:u.role==='leader',users:u.role==='leader'?db.users.map(function(m){return{name:m.name,class:m.class,faires:m.faires,rank:rank(m),pledge:!!m.pledge,leader:m.role==='leader',title:m.title||'',avatar:m.avatar,id:m.id,contactEmail:m.contactEmail||'',phone:m.phone||'',bunks:db.bunks.filter(function(b){return b.userId===m.id}).map(function(b){return b.night+' \u00b7 Bunk '+b.bunk;})};}):[],announcements:db.announcements,outreach:{emails:db.users.filter(function(x){return x.contactEmail;}).map(function(x){return x.contactEmail;}),phones:db.users.filter(function(x){return x.phone;}).map(function(x){return x.phone;})},invite:INVITE,err:req.query.e||"",q:req.query});
+  res.render('hall',{u,rank:rank(u),classes:CLASSES,bunkBoard,bunksLeft,items,bringers,leader:u.role==='leader',users:u.role==='leader'?db.users.map(function(m){return{name:m.name,class:m.class,faires:m.faires,rank:rank(m),pledge:!!m.pledge,leader:m.role==='leader',title:m.title||'',avatar:m.avatar,id:m.id,contactEmail:m.contactEmail||'',phone:m.phone||'',bunks:db.bunks.filter(function(b){return b.userId===m.id}).map(function(b){return b.night+' \u00b7 Bunk '+b.bunk;})};}):[],announcements:db.announcements,outreach:{emails:db.users.filter(function(x){return x.contactEmail;}).map(function(x){return x.contactEmail;}),phones:db.users.filter(function(x){return x.phone;}).map(function(x){return x.phone;})},invite:INVITE,err:req.query.e||"",q:req.query});
 });
 app.post('/members/profile',au,up.single('avatar'),shrinkAvatar,(req,res)=>{const u=cur(req);if(!u)return res.redirect('/members/login');
   if(String(req.body.name||'').trim())u.name=String(req.body.name).trim();
@@ -257,6 +272,23 @@ app.post('/members/bring/remove',au,al,(req,res)=>{const id=parseInt(req.body.it
 app.post('/members/password',au,(req,res)=>{const u=cur(req);if(!u)return res.redirect('/members/login');const curp=req.body.current||'',np=(req.body.new||'').trim();if(!bcrypt.compareSync(curp,u.passhash))return res.redirect('/members?pw=bad#profile');if(np.length<6)return res.redirect('/members?pw=short#profile');u.passhash=bcrypt.hashSync(np,10);save();res.redirect('/members?pw=ok#profile');});// Accept a Pledge into the guild (or put someone back to Pledge by mistake-fix).
 app.post('/members/admin/promote',al,(req,res)=>{const u=db.users.find(x=>x.id===parseInt(req.body.id));if(u){u.pledge=false;save();}res.redirect('/members#admin');});
 app.post('/members/admin/demote',al,(req,res)=>{const u=db.users.find(x=>x.id===parseInt(req.body.id));if(u&&u.role!=='leader'){u.pledge=true;save();}res.redirect('/members#admin');});
+// Someone taps Claim, realises they don't need the night, and never releases
+// it — the bunk then sits dead. The Guild Leader can free any of them, and it
+// passes to the waitlist exactly as a voluntary release does.
+app.post('/members/admin/bunk/release',al,(req,res)=>{
+  const night=req.body.night, bunk=parseInt(req.body.bunk,10);
+  const held=db.bunks.find(x=>x.night===night&&x.bunk===bunk);
+  if(!held)return res.redirect('/members#bunks');
+  const wasWhose=held.userId;
+  db.bunks=db.bunks.filter(x=>!(x.night===night&&x.bunk===bunk));
+  const gotIt=fillFromWaitlist(night,bunk,null);
+  const freed=db.users.find(x=>x.id===wasWhose);
+  if(freed)notify('member',freed.id,'The Guild Leader released your bunk on '+night+' (bunk '+bunk+'). Claim another night if you still mean to camp.');
+  save();
+  res.redirect('/members?e='+encodeURIComponent(
+    'Freed '+night+', bunk '+bunk+(gotIt?(' — it passed to '+gotIt.name+' from the waitlist.'):'.')
+  )+'#bunks');
+});
 app.post('/members/admin/fares',al,(req,res)=>{const id=parseInt(req.body.id);const u=db.users.find(x=>x.id===id);if(!u)return res.redirect('/members#admin');u.faires=Math.max(0,parseInt(req.body.faires||0));save();res.redirect('/members#admin');});app.post('/members/admin/title',al,(req,res)=>{const id=parseInt(req.body.id);const u=db.users.find(x=>x.id===id);if(!u)return res.redirect('/members#admin');u.title=(req.body.title||'').trim();save();res.redirect('/members#admin');});app.post('/members/admin/resetpw',al,(req,res)=>{const id=parseInt(req.body.id);const u=db.users.find(x=>x.id===id);if(!u)return res.redirect('/members#admin');const np=(req.body.password||'').trim();if(np.length<4)return res.redirect('/members?e=pwshort#admin');u.passhash=bcrypt.hashSync(np,10);save();res.redirect('/members?pwreset=1#admin');});app.post('/members/admin/add',al,(req,res)=>{const{name,email,password,faires,title}=req.body;const e=(email||'').toLowerCase().trim();if(!name||!e||!(password||'').trim())return res.redirect('/members?e=addreq#admin');if(db.users.find(x=>x.email===e))return res.redirect('/members?e=dup#admin');db.users.push({id:nid(),name:name.trim(),email:e,passhash:bcrypt.hashSync(password,10),avatar:'',class:'',faires:Math.max(0,parseInt(faires||0)),role:'member',title:(title||'').trim(),contactEmail:'',phone:''});save();res.redirect('/members?added=1#admin');});app.post('/members/admin/remove',al,(req,res)=>{const id=parseInt(req.body.id);const me=db.users.find(x=>x.id===req.session.uid);if(me&&me.id===id)return res.redirect('/members?e=self#admin');const u=db.users.find(x=>x.id===id);if(!u||u.role==='leader')return res.redirect('/members?e=nodel#admin');db.users=db.users.filter(x=>x.id!==id);db.bunks=db.bunks.filter(b=>b.userId!==id);db.claims=db.claims.filter(c=>c.userId!==id);save();res.redirect('/members?removed=1#admin');});app.get('/api/announcements',(req,res)=>res.json((db.announcements||[]).slice().reverse()));app.post('/members/admin/announce',al,(req,res)=>{const t=(req.body.text||'').trim();if(!t)return res.redirect('/members?e=notext#admin');db.announcements.push({id:nid(),text:t,ts:Date.now()});save();res.redirect('/members?ann=1#admin');});app.post('/members/admin/announce/remove',al,(req,res)=>{const id=parseInt(req.body.id);db.announcements=db.announcements.filter(function(a){return a.id!==id;});save();res.redirect('/members#admin');});app.post('/members/rsvp',au,(req,res)=>{const u=cur(req);if(!u)return res.redirect('/members/login');u.rsvp=!u.rsvp;save();res.redirect('/members#rsvp');});// ===== The Tavern: public notice board + polls =====
 const BOARDCATS=['General','Rides & Lodging','Trade & Barter',"Reader's Circle",'Camp Talk'];
 function ident(req){

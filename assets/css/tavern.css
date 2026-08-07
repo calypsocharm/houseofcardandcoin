@@ -345,31 +345,34 @@
   box-shadow:0 1px 0 rgba(255,250,230,.6) inset, 0 18px 32px -20px rgba(0,0,0,.95);
   transform:rotate(-.2deg);
 }
-.tav-showrow{
-  display:flex;align-items:center;gap:11px;flex-wrap:wrap;
-  padding:9px 6px;border-bottom:1px solid rgba(120,95,45,.25);
+.tav-showgrid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(200px,1fr));
+  gap:10px;
 }
-.tav-showrow:last-of-type{border-bottom:0}
-.tav-showrow.is-mine{background:rgba(122,85,20,.13);border-radius:3px;padding-left:10px;padding-right:10px}
-.tav-showrow .tav-face{box-shadow:0 0 0 1px rgba(60,40,15,.5)}
+.tav-showtile{
+  padding:11px 12px;border-radius:3px;
+  background:rgba(255,252,240,.42);
+  border:1px solid rgba(120,95,45,.28);
+}
+.tav-showtile.is-mine{background:rgba(122,85,20,.16);border-color:rgba(122,85,20,.55)}
+.tav-showhead{display:flex;align-items:center;gap:8px;margin-bottom:9px}
+.tav-showhead .tav-face{box-shadow:0 0 0 1px rgba(60,40,15,.5);flex-shrink:0}
 .tav-showname{
-  flex:1;min-width:96px;font-family:var(--display);text-transform:uppercase;
-  letter-spacing:.06em;font-size:.66rem;color:#3c2c14;
+  font-family:var(--display);text-transform:uppercase;letter-spacing:.05em;
+  font-size:.62rem;color:#3c2c14;line-height:1.25;
 }
-.tav-showcards{display:flex;gap:4px;flex-shrink:0}
+.tav-showcards{display:flex;gap:4px;margin-bottom:8px}
 .pcard--tiny{width:26px;height:36px;border-radius:3px}
 .pcard--tiny .pcard__r{top:2px;left:3px;font-size:.6rem}
 .pcard--tiny .pcard__s{bottom:2px;right:3px;font-size:.68rem}
-.tav-showrank{
-  min-width:112px;text-align:right;font-size:.8rem;color:#5c1b1b;font-weight:600;
-}
+.tav-showrank{display:block;font-size:.78rem;color:#5c1b1b;font-weight:600}
 .tav-showfoot{
   margin:12px 0 0;padding-top:11px;border-top:1px solid rgba(120,95,45,.3);
   font-size:.78rem;color:#6d5a34;line-height:1.5;
 }
 @media (max-width:640px){
-  .tav-showname{min-width:100%;order:2}
-  .tav-showcards{order:3}
-  .tav-showrank{order:4;min-width:0;text-align:left;flex:1}
+  .tav-showgrid{grid-template-columns:repeat(auto-fill,minmax(158px,1fr));gap:8px}
   .pcard--tiny{width:22px;height:31px}
+  .tav-showtile{padding:9px 10px}
 }

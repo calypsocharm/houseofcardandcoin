@@ -72,77 +72,6 @@
   <!-- ── the record: everything said, kept ─────────────────────────────── -->
   <div class="tav-log">
 
-    <!-- the hand you are building for the faire -->
-    <% if(i){ %>
-      <div class="tav-mark" id="hand"><span>🂡 The Cardsharp's Hand</span></div>
-      <div class="tav-card tav-hand">
-        <h3>Your hand<% if(handRank){ %> — <b class="tav-rank"><%= handRank.name %></b><% } %></h3>
-
-        <div class="tav-cards">
-          <% for(var n=0;n<5;n++){ var card = hand[n]; %>
-            <% if(card){ %>
-              <span class="pcard<%= card.red?' is-red':'' %>">
-                <b class="pcard__r"><%= card.r==='T'?'10':card.r %></b>
-                <span class="pcard__s"><%= card.glyph %></span>
-              </span>
-            <% } else { %>
-              <span class="pcard is-empty" aria-label="empty slot"></span>
-            <% } %>
-          <% } %>
-        </div>
-
-        <% if(hand.length>=5){ %>
-          <p class="muted">That's your five. Bring them to the faire and see how they stack up.</p>
-        <% } else if(ration.canDraw){ %>
-          <div class="tav-ration">
-            <form method="post" action="/board/ration">
-              <button class="tav-draw" type="submit"><span>Take<br>tonight's<br>card</span></button>
-            </form>
-            <div>
-              <h4>There's a card here for you</h4>
-              <p class="muted">One a night, just for stopping by. <b><%= 5-hand.length %></b> more to go if you keep turning up.</p>
-            </div>
-          </div>
-        <% } else { %>
-          <p class="muted">Taken for tonight<% if(i.streak){ %> · streak <%= i.streak %><% } %>. Come back tomorrow for the next card
-            — <%= 5-hand.length %> still to come.</p>
-        <% } %>
-
-        <% if(handRank){ %>
-          <p class="tav-prize"><b>Show this hand at the faire</b> and <%= handPrizes[handRank.tier] %>.
-            What the House is giving away stays a secret until you show it — find the Dealer at the House of Card and Coin.
-            <% if(handRank.short){ %><br><span class="muted">You hold <%= hand.length %>. Come back for the rest —
-              a straight or a flush needs all five.</span><% } %></p>
-        <% } else { %>
-          <p class="muted tav-prize-hint">Drop in each night and collect a card. Whatever you have when the gates open is what you play — no pressure.</p>
-        <% } %>
-      </div>
-    <% } %>
-
-    <!-- every hand on the table, best first -->
-    <% if(tableHands.length){ %>
-      <div class="tav-mark"><span>♠ What everyone's holding</span></div>
-      <div class="tav-showdown">
-        <% tableHands.forEach(function(h){ %>
-          <div class="tav-showrow<%= (i && h.name===i.name)?' is-mine':'' %>">
-            <% if(h.avatar){ %><img class="tav-face tav-face--sm" src="<%= h.avatar %>" alt="<%= h.name %>">
-            <% } else { %><span class="tav-face tav-face--sm"><%= h.name.slice(0,2).toUpperCase() %></span><% } %>
-            <span class="tav-showname"><%= h.name %></span>
-            <span class="tav-showcards">
-              <% h.cards.forEach(function(c){ %>
-                <span class="pcard pcard--tiny<%= c.red?' is-red':'' %>">
-                  <b class="pcard__r"><%= c.r==='T'?'10':c.r %></b><span class="pcard__s"><%= c.glyph %></span>
-                </span>
-              <% }); %>
-              <% for(var k=h.cards.length;k<5;k++){ %><span class="pcard pcard--tiny is-empty"></span><% } %>
-            </span>
-            <span class="tav-showrank"><%= h.rank ? h.rank.name : '—' %></span>
-          </div>
-        <% }); %>
-        <p class="tav-showfoot">A card a night for turning up, dealt blind from your own deck. No trading, no takebacks — bring whatever you have to the faire and we will see who got lucky.</p>
-      </div>
-    <% } %>
-
     <!-- polls, in the conversation rather than behind a link -->
     <% polls.forEach(function(p){ %>
       <div class="tav-said">
@@ -227,6 +156,82 @@
         </div>
       </div>
     <% }); %>
+
+    <!-- every hand on the table, best first -->
+    <% if(tableHands.length){ %>
+      <div class="tav-mark"><span>♠ What everyone's holding</span></div>
+      <div class="tav-showdown">
+        <div class="tav-showgrid">
+        <% tableHands.forEach(function(h){ %>
+          <div class="tav-showtile<%= (i && h.name===i.name)?' is-mine':'' %>">
+            <div class="tav-showhead">
+              <% if(h.avatar){ %><img class="tav-face tav-face--sm" src="<%= h.avatar %>" alt="<%= h.name %>">
+              <% } else { %><span class="tav-face tav-face--sm"><%= h.name.slice(0,2).toUpperCase() %></span><% } %>
+              <span class="tav-showname"><%= h.name %></span>
+            </div>
+            <span class="tav-showcards">
+              <% h.cards.forEach(function(c){ %>
+                <span class="pcard pcard--tiny<%= c.red?' is-red':'' %>">
+                  <b class="pcard__r"><%= c.r==='T'?'10':c.r %></b><span class="pcard__s"><%= c.glyph %></span>
+                </span>
+              <% }); %>
+              <% for(var k=h.cards.length;k<5;k++){ %><span class="pcard pcard--tiny is-empty"></span><% } %>
+            </span>
+            <span class="tav-showrank"><%= h.rank ? h.rank.name : '—' %></span>
+          </div>
+        <% }); %>
+        </div>
+        <p class="tav-showfoot">A card a night for turning up, dealt blind from your own deck. No trading, no takebacks — bring whatever you have to the faire and we'll see who got lucky.</p>
+      </div>
+    <% } %>
+
+    <!-- the hand you are building for the faire -->
+    <% if(i){ %>
+      <div class="tav-mark" id="hand"><span>🂡 The Cardsharp's Hand</span></div>
+      <div class="tav-card tav-hand">
+        <h3>Your hand<% if(handRank){ %> — <b class="tav-rank"><%= handRank.name %></b><% } %></h3>
+
+        <div class="tav-cards">
+          <% for(var n=0;n<5;n++){ var card = hand[n]; %>
+            <% if(card){ %>
+              <span class="pcard<%= card.red?' is-red':'' %>">
+                <b class="pcard__r"><%= card.r==='T'?'10':card.r %></b>
+                <span class="pcard__s"><%= card.glyph %></span>
+              </span>
+            <% } else { %>
+              <span class="pcard is-empty" aria-label="empty slot"></span>
+            <% } %>
+          <% } %>
+        </div>
+
+        <% if(hand.length>=5){ %>
+          <p class="muted">That's your five. Bring them to the faire and see how they stack up.</p>
+        <% } else if(ration.canDraw){ %>
+          <div class="tav-ration">
+            <form method="post" action="/board/ration">
+              <button class="tav-draw" type="submit"><span>Take<br>tonight's<br>card</span></button>
+            </form>
+            <div>
+              <h4>There's a card here for you</h4>
+              <p class="muted">One a night, just for stopping by. <b><%= 5-hand.length %></b> more to go if you keep turning up.</p>
+            </div>
+          </div>
+        <% } else { %>
+          <p class="muted">Taken for tonight<% if(i.streak){ %> · streak <%= i.streak %><% } %>. Come back tomorrow for the next card
+            — <%= 5-hand.length %> still to come.</p>
+        <% } %>
+
+        <% if(handRank){ %>
+          <p class="tav-prize"><b>Show this hand at the faire</b> and <%= handPrizes[handRank.tier] %>.
+            What the House is giving away stays a secret until you show it — find the Dealer at the House of Card and Coin.
+            <% if(handRank.short){ %><br><span class="muted">You hold <%= hand.length %>. Come back for the rest —
+              a straight or a flush needs all five.</span><% } %></p>
+        <% } else { %>
+          <p class="muted tav-prize-hint">Drop in each night and collect a card. Whatever you have when the gates open is what you play — no pressure.</p>
+        <% } %>
+      </div>
+    <% } %>
+
   </div>
 
   <!-- ── speak ──────────────────────────────────────────────────────────── -->
