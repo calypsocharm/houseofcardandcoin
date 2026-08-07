@@ -3150,3 +3150,42 @@ body.tavern-page .note__open{color:#5a4226}
   /* in the drop-down menu the signal gets its own line, full width */
   .nav-links .signal{align-self:flex-start;margin:10px 0 4px}
 }
+
+/* ── Avatar cropper in the Guild Hall ──────────────────────────────────────
+   A round preview showing exactly what the guild will see, with zoom and
+   drag-to-move, so nobody uploads a photo and discovers their forehead is the
+   only thing in the circle.                                                  */
+.cropper{display:flex;gap:16px;align-items:flex-start;flex-wrap:wrap;
+  background:var(--parchment2);border:1px solid var(--line2);border-radius:3px;padding:14px}
+.cropper__stage{position:relative;width:180px;height:180px;flex-shrink:0}
+.cropper__stage canvas{
+  width:180px;height:180px;display:block;border-radius:50%;
+  background:
+    linear-gradient(45deg,rgba(122,103,73,.12) 25%,transparent 25%,transparent 75%,rgba(122,103,73,.12) 75%) 0 0/18px 18px,
+    linear-gradient(45deg,rgba(122,103,73,.12) 25%,transparent 25%,transparent 75%,rgba(122,103,73,.12) 75%) 9px 9px/18px 18px,
+    var(--ivory);
+  cursor:grab;touch-action:none}
+.cropper__stage canvas:active{cursor:grabbing}
+.cropper__ring{position:absolute;inset:0;border-radius:50%;pointer-events:none;
+  box-shadow:0 0 0 3px var(--gold),0 10px 26px -18px rgba(60,40,15,.9)}
+
+.cropper__side{flex:1;min-width:190px;display:flex;flex-direction:column;gap:9px}
+.cropper__side input[type=file]{font-family:var(--serif);font-size:.86rem;max-width:100%}
+.cropper__zoomlbl{font-family:var(--display);text-transform:uppercase;letter-spacing:.12em;
+  font-size:.56rem;color:var(--muted);margin-bottom:-4px}
+.cropper__side input[type=range]{width:100%;accent-color:var(--gold-d);cursor:pointer}
+.cropper__side input[type=range]:disabled{opacity:.4;cursor:not-allowed}
+.cropper__reset{align-self:flex-start;padding:6px 13px;font-size:.6rem}
+.cropper__reset:disabled{opacity:.4;cursor:not-allowed}
+.cropper__hint{margin:0;font-size:.8rem;line-height:1.45}
+
+/* the circle only earns its ring once there is something in it */
+.cropper:not(.has-img) .cropper__ring{box-shadow:0 0 0 2px var(--line2)}
+
+@media (max-width:520px){
+  .cropper{gap:13px}
+  .cropper__stage,.cropper__stage canvas{width:150px;height:150px}
+}
+@media (prefers-reduced-motion:reduce){
+  .cropper__stage canvas{transition:none}
+}
