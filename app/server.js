@@ -302,6 +302,24 @@ function tavernFolk(){
   });
   return {folk:folk, last:acts.length?acts[0].ts:0};
 }
+// Everyone's hand is on show — it is a faire game, not a secret. Ranked best
+// first so the table reads like a showdown.
+function allHands(){
+  var rows=[];
+  (db.users||[]).forEach(function(u){
+    if(u.hand&&u.hand.length)rows.push({name:u.name,avatar:u.avatar,kind:'member',cards:u.hand.map(cardInfo),rank:handRank(u.hand)});
+  });
+  (db.patrons||[]).forEach(function(p){
+    if(p.banned)return;
+    if(p.hand&&p.hand.length)rows.push({name:p.name,avatar:p.avatar,kind:'patron',cards:p.hand.map(cardInfo),rank:handRank(p.hand)});
+  });
+  rows.sort(function(a,b){
+    var at=a.rank?a.rank.tier:0, bt=b.rank?b.rank.tier:0;
+    if(at!==bt)return bt-at;
+    return b.cards.length-a.cards.length;
+  });
+  return rows;
+}
 app.get('/board',(req,res)=>{
   const i=identRich(req);
   const today=dayKey();
@@ -315,7 +333,7 @@ app.get('/board',(req,res)=>{
   };
   const threads=db.threads.slice().sort(function(a,b){return lastTouch(b)-lastTouch(a);});
   const polls=db.polls.slice().sort((a,b)=>b.ts-a.ts).map(function(p){const total=p.options.reduce((s,o)=>s+o.votes.length,0);const voted=i?!!p.options.find(o=>o.votes.find(v=>v.t===i.t&&v.id===i.id)):false;return Object.assign({},p,{total:total,voted:voted});});
-  res.render('board',{i:i,threads:threads,polls:polls,cats:BOARDCATS,q:req.query,leader:!!(i&&i.leader),ration:{canDraw:!!(i&&i.lastRation!==today),card:i?i.lastCard:null},hand:i?(i.hand||[]).map(cardInfo):[],pending:i&&i.pending?cardInfo(i.pending):null,handRank:i?handRank(i.hand||[]):null,handPrizes:HAND_PRIZES,special:SPECIALS[dayOfYear()%SPECIALS.length],gates:countdown(),notices:i?(db.notices||[]).filter(function(n){return n.toT===i.t&&n.toId===i.id&&!n.read;}).length:0,folk:pres.folk,quietHrs:quietHrs});
+  res.render('board',{i:i,threads:threads,polls:polls,cats:BOARDCATS,q:req.query,leader:!!(i&&i.leader),ration:{canDraw:!!(i&&i.lastRation!==today),card:i?i.lastCard:null},hand:i?(i.hand||[]).map(cardInfo):[],pending:i&&i.pending?cardInfo(i.pending):null,handRank:i?handRank(i.hand||[]):null,handPrizes:HAND_PRIZES,tableHands:allHands(),special:SPECIALS[dayOfYear()%SPECIALS.length],gates:countdown(),notices:i?(db.notices||[]).filter(function(n){return n.toT===i.t&&n.toId===i.id&&!n.read;}).length:0,folk:pres.folk,quietHrs:quietHrs});
 });
 app.post('/board/thread',canPost,(req,res)=>{
   const i=ident(req);const body=(req.body.body||'').trim();let category=(req.body.category||'General').trim();
@@ -368,7 +386,10 @@ const SUITS=[{k:'S',g:'♠',n:'Spades'},{k:'H',g:'♥',n:'Hearts'},{k:'D',g:'♦
 const RANKS=[['2',2],['3',3],['4',4],['5',5],['6',6],['7',7],['8',8],['9',9],['T',10],['J',11],['Q',12],['K',13],['A',14]];
 const RANKNAME={T:'10',J:'Jack',Q:'Queen',K:'King',A:'Ace'};
 function freshDeck(){const d=[];SUITS.forEach(function(s){RANKS.forEach(function(r){d.push(r[0]+s.k);});});return d;}
-function shuffle(a){for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t;}return a;}
+// Hands are public, so the deal has to be defensibly fair: crypto randomness,
+// not Math.random, and an unbiased Fisher-Yates.
+const crypto=require('crypto');
+function shuffle(a){for(var i=a.length-1;i>0;i--){var j=crypto.randomInt(i+1);var t=a[i];a[i]=a[j];a[j]=t;}return a;}
 function cardInfo(code){
   var r=code.slice(0,-1), sk=code.slice(-1);
   var s=SUITS.find(function(x){return x.k===sk;})||SUITS[0];
@@ -378,16 +399,19 @@ function cardInfo(code){
 // A card is worth a little coin on its own; face cards a little more.
 function cardCoins(code){return 1+Math.floor(cardInfo(code).v/5);}
 
-// Standard five-card ranking. Aces play high, or low in the 5-4-3-2-A wheel.
+// Five-card stud: you play the cards you were dealt, however many you managed
+// to collect. Someone who only turned up four nights ranks on four cards.
+// A straight or a flush needs all five, so a short hand cannot make one.
 function handRank(codes){
-  if(!codes||codes.length<5)return null;
+  if(!codes||codes.length<2)return null;
+  var n=codes.length;
   var cs=codes.map(cardInfo);
   var vs=cs.map(function(c){return c.v;}).sort(function(a,b){return b-a;});
   var suits=cs.map(function(c){return c.suit;});
-  var flush=suits.every(function(s){return s===suits[0];});
+  var flush=(n===5)&&suits.every(function(s){return s===suits[0];});
   var uniq=[];vs.forEach(function(v){if(uniq.indexOf(v)<0)uniq.push(v);});
   var straight=false, high=vs[0];
-  if(uniq.length===5){
+  if(n===5&&uniq.length===5){
     if(uniq[0]-uniq[4]===4){straight=true;}
     else if(uniq[0]===14&&uniq[1]===5&&uniq[4]===2){straight=true;high=5;}
   }
@@ -403,14 +427,23 @@ function handRank(codes){
   else if(groups[0]===2&&groups[1]===2){tier=3;name='Two Pair';}
   else if(groups[0]===2){tier=2;name='A Pair';}
   else {var hc=cs.find(function(c){return c.v===vs[0];});tier=1;name='High Card, '+(hc?hc.label:'');}
-  return {tier:tier,name:name};
+  return {tier:tier,name:name,cards:n,short:n<5};
 }
-// What the House pays out at the faire. She sets the actual prizes; these are
-// the tiers the hand is measured against.
+// What the House pays out at the faire. She has not settled on the prize yet,
+// and a guild whose tagline is "Well-Kept Secrets" can happily keep it that
+// way — so these escalate in promise without naming anything she might change
+// her mind about. Put real wording here once she decides.
 const HAND_PRIZES=[
-  '', 'A tip of the hat', 'A free draw at the Dealer’s table', 'A free draw at the Dealer’s table',
-  'A reading from the Reader', 'A reading from the Reader', 'A reading from the Reader',
-  'A token from the Broker', 'A token from the Broker', 'The House’s own prize'
+  '',
+  'the House tips its hat',
+  'a small kindness from the House',
+  'a small kindness from the House',
+  'something worth the walk',
+  'something worth the walk',
+  'something worth the walk',
+  'one of the better secrets',
+  'one of the better secrets',
+  'the finest thing the House has to give'
 ];
 const SPECIALS=['Tonight: Spiced Rum & a Tall Tale \u2014 tell us your first faire memory.','Tonight: Dice & Doubloons \u2014 what is the worst bargain you ever struck at faire?',"Tonight: The Hermit's Hour \u2014 share one piece of advice you would give a first-time camper.",'Tonight: Wheels & Whispers \u2014 who in the guild should be immortalized in a shanty, and why?','Tonight: A Round for the House \u2014 raise a toast to a guildmate in the replies.',"Tonight: The Reader's Lantern \u2014 what did the cards get right last faire?",'Tonight: Campfire Confessions \u2014 your most glorious faire mishap.','Tonight: Coin & Counsel \u2014 what do you still need to borrow or bring to camp?',"Tonight: The Sellsword's Tab \u2014 name the quest you would hire a mercenary for this faire.",'Tonight: Moonlit Wager \u2014 predict one thing that will absolutely go sideways this weekend.'];
 function tavernTitle(coins){coins=coins||0;if(coins>=120)return 'Captain';if(coins>=70)return 'Quartermaster';if(coins>=40)return 'Bosun';if(coins>=18)return 'Deckhand';if(coins>=5)return 'Sailor';return 'Landlubber';}
@@ -436,9 +469,11 @@ function dealOne(rec){
 app.post('/board/ration',canPost,(req,res)=>{
   var i=ident(req);var rec=holder(i);
   if(!rec)return res.redirect('/board');
+  if(!Array.isArray(rec.hand))rec.hand=[];
+  // Five-card stud: five is the whole hand, and there is no sixth night.
+  if(rec.hand.length>=5)return res.redirect('/board#hand');
   var today=dayKey();
   if(rec.lastRation===today)return res.redirect('/board#hand');
-  if(!Array.isArray(rec.hand))rec.hand=[];
   var yest=yesterdayKey();
   var streak=(rec.lastRation===yest)?(rec.streak||0)+1:1;
   rec.streak=streak;
@@ -446,30 +481,9 @@ app.post('/board/ration',canPost,(req,res)=>{
   var bonus=Math.min(streak,7);
   rec.coins=(rec.coins||0)+cardCoins(card)+bonus;
   rec.lastRation=today;
-  if(rec.hand.length<5){ rec.hand.push(card); rec.pending=null; }
-  else { rec.pending=card; }
+  rec.hand.push(card);
+  rec.pending=null;
   rec.lastCard={code:card,ts:Date.now(),streak:streak,bonus:bonus};
-  save();res.redirect('/board#hand');
-});
-// Swap the waiting card in for one you already hold.
-app.post('/board/hand/swap',canPost,(req,res)=>{
-  var i=ident(req);var rec=holder(i);
-  if(!rec||!rec.pending)return res.redirect('/board#hand');
-  var n=parseInt(req.body.slot,10);
-  if(!(n>=0&&n<(rec.hand||[]).length))return res.redirect('/board#hand');
-  rec.deck=rec.deck||[];
-  rec.deck.unshift(rec.hand[n]);   // the discard goes to the bottom
-  rec.hand[n]=rec.pending;
-  rec.pending=null;
-  save();res.redirect('/board#hand');
-});
-// Or let it go and keep the hand you have.
-app.post('/board/hand/keep',canPost,(req,res)=>{
-  var i=ident(req);var rec=holder(i);
-  if(!rec||!rec.pending)return res.redirect('/board#hand');
-  rec.deck=rec.deck||[];
-  rec.deck.unshift(rec.pending);
-  rec.pending=null;
   save();res.redirect('/board#hand');
 });
 app.post('/board/thread/:id/react',canPost,(req,res)=>{const t=db.threads.find(function(x){return x.id==req.params.id;});if(!t)return res.redirect('/board');doReact(req,res,t);});
