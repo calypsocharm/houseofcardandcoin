@@ -1,0 +1,75 @@
+<%- include('_top',{title:'The Gallery',active:'gallery',desc:'Pictures from the faire — the House of Card and Coin at the Age of Chivalry Renaissance Festival, put up by the guildmates who took them.',image:'/assets/img/og/index.jpg',url:'https://houseofcardandcoin.com/gallery'}) %>
+<link rel="stylesheet" href="/assets/css/gallery.css?v=<%= typeof assetv!=='undefined'?assetv:'1' %>">
+
+<section class="pagehero"><div class="pagehero__bg" style="background-image:url('/assets/img/024.jpg')"></div>
+<div class="container pagehero__inner"><span class="eyebrow">⚜ The Gallery ⚜</span>
+<h1>Pictures from the Faire</h1>
+<p>Camp, garb, the fire, and whatever else was worth pointing a lens at. Put up by the guildmates who took them.</p>
+</div></section>
+
+<section class="section"><div class="container">
+
+  <% if(q.added){ %><div class="alert alert--ok" style="max-width:720px;margin:0 auto 22px">Up it goes. Everyone can see it now.</div><% } %>
+  <% if(q.removed){ %><div class="alert alert--ok" style="max-width:720px;margin:0 auto 22px">Taken down, and the file with it.</div><% } %>
+  <% if(q.e){ %><div class="alert alert--bad" style="max-width:720px;margin:0 auto 22px"><%= q.e %></div><% } %>
+
+  <% if(canAdd){ %>
+    <form class="galadd" method="post" action="/gallery/add" enctype="multipart/form-data">
+      <div class="galadd__row">
+        <label class="galadd__pick">
+          <input type="file" name="photo" accept="image/*" required>
+          <span>Choose a picture</span>
+        </label>
+        <input class="galadd__cap" name="caption" maxlength="140" placeholder="A word about it, if you like…" aria-label="Caption">
+        <button class="btn btn--gold" type="submit">Put it up</button>
+      </div>
+      <p class="galadd__note">Anything you put here everyone can see. It is resized on the way in, and the
+        location your phone tucks into a photo is stripped off.</p>
+    </form>
+  <% } else { %>
+    <p class="muted center" style="margin-bottom:30px">
+      <a href="/members/login" style="color:var(--wine);font-weight:600">Sign in</a> or
+      <a href="/tavern" style="color:var(--wine);font-weight:600">claim a seat</a> to add your own.
+      Anyone may look.
+    </p>
+  <% } %>
+
+  <% if(photos.length){ %>
+    <div class="galgrid">
+      <% photos.forEach(function(p){ %>
+        <figure class="galcard">
+          <a class="galcard__shot" href="<%= p.file %>" target="_blank" rel="noopener"
+             title="<%= p.caption || ('A picture by '+p.who) %>">
+            <img src="<%= p.thumb %>" alt="<%= p.caption || ('A picture by '+p.who) %>" loading="lazy" decoding="async">
+          </a>
+          <figcaption class="galcard__foot">
+            <div class="galcard__who">
+              <%- include('_avatar',{name:p.who,avatar:p.avatar,slug:p.slug}) %>
+              <span>
+                <b><% if(p.slug){ %><a href="/guild/<%= p.slug %>"><%= p.who %></a><% } else { %><%= p.who %><% } %></b>
+                <small><%= new Date(p.ts).toLocaleDateString(undefined,{month:'short',day:'numeric'}) %></small>
+              </span>
+            </div>
+            <% if(p.caption){ %><p class="galcard__cap"><%= p.caption %></p><% } %>
+            <% if(i && ((i.t===p.byT && i.id===p.byId) || leader)){ %>
+              <form method="post" action="/gallery/<%= p.id %>/remove" class="galcard__x"
+                    onsubmit="return confirm('Take this picture down? The file goes too.')">
+                <button type="submit">Take down</button>
+              </form>
+            <% } %>
+          </figcaption>
+        </figure>
+      <% }) %>
+    </div>
+    <p class="muted center" style="margin-top:26px;font-size:.86rem">
+      <%= photos.length %> picture<%= photos.length===1?'':'s' %> on the wall<% if(photos.length>=max*0.8){ %> — room for <%= max-photos.length %> more<% } %>.
+    </p>
+  <% } else { %>
+    <p class="muted center" style="margin:40px 0">
+      Nothing on the wall yet. <% if(canAdd){ %>Be the first — there must be a picture of last year somewhere.<% } %>
+    </p>
+  <% } %>
+
+</div></section>
+
+<%- include('_bot') %>

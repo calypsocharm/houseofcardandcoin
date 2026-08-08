@@ -122,7 +122,7 @@ app.use((req,res,next)=>BLOCKED.test(req.path)?res.status(404).send('Not found')
 // had not been bumped by hand — most recently leaving a signed-in member unable
 // to reach their own profile. So the stamp is rewritten here at serve time from
 // the real file mtimes, and never has to be remembered again.
-const ASSET_FILES=['assets/css/style.css','assets/css/tavern.css','assets/css/profile.css',
+const ASSET_FILES=['assets/css/style.css','assets/css/tavern.css','assets/css/profile.css','assets/css/gallery.css',
   'assets/js/nav.js','assets/js/countdown.js','assets/js/hero-video.js','assets/js/avatar-crop.js','assets/js/dress.js'];
 function assetVersion(){
   let newest=0;
@@ -359,6 +359,75 @@ app.get('/api/me',(req,res)=>{
   res.set('Cache-Control','no-store');
   res.json(res.locals.me);
 });
+// ── The gallery ─────────────────────────────────────────────────────────────
+// Faire pictures, put up by whoever took them. Two copies are kept: a full one
+// no larger than 1600px for looking at, and a square thumb for the grid, so a
+// wall of forty pictures does not cost forty full photographs to open.
+//
+// Everything is re-encoded through sharp on the way in rather than stored as
+// sent. That resizes it, and it also drops the metadata a phone attaches —
+// including where the picture was taken, which has no business on a public
+// page.
+if(!Array.isArray(db.photos))db.photos=[];
+const PHOTO_MAX=300;
+function shrinkPhoto(req,res,next){
+  if(!req.file)return next();
+  var p=req.file.path, input;
+  try{ input=fs.readFileSync(p); }
+  catch(e){ req.photoBad='could not be read'; return next(); }
+  sharp(input).rotate().resize(1600,1600,{fit:'inside',withoutEnlargement:true})
+    .jpeg({quality:78,mozjpeg:true}).toBuffer()
+    .then(function(full){
+      fs.writeFileSync(p,full);
+      return sharp(input).rotate().resize(500,500,{fit:'cover',position:sharp.strategy.attention})
+        .jpeg({quality:72,mozjpeg:true}).toBuffer();
+    })
+    .then(function(thumb){ fs.writeFileSync(p+'t',thumb); req.thumbName=req.file.filename+'t'; next(); })
+    .catch(function(e){
+      // Not something sharp could open, whatever it claimed to be. Throw it
+      // away rather than leave an unprocessed file sitting in uploads.
+      try{ fs.unlinkSync(p); }catch(x){}
+      req.file=null; req.photoBad='was not a picture we could read';
+      next();
+    });
+}
+function galleryWall(){
+  return (db.photos||[]).slice().sort(function(a,b){return b.ts-a.ts;}).map(function(ph){
+    var f=faceNow(ph.byT,ph.byId,ph.byAvatar,ph.byName);
+    return {id:ph.id,file:ph.file,thumb:ph.thumb||ph.file,caption:ph.caption||'',ts:ph.ts,
+            who:f.name,avatar:f.avatar,byT:ph.byT,byId:ph.byId,
+            slug:ph.byT==='member'?(slugById()[ph.byId]||''):''};
+  });
+}
+app.get('/gallery',(req,res)=>{
+  const i=ident(req);
+  res.render('gallery',{i:i,photos:galleryWall(),q:req.query,
+    leader:!!(i&&i.leader),canAdd:!!i,max:PHOTO_MAX});
+});
+app.post('/gallery/add',canPost,up.single('photo'),shrinkPhoto,(req,res)=>{
+  const i=ident(req);
+  if(req.photoBad||!req.file)return res.redirect('/gallery?e='+encodeURIComponent('That '+(req.photoBad||'did not come through')+'. Try another.'));
+  if((db.photos||[]).length>=PHOTO_MAX)return res.redirect('/gallery?e='+encodeURIComponent('The wall is full. Ask the Guild Leader to clear some space.'));
+  db.photos.push({id:nid(),byT:i.t,byId:i.id,byName:i.name,byAvatar:i.avatar||'',
+    file:'/uploads/'+req.file.filename, thumb:'/uploads/'+(req.thumbName||req.file.filename),
+    caption:String(req.body.caption||'').trim().slice(0,140), ts:Date.now()});
+  save();res.redirect('/gallery?added=1');
+});
+app.post('/gallery/:id/remove',canPost,(req,res)=>{
+  const i=ident(req);
+  const ph=(db.photos||[]).find(function(x){return x.id==req.params.id;});
+  if(!ph)return res.redirect('/gallery');
+  if(!(ph.byT===i.t&&ph.byId===i.id)&&!i.leader)return res.status(403).send('Not yours to take down');
+  // take the files with it, or uploads fills up with pictures nobody can see
+  [ph.file,ph.thumb].forEach(function(u){
+    if(u&&u.indexOf('/uploads/')===0){
+      try{ fs.unlinkSync(path.join(__dirname,u.replace('/uploads/','uploads/'))); }catch(e){}
+    }
+  });
+  db.photos=db.photos.filter(function(x){return x.id!=req.params.id;});
+  save();res.redirect('/gallery?removed=1');
+});
+
 // ── Guildmates' own pages ───────────────────────────────────────────────────
 // Addresses are made from the display name: /guild/mama-bear. Renaming yourself
 // moves your page, which is fine at ten people and nobody is bookmarking. Two

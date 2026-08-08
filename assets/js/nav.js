@@ -32,6 +32,7 @@
     ['Ren Faire Camp',      '/camp.html'],
     ['The Tavern',          '/board'],
     ['The Roll of Hands',   '/board/roll'],
+    ['The Gallery',         '/gallery'],
     ['Questions & Customs', '/faq'],
     ['Carrier Pigeon',      '/pigeon.html']
   ];

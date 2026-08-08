@@ -1,0 +1,81 @@
+/* The gallery.
+
+   Its own file rather than more weight on style.css, which is 476 KB and
+   93% duplicate — anything appended there has to out-shout thirty-odd copies
+   of itself. This loads only on /gallery. */
+
+.galadd{
+  max-width:820px;margin:0 auto 34px;
+  background:var(--ivory);border:1px solid var(--line);border-left:3px solid var(--gold);
+  border-radius:3px;padding:16px 18px;
+  box-shadow:0 12px 30px -26px rgba(60,40,15,.9);
+}
+.galadd__row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+
+/* The file input itself is impossible to style consistently, so it is hidden
+   inside its own label and the label is the button. */
+.galadd__pick{position:relative;overflow:hidden;flex-shrink:0}
+.galadd__pick input{position:absolute;inset:0;opacity:0;width:100%;cursor:pointer}
+.galadd__pick span{
+  display:inline-block;font-family:var(--display);font-size:.62rem;letter-spacing:.16em;
+  text-transform:uppercase;padding:11px 16px;border-radius:3px;cursor:pointer;
+  border:1px solid var(--line2);background:#fff;color:var(--ink2);
+}
+.galadd__pick:hover span{border-color:var(--gold-d);color:var(--ink)}
+.galadd__cap{
+  flex:1;min-width:190px;font-family:var(--serif);font-size:.95rem;padding:10px 12px;
+  border:1px solid var(--line2);border-radius:3px;background:#fff;color:var(--ink);
+}
+.galadd__cap:focus{outline:2px solid var(--gold);outline-offset:1px}
+.galadd__note{margin-top:10px;font-size:.82rem;color:var(--muted);line-height:1.5}
+
+/* ── the wall ───────────────────────────────────────────────────────────
+   Square thumbs on a fluid grid, so a phone gets two across and a laptop
+   four without a media query for each step. */
+.galgrid{
+  display:grid;gap:16px;
+  grid-template-columns:repeat(auto-fill,minmax(210px,1fr));
+}
+.galcard{
+  margin:0;background:var(--ivory);border:1px solid var(--line);border-radius:3px;
+  overflow:hidden;box-shadow:0 12px 30px -26px rgba(60,40,15,.9);
+  display:flex;flex-direction:column;
+}
+.galcard__shot{display:block;aspect-ratio:1;overflow:hidden;background:var(--parchment2)}
+.galcard__shot img{
+  width:100%;height:100%;object-fit:cover;display:block;
+  transition:transform .4s var(--ease);
+}
+.galcard__shot:hover img,.galcard__shot:focus-visible img{transform:scale(1.05)}
+.galcard__foot{padding:11px 12px 12px;position:relative}
+.galcard__who{display:flex;align-items:center;gap:9px}
+.galcard__who .postpic,.galcard__who .postpic--init{
+  width:28px;height:28px;border-radius:50%;object-fit:cover;flex-shrink:0;
+  border:1px solid var(--line2);
+}
+.galcard__who span{display:flex;flex-direction:column;line-height:1.25;min-width:0}
+.galcard__who b{font-family:var(--display);font-size:.78rem;color:var(--ink)}
+.galcard__who b a{color:inherit}
+.galcard__who b a:hover{text-decoration:underline}
+.galcard__who small{font-size:.7rem;color:var(--muted)}
+.galcard__cap{margin-top:8px;font-size:.92rem;color:var(--ink2);line-height:1.5}
+
+/* Out of the way until wanted, like the strike control on the tavern. */
+.galcard__x{position:absolute;right:8px;bottom:8px;opacity:0;transition:opacity .18s}
+.galcard:hover .galcard__x,.galcard__x:focus-within{opacity:1}
+.galcard__x button{
+  font-family:var(--display);font-size:.5rem;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--muted);background:var(--ivory);border:1px solid var(--line2);
+  border-radius:2px;padding:3px 7px;cursor:pointer;
+}
+.galcard__x button:hover{color:var(--wine);border-color:var(--wine)}
+
+@media(prefers-reduced-motion:reduce){
+  .galcard__shot img{transition:none}
+  .galcard__shot:hover img{transform:none}
+}
+@media(max-width:520px){
+  .galgrid{grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:11px}
+  .galadd__row{flex-direction:column;align-items:stretch}
+  .galadd__pick span,.galadd .btn{width:100%;text-align:center}
+}
