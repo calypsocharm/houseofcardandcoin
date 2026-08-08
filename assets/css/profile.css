@@ -299,3 +299,82 @@
   background:#f7e7e7;border:1px solid var(--wine-l);color:var(--wine);
   padding:9px 12px;border-radius:2px;margin-bottom:10px;font-size:.92rem;
 }
+
+/* ── dressing the page, on the page ─────────────────────────────────────
+   A panel that folds out of the right edge. Only the owner is ever sent it. */
+.dress{
+  position:fixed;right:0;top:50%;transform:translateY(-50%);z-index:80;
+  display:flex;align-items:flex-start;font-family:var(--serif);
+}
+.dress__tab{
+  writing-mode:vertical-rl;text-orientation:mixed;
+  background:linear-gradient(180deg,var(--gold-l),var(--gold));
+  color:#2a1d0c;border:1px solid var(--gold-d);border-right:0;
+  border-radius:4px 0 0 4px;cursor:pointer;
+  font-family:var(--display);font-size:.62rem;letter-spacing:.18em;text-transform:uppercase;
+  padding:16px 7px;box-shadow:-6px 0 18px -12px rgba(0,0,0,.7);
+}
+.dress__tab:hover{background:var(--gold-l)}
+
+.dress__body{
+  display:none;width:min(320px,calc(100vw - 46px));
+  max-height:min(84vh,720px);overflow-y:auto;
+  background:linear-gradient(180deg,#241a10,#150e07);
+  border:1px solid var(--gold-d);border-radius:0 0 0 6px;
+  box-shadow:-18px 0 50px -28px rgba(0,0,0,.9);
+  padding:16px;color:#eadcb6;
+}
+.dress[data-open="1"] .dress__body{display:block}
+
+.dress__grp{margin-bottom:14px}
+.dress__grp > label,.dress__two label{
+  display:block;font-family:var(--display);font-size:.55rem;letter-spacing:.2em;
+  text-transform:uppercase;color:var(--gold);margin-bottom:6px;
+}
+.dress input[type=text],.dress input:not([type]),.dress textarea,.dress select,.dress input[type=file]{
+  width:100%;font-family:var(--serif);font-size:.9rem;padding:8px 10px;
+  border:1px solid rgba(226,199,127,.32);border-radius:3px;
+  background:rgba(255,246,225,.06);color:#f2e6c6;
+}
+.dress textarea{resize:vertical;line-height:1.5}
+.dress select option{background:#241a10;color:#f2e6c6}
+.dress__two{display:flex;gap:10px}
+.dress__two > span{flex:1;min-width:0}
+
+.dress__swatches{display:flex;gap:8px}
+.dress__swatches span{flex:1;text-align:center}
+.dress__swatches input[type=color]{
+  width:100%;height:32px;padding:1px;cursor:pointer;
+  border:1px solid rgba(226,199,127,.32);border-radius:3px;background:transparent;
+}
+.dress__swatches small{display:block;margin-top:4px;font-size:.62rem;color:#a08e6b}
+
+.dress__tray{display:flex;gap:5px;flex-wrap:wrap}
+.dress__charm{
+  width:38px;height:38px;display:grid;place-items:center;cursor:pointer;
+  border:1px solid rgba(226,199,127,.28);border-radius:3px;
+  background:rgba(255,240,200,.05);color:var(--gold-l);
+}
+.dress__charm:hover{border-color:var(--gold-l);background:rgba(255,240,200,.13)}
+.dress__charm svg{width:22px;height:22px}
+
+.dress__hint{display:block;margin-top:7px;font-size:.74rem;line-height:1.45;color:#93835f}
+.dress__check{display:flex;align-items:center;gap:8px;font-size:.86rem;color:#cbb98f;cursor:pointer;margin-top:8px}
+.dress__check input{width:auto;margin:0}
+.dress__foot{display:flex;flex-direction:column;gap:7px;margin-top:14px;
+  border-top:1px solid rgba(226,199,127,.2);padding-top:13px}
+.dress__foot .btn{width:100%}
+.dress__state{font-size:.74rem;color:#93835f;text-align:center}
+
+/* Charms only answer the pointer while the panel is open, so a visitor — and
+   the owner reading their own page — cannot drag the furniture by accident. */
+.pro.is-dressing .pro-charms{pointer-events:none}
+.pro.is-dressing .pro-charm{pointer-events:auto;cursor:grab}
+.pro.is-dressing .pro-charm.is-held{cursor:grabbing}
+.pro.is-dressing .pro-banner{outline:2px dashed rgba(226,199,127,.5);outline-offset:-4px}
+
+@media(max-width:820px){
+  .dress{top:auto;bottom:0;transform:none;right:0;left:0;flex-direction:column-reverse;align-items:stretch}
+  .dress__tab{writing-mode:horizontal-tb;border-radius:4px 4px 0 0;border-right:1px solid var(--gold-d);padding:11px}
+  .dress__body{width:auto;max-height:62vh;border-radius:0}
+}

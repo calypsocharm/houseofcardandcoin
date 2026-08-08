@@ -114,7 +114,7 @@ app.use((req,res,next)=>BLOCKED.test(req.path)?res.status(404).send('Not found')
 // to reach their own profile. So the stamp is rewritten here at serve time from
 // the real file mtimes, and never has to be remembered again.
 const ASSET_FILES=['assets/css/style.css','assets/css/tavern.css','assets/css/profile.css',
-  'assets/js/nav.js','assets/js/countdown.js','assets/js/hero-video.js','assets/js/avatar-crop.js','assets/js/page-preview.js','assets/js/charms.js'];
+  'assets/js/nav.js','assets/js/countdown.js','assets/js/hero-video.js','assets/js/avatar-crop.js','assets/js/dress.js'];
 function assetVersion(){
   let newest=0;
   ASSET_FILES.forEach(function(f){
@@ -399,7 +399,9 @@ app.get('/guild/:slug',(req,res)=>{
          coins:u.coins||0,streak:u.streak||0},
     bunks:bunks, bringing:bringing, talk:talk.slice(0,5),
     hand:(u.hand||[]).map(cardInfo), handRank:handRank(u.hand||[]),
-    page:pageOf(u), charmSvg:charmSvg,
+    page:pageOf(u), charmSvg:charmSvg, charmKeys:CHARM_KEYS, charmMax:CHARM_MAX,
+    fonts:FONTS, fontKeys:FONT_KEYS, sizeKeys:SIZE_KEYS, sizes:SIZES,
+    backdrops:BACKDROPS, layouts:LAYOUTS,
     wall:wallFor(u.id), canSign:!!i, i:i, leader:!!(i&&i.leader), q:req.query,
     isMe:!!(i&&i.t==='member'&&i.id===u.id), slug:hit.slug,
     // Whispering used to hide behind the little figures in the tavern room.

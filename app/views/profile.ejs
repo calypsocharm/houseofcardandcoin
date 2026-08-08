@@ -28,7 +28,7 @@
     <% if(page.charms.length){ %>
       <span class="pro-charms">
         <% page.charms.forEach(function(c){ %>
-          <span class="pro-charm is-<%= c.c %>" style="left:<%= c.x %>%;top:<%= c.y %>%;--c-size:<%= c.s %>"><%- charmSvg(c.k,c.c) %></span>
+          <span class="pro-charm is-<%= c.c %>" style="left:<%= c.x %>%;top:<%= c.y %>%;--c-size:<%= c.s %>"><%- charmSvg(c.k) %></span>
         <% }) %>
       </span>
     <% } %>
@@ -67,7 +67,7 @@
       <% if(canWhisper){ %>
         <p class="pro-acts"><a class="btn btn--wine" href="<%= whisperTo %>">Whisper to <%= who.name %></a></p>
       <% } %>
-      <p class="pro-back"><a href="/guild.html">← Back to the roster</a><% if(isMe){ %> · <a href="/members#page">Change how this page looks</a> · <a href="/members#profile">Your details</a><% } %></p>
+      <p class="pro-back"><a href="/guild.html">← Back to the roster</a><% if(isMe){ %> · <a href="/members#profile">Your name, face and rank</a><% } %></p>
     </div>
 
     <div class="pro-cols">
@@ -107,7 +107,7 @@
         <% } else if(isMe){ %>
           <div class="pro-card">
             <h2>Of Yourself</h2>
-            <p class="pro-empty">Nothing written yet. <a href="/members#page">Say a few words</a> and they sit here.</p>
+            <p class="pro-empty">Nothing written yet. Press <b>Dress this page</b> and say a few words — they sit here.</p>
           </div>
         <% } %>
 
@@ -183,6 +183,108 @@
     </div>
   </div>
 </div>
+
+<% if(isMe){ %>
+<!-- ── Dressing the page, on the page ───────────────────────────────────────
+     This used to be a form in the Guild Hall with a shrunken copy of the page
+     beside it. A copy can disagree with the original, and did: wax charms
+     previewed in a colour nobody had chosen. There is nothing to keep in step
+     now, because there is only one of it — every control writes straight onto
+     the page you are looking at, and charms are dragged on the real banner at
+     its real size. Nothing is written down until you press Save. -->
+<div class="dress" id="dress" data-open="0" data-max="<%= charmMax %>">
+  <button type="button" class="dress__tab" id="dressTab" aria-expanded="false" aria-controls="dressBody">
+    <span>Dress this page</span>
+  </button>
+
+  <form class="dress__body" id="dressBody" method="post" action="/members/page" enctype="multipart/form-data">
+
+    <div class="dress__grp">
+      <label for="pgMotto">Motto</label>
+      <input id="pgMotto" name="motto" maxlength="90" value="<%= page.motto %>" placeholder="Every bargain has its price…">
+    </div>
+
+    <div class="dress__grp">
+      <label for="pgAbout">Of yourself</label>
+      <textarea id="pgAbout" name="about" rows="3" maxlength="700" placeholder="Who you are at camp, and where to find you after dark."><%= page.about %></textarea>
+    </div>
+
+    <div class="dress__grp">
+      <label>Colours</label>
+      <div class="dress__swatches">
+        <span><input id="pgAccent" type="color" name="accent" value="<%= page.accent %>"><small>Accent</small></span>
+        <span><input id="pgSeal" type="color" name="seal" value="<%= page.seal %>"><small>Wax</small></span>
+        <span><input id="pgTint" type="color" name="tint" value="<%= page.tint %>"><small>Ground</small></span>
+        <span><input id="pgInk" type="color" name="ink" value="<%= page.ink %>"><small>Writing</small></span>
+      </div>
+    </div>
+
+    <div class="dress__grp dress__two">
+      <span>
+        <label for="pgFont">Lettering</label>
+        <select id="pgFont" name="font">
+          <% fontKeys.forEach(function(k){ %><option value="<%= k %>"<%= page.font===k?' selected':'' %>><%= fonts[k].label %></option><% }) %>
+        </select>
+      </span>
+      <span>
+        <label for="pgSize">Size</label>
+        <select id="pgSize" name="size">
+          <% sizeKeys.forEach(function(k){ %><option value="<%= k %>"<%= page.size===k?' selected':'' %>><%= k.charAt(0).toUpperCase()+k.slice(1) %></option><% }) %>
+        </select>
+      </span>
+    </div>
+
+    <div class="dress__grp dress__two">
+      <span>
+        <label for="pgBack">Backdrop</label>
+        <select id="pgBack" name="backdrop">
+          <% backdrops.forEach(function(b){ %><option value="<%= b %>"<%= page.backdrop===b?' selected':'' %>><%= b.charAt(0).toUpperCase()+b.slice(1) %></option><% }) %>
+        </select>
+      </span>
+      <span>
+        <label for="pgLay">Arrangement</label>
+        <select id="pgLay" name="layout">
+          <% layouts.forEach(function(l){ %><option value="<%= l %>"<%= page.layout===l?' selected':'' %>><%= l==='sheet'?'Two column':(l==='scroll'?'Scroll':'Poster') %></option><% }) %>
+        </select>
+      </span>
+    </div>
+
+    <div class="dress__grp">
+      <label for="pgBanner">Banner</label>
+      <input id="pgBanner" type="file" name="banner" accept="image/*">
+      <% if(page.banner){ %>
+        <label class="dress__check"><input type="checkbox" name="dropBanner" value="1"> Take the banner off</label>
+      <% } %>
+    </div>
+
+    <div class="dress__grp">
+      <label>Charms — click to hang, drag on the banner</label>
+      <div class="dress__tray" id="charmTray">
+        <% charmKeys.forEach(function(k){ %>
+          <button type="button" class="dress__charm" data-charm="<%= k %>" title="Hang a <%= k %>" aria-label="Hang a <%= k %>"><%- charmSvg(k) %></button>
+        <% }) %>
+      </div>
+      <small class="dress__hint">Click a charm on the banner to recolour it, double-click to take it off.
+        <b id="charmCount"><%= page.charms.length %></b>/<%= charmMax %></small>
+      <input type="hidden" name="charms" id="pgCharms" value="<%= JSON.stringify(page.charms) %>">
+    </div>
+
+    <label class="dress__check">
+      <input type="checkbox" name="sparkle" value="1"<%= page.sparkle?' checked':'' %>> Sparkles follow the cursor
+    </label>
+
+    <div class="dress__foot">
+      <button class="btn btn--gold" type="submit">Save my page</button>
+      <span class="dress__state" id="dressState">Nothing changed yet</span>
+    </div>
+  </form>
+</div>
+<% } %>
+
+<% if(isMe){ %>
+<script>window.__CHARM_ART__=<%- JSON.stringify(charmKeys.reduce(function(m,k){m[k]=charmSvg(k);return m;},{})) %>;window.__FONTS__=<%- JSON.stringify(fontKeys.reduce(function(m,k){m[k]=fonts[k].stack;return m;},{})) %>;window.__SIZES__=<%- JSON.stringify(sizes) %>;</script>
+<script defer src="/assets/js/dress.js?v=<%= typeof assetv!=='undefined'?assetv:'1' %>"></script>
+<% } %>
 
 <% if(page.sparkle){ %>
 <script>
