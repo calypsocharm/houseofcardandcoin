@@ -3348,3 +3348,35 @@ main:focus{outline:none}
   border-bottom:1px solid currentColor;padding-bottom:2px;
 }
 .rolecard--link:hover .rolecard__go{color:var(--gold-d)}
+
+/* ── The Cardsharp's Hand, pitched on the landing page ────────────────────
+   The card game is the most alive thing on the site and the front page did
+   not mention it. Five backs from her own damask, fanned, beside the telling. */
+.handpitch{display:grid;grid-template-columns:minmax(200px,300px) 1fr;gap:34px;align-items:center;margin-top:26px}
+.handpitch__fan{position:relative;height:210px;display:flex;justify-content:center;align-items:center}
+.handpitch__card{
+  position:absolute;width:96px;height:134px;border-radius:6px;
+  border:1px solid var(--gold-d);
+  background:linear-gradient(rgba(20,10,4,.26),rgba(20,10,4,.26)),
+    url("/assets/img/card-back.jpg") center/cover no-repeat;
+  box-shadow:0 12px 26px -14px rgba(40,26,8,.9), 0 1px 0 rgba(255,232,180,.3) inset;
+  transform-origin:50% 120%;
+}
+.handpitch__card::after{content:"";position:absolute;inset:5px;border:1px solid rgba(226,190,110,.4);border-radius:4px}
+.handpitch__card:nth-child(1){transform:rotate(-19deg) translateX(-52px)}
+.handpitch__card:nth-child(2){transform:rotate(-9.5deg) translateX(-26px)}
+.handpitch__card:nth-child(3){transform:rotate(0deg)}
+.handpitch__card:nth-child(4){transform:rotate(9.5deg) translateX(26px)}
+.handpitch__card:nth-child(5){transform:rotate(19deg) translateX(52px)}
+.handpitch__words p{margin:0 0 13px;color:var(--ink2);line-height:1.7}
+.handpitch__words .lead{margin-bottom:15px}
+.handpitch__words b{color:var(--wine)}
+@media (max-width:760px){
+  .handpitch{grid-template-columns:1fr;gap:22px}
+  .handpitch__fan{height:170px}
+  .handpitch__card{width:76px;height:106px}
+  .handpitch__card:nth-child(1){transform:rotate(-19deg) translateX(-40px)}
+  .handpitch__card:nth-child(2){transform:rotate(-9.5deg) translateX(-20px)}
+  .handpitch__card:nth-child(4){transform:rotate(9.5deg) translateX(20px)}
+  .handpitch__card:nth-child(5){transform:rotate(19deg) translateX(40px)}
+}
