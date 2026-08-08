@@ -1,0 +1,6 @@
+    error_page 502 503 504 /_offline.html;
+    location = /_offline.html {
+        root /var/www/hocc-offline;
+        try_files /offline.html =502;
+        internal;
+    }

@@ -330,6 +330,36 @@ members. Seed a local dev database with `node seed.js` (see §11 first).
 
 ---
 
+## 10b. The page shown while the app is restarting
+
+`pm2 restart hocc` takes a second or two, and during it nginx cannot reach
+Express and answers **502**. Anyone using the site at that moment used to get
+nginx's bare grey error page.
+
+They now get [`ops/offline.html`](ops/offline.html) — the House's own colours,
+saying it will be a moment and that nothing was lost — and the page retries
+itself, backing off, giving up after eight goes.
+
+It lives on the box at `/var/www/hocc-offline/offline.html`, outside the app's
+own folder so it is still there when the app is not. Wired up in
+`/etc/nginx/sites-available/hocc` with [`ops/nginx-offline.snippet`](ops/nginx-offline.snippet).
+
+To change the page:
+
+```bash
+scp ops/offline.html root@187.124.235.109:/var/www/hocc-offline/offline.html
+```
+
+No nginx reload needed for the page itself — only if the snippet changes, and
+then **always** `nginx -t` before `systemctl reload nginx`: several other sites
+share this box and a bad config takes them all down with it.
+
+**Restart as few times as you can.** Copy every changed file first, then
+restart once. Two restarts in a minute is two windows where somebody can hit
+the 502 — which is exactly how it was found.
+
+---
+
 ## 11. Known issues
 
 Full findings, with measurements and fixes, in [`AUDIT.md`](AUDIT.md).

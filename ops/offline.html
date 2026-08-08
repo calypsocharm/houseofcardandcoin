@@ -1,0 +1,86 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>One moment — House of Card and Coin</title>
+<meta name="robots" content="noindex">
+<link rel="icon" href="/assets/img/019.png">
+<style>
+  /* Served by nginx when the app is not answering — during a deploy, almost
+     always, which takes a second or two. No stylesheet from the site, because
+     the thing that would serve it is the thing that is down. */
+  :root{--parchment:#f4ead2;--ink:#241a12;--ink2:#43331f;--muted:#7a6749;
+        --gold:#c2a14d;--gold-l:#e4c77f;--gold-d:#8a6d2a;--wine:#6e1a1a;--dark:#1a120b}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    min-height:100vh;display:grid;place-items:center;padding:28px;
+    font-family:"EB Garamond","Palatino Linotype",Palatino,Georgia,serif;
+    color:var(--ink);background:var(--parchment);
+    background-image:
+      radial-gradient(120% 80% at 10% 0%,rgba(120,90,40,.10),transparent 60%),
+      radial-gradient(120% 80% at 100% 100%,rgba(90,40,20,.10),transparent 60%);
+    line-height:1.7;text-align:center;
+  }
+  .card{max-width:520px}
+  .crest{
+    width:74px;height:74px;margin:0 auto 22px;border-radius:50%;
+    border:2px solid var(--gold);background:var(--dark);
+    display:grid;place-items:center;color:var(--gold-l);
+    font-family:"Trajan Pro",Optima,"Palatino Linotype",Georgia,serif;font-size:1.5rem;
+  }
+  .eyebrow{
+    font-family:"Trajan Pro",Optima,"Palatino Linotype",Georgia,serif;
+    font-size:.62rem;letter-spacing:.28em;text-transform:uppercase;color:var(--gold-d);
+  }
+  h1{
+    font-family:"Trajan Pro",Optima,"Palatino Linotype",Georgia,serif;
+    font-size:clamp(1.5rem,5vw,2.1rem);margin:12px 0 14px;letter-spacing:.02em;
+  }
+  p{color:var(--ink2)}
+  .small{margin-top:18px;font-size:.9rem;color:var(--muted)}
+  a{color:var(--wine);font-weight:600}
+  .bar{
+    width:150px;height:2px;margin:24px auto 0;background:rgba(138,109,42,.25);
+    border-radius:2px;overflow:hidden;
+  }
+  .bar span{display:block;height:100%;width:40%;background:var(--gold);animation:sweep 1.6s ease-in-out infinite}
+  @keyframes sweep{0%{transform:translateX(-100%)}100%{transform:translateX(300%)}}
+  @media(prefers-reduced-motion:reduce){.bar span{animation:none;width:100%}}
+</style>
+</head><body>
+  <div class="card">
+    <div class="crest">✦</div>
+    <p class="eyebrow">House of Card and Coin</p>
+    <h1>The House is catching its breath</h1>
+    <p>Someone is tending the fire. This takes a moment and nothing has been lost —
+      whatever you just sent was saved before the door swung shut.</p>
+    <div class="bar"><span></span></div>
+    <p class="small">Trying again by itself… or <a href="/">go to the front door</a>.</p>
+  </div>
+<script>
+  /* Retry where they were, backing off a little each time so a long outage is
+     not turned into a hammering, and stopping after eight goes rather than
+     reloading for ever.
+
+     The count has to live in sessionStorage: every retry is a fresh load of
+     this page, so a counter in a variable would reset to zero each time and
+     never reach its own limit. A gap of more than a minute counts as a new
+     outage and starts the count again. */
+  (function () {
+    var KEY = 'hocc-offline';
+    var n = 0, last = 0;
+    try {
+      n = parseInt(sessionStorage.getItem(KEY) || '0', 10) || 0;
+      last = parseInt(sessionStorage.getItem(KEY + '-t') || '0', 10) || 0;
+    } catch (e) { /* private mode — one polite retry and no more */ }
+
+    if (Date.now() - last > 60000) n = 0;
+    if (n >= 8) return;
+
+    try {
+      sessionStorage.setItem(KEY, String(n + 1));
+      sessionStorage.setItem(KEY + '-t', String(Date.now()));
+    } catch (e) {}
+
+    setTimeout(function () { location.reload(); }, 2000 + n * 1200);
+  })();
+</script>
+</body></html>
