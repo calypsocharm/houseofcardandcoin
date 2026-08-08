@@ -114,7 +114,7 @@ app.use((req,res,next)=>BLOCKED.test(req.path)?res.status(404).send('Not found')
 // to reach their own profile. So the stamp is rewritten here at serve time from
 // the real file mtimes, and never has to be remembered again.
 const ASSET_FILES=['assets/css/style.css','assets/css/tavern.css','assets/css/profile.css',
-  'assets/js/nav.js','assets/js/countdown.js','assets/js/hero-video.js','assets/js/avatar-crop.js','assets/js/page-preview.js'];
+  'assets/js/nav.js','assets/js/countdown.js','assets/js/hero-video.js','assets/js/avatar-crop.js','assets/js/page-preview.js','assets/js/charms.js'];
 function assetVersion(){
   let newest=0;
   ASSET_FILES.forEach(function(f){
@@ -208,6 +208,50 @@ function shrinkBanner(req,res,next){
 // words, so the worst a bad value can do is fall back to the default.
 const BACKDROPS=['plain','weave','timber','damask','stars'];
 const LAYOUTS=['sheet','scroll','poster'];
+// Charms — the glitter. Drawn here, placed by whoever owns the page, which is
+// the whole trick: all the fun of a decorated page and not a line of anybody
+// else's code. The key is looked up in this map, so a made-up one draws nothing
+// rather than reaching the markup.
+const CHARM_ART={
+  skull:'<path d="M12 2C7 2 4 5.4 4 9.6c0 2.3 1 3.7 2 4.6V18a2 2 0 0 0 2 2h1v-2h2v2h2v-2h2v2h1a2 2 0 0 0 2-2v-3.8c1-.9 2-2.3 2-4.6C20 5.4 17 2 12 2Z" fill="F"/><circle cx="9" cy="10" r="1.9" fill="#1a120b"/><circle cx="15" cy="10" r="1.9" fill="#1a120b"/>',
+  tankard:'<path d="M4 6h11v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2Z" fill="F"/><path d="M15 9h3a3 3 0 0 1 0 6h-3" fill="none" stroke="F" stroke-width="2"/><path d="M4 6h11v3H4Z" fill="#fff8e2"/>',
+  spade:'<path d="M12 2.5 5 10c-2.2 2.3-1.6 6 1.4 7 1.6.5 3.2-.1 4.1-1.3L10 21h4l-.5-5.3c.9 1.2 2.5 1.8 4.1 1.3 3-1 3.6-4.7 1.4-7Z" fill="F"/>',
+  heart:'<path d="M12 21S3.5 14.6 3.5 9.1A4.6 4.6 0 0 1 12 6.4a4.6 4.6 0 0 1 8.5 2.7C20.5 14.6 12 21 12 21Z" fill="F"/>',
+  moon:'<path d="M20 14.5A8.5 8.5 0 0 1 9.5 4 8.5 8.5 0 1 0 20 14.5Z" fill="F"/>',
+  blade:'<path d="m19 3-9 9 2 2 9-9V3Z" fill="F"/><path d="m9 13-1.5 1.5L4 18l2 2 3.5-3.5L11 15Z" fill="F"/>',
+  coin:'<circle cx="12" cy="12" r="9" fill="F"/><circle cx="12" cy="12" r="6" fill="none" stroke="#1a120b" stroke-width="1.4" opacity=".55"/>',
+  key:'<circle cx="8" cy="8" r="4.6" fill="none" stroke="F" stroke-width="2.4"/><path d="m11 11 8 8M16 16l2 2M14 18l2 2" stroke="F" stroke-width="2.4" fill="none" stroke-linecap="round"/>'
+};
+const CHARM_KEYS=Object.keys(CHARM_ART);
+const CHARM_INKS={gold:'#e4c77f',seal:'var(--u-seal)',dark:'#2a1c0e',pale:'#f7e6ba'};
+const CHARM_MAX=14;
+function charmSvg(k,ink){
+  var art=CHARM_ART[k]; if(!art)return '';
+  var fill=CHARM_INKS[ink]||CHARM_INKS.gold;
+  return '<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">'+
+    art.replace(/"F"/g,'"'+fill+'"')+'</svg>';
+}
+// Comes in as JSON from a hidden field, so every part of it is treated as a
+// stranger: unknown keys dropped, coordinates clamped to the banner, and the
+// whole lot cut off at CHARM_MAX.
+function cleanCharms(raw){
+  var list; try{ list=JSON.parse(raw||'[]'); }catch(e){ return []; }
+  if(!Array.isArray(list))return [];
+  var out=[];
+  list.forEach(function(c){
+    if(!c||CHARM_KEYS.indexOf(c.k)<0)return;
+    var x=Number(c.x), y=Number(c.y);
+    if(!isFinite(x)||!isFinite(y))return;
+    out.push({
+      k:c.k,
+      x:Math.round(Math.min(100,Math.max(0,x))*10)/10,
+      y:Math.round(Math.min(100,Math.max(0,y))*10)/10,
+      c:CHARM_INKS[c.c]?c.c:'gold',
+      s:Math.min(2,Math.max(.6,Number(c.s)||1))
+    });
+  });
+  return out.slice(0,CHARM_MAX);
+}
 const HEX=/^#[0-9a-f]{6}$/i;
 function pickHex(v,fallback){ v=String(v||'').trim(); return HEX.test(v)?v.toLowerCase():fallback; }
 function pickOne(v,list,fallback){ v=String(v||'').trim(); return list.indexOf(v)>=0?v:fallback; }
@@ -220,6 +264,7 @@ function pageOf(u){
     backdrop:pickOne(u.backdrop,BACKDROPS,'plain'),
     layout:pickOne(u.layout,LAYOUTS,'sheet'),
     sparkle:!!u.sparkle,
+    charms:Array.isArray(u.charms)?u.charms:[],
     // Only ever written by us as '/uploads/<multer's hex name>'. Checked anyway,
     // because it ends up inside a style attribute on a public page.
     banner:/^\/uploads\/[a-f0-9]+$/i.test(String(u.banner||''))?u.banner:''
@@ -331,7 +376,7 @@ app.get('/guild/:slug',(req,res)=>{
          coins:u.coins||0,streak:u.streak||0},
     bunks:bunks, bringing:bringing, talk:talk.slice(0,5),
     hand:(u.hand||[]).map(cardInfo), handRank:handRank(u.hand||[]),
-    page:pageOf(u),
+    page:pageOf(u), charmSvg:charmSvg,
     isMe:!!(i&&i.t==='member'&&i.id===u.id), slug:hit.slug,
     // Whispering used to hide behind the little figures in the tavern room.
     // Those now lead here, so the door has to be on this page instead.
@@ -399,7 +444,7 @@ app.get('/members',au,(req,res)=>{
   })();
   const bunksLeft=NIGHTS.length*BUNKS.length-db.bunks.length;
   const items=db.items.map(it=>{const cl=db.claims.filter(c=>c.itemId===it.id);const claimed=cl.reduce((s,c)=>s+c.qty,0);return{...it,claimed,remaining:Math.max(0,it.need-claimed),claims:cl.map(c=>({qty:c.qty,who:db.users.find(y=>y.id===c.userId)})),mine:cl.find(c=>c.userId===u.id)};});
-  res.render('hall',{u,page:pageOf(u),mySlug:slugById()[u.id]||'',backdrops:BACKDROPS,layouts:LAYOUTS,rank:rank(u),classes:CLASSES,bunkBoard,bunksLeft,items,bringers,leader:u.role==='leader',users:u.role==='leader'?db.users.map(function(m){return{name:m.name,class:m.class,faires:m.faires,rank:rank(m),pledge:!!m.pledge,leader:m.role==='leader',title:m.title||'',avatar:m.avatar,id:m.id,contactEmail:m.contactEmail||'',phone:m.phone||'',bunks:db.bunks.filter(function(b){return b.userId===m.id}).map(function(b){return b.night+' \u00b7 Bunk '+b.bunk;})};}):[],announcements:db.announcements,outreach:{emails:db.users.filter(function(x){return x.contactEmail;}).map(function(x){return x.contactEmail;}),phones:db.users.filter(function(x){return x.phone;}).map(function(x){return x.phone;})},invite:INVITE,err:req.query.e||"",q:req.query});
+  res.render('hall',{u,page:pageOf(u),mySlug:slugById()[u.id]||'',backdrops:BACKDROPS,layouts:LAYOUTS,charmKeys:CHARM_KEYS,charmSvg:charmSvg,charmMax:CHARM_MAX,rank:rank(u),classes:CLASSES,bunkBoard,bunksLeft,items,bringers,leader:u.role==='leader',users:u.role==='leader'?db.users.map(function(m){return{name:m.name,class:m.class,faires:m.faires,rank:rank(m),pledge:!!m.pledge,leader:m.role==='leader',title:m.title||'',avatar:m.avatar,id:m.id,contactEmail:m.contactEmail||'',phone:m.phone||'',bunks:db.bunks.filter(function(b){return b.userId===m.id}).map(function(b){return b.night+' \u00b7 Bunk '+b.bunk;})};}):[],announcements:db.announcements,outreach:{emails:db.users.filter(function(x){return x.contactEmail;}).map(function(x){return x.contactEmail;}),phones:db.users.filter(function(x){return x.phone;}).map(function(x){return x.phone;})},invite:INVITE,err:req.query.e||"",q:req.query});
 });
 // How your page looks. Separate from the details form above because these are
 // about presentation and those are about the guild — and because this one
@@ -414,6 +459,7 @@ app.post('/members/page',au,up.single('banner'),shrinkBanner,(req,res)=>{
   u.backdrop=pickOne(req.body.backdrop,BACKDROPS,'plain');
   u.layout=pickOne(req.body.layout,LAYOUTS,'sheet');
   u.sparkle=!!req.body.sparkle;
+  u.charms=cleanCharms(req.body.charms);
   if(req.body.dropBanner&&u.banner&&u.banner.startsWith('/uploads/')){
     try{ fs.unlinkSync(path.join(__dirname,u.banner.replace('/uploads/','uploads/'))); }catch(e){}
     u.banner='';
@@ -878,7 +924,18 @@ app.get('/board/rogues',(req,res)=>{const i=identRich(req);const counts={};funct
 function yesterdayKey(){var d=new Date();d.setDate(d.getDate()-1);return d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate();}
 function party(t,id){if(t==='member'){var u=db.users.find(function(x){return x.id===id;});return u?{name:u.name,avatar:u.avatar}:null;}var p=db.patrons.find(function(x){return x.id===id;});return p?{name:p.name,avatar:p.avatar}:null;}
 function notify(toT,toId,text){if(!Array.isArray(db.notices))db.notices=[];db.notices.push({id:nid(),toT:toT,toId:toId,text:text,ts:Date.now(),read:false});if(db.notices.length>300)db.notices=db.notices.slice(-300);}
-function countdown(){var open=new Date(2026,9,9,10,0,0),close=new Date(2026,9,11,22,0,0),now=new Date();if(now>=close)return{ended:true};if(now>=open)return{open:true};return{days:Math.ceil((open-now)/86400000)};}
+// The gates open 10:00 Friday 9 October 2026, Las Vegas time — PDT in October,
+// so seven hours behind UTC. Pinned as an absolute instant rather than "10
+// o'clock wherever this happens to be running": the VPS keeps Mountain time, so
+// the old local-time version counted to an hour before the faire opens, and
+// disagreed with the festival's own countdown. Whole days not yet elapsed, to
+// match how theirs reads — rounding up showed 62 against their 61 days 23 hours.
+function countdown(){
+  var open=new Date(Date.UTC(2026,9,9,17,0,0)),close=new Date(Date.UTC(2026,9,12,5,0,0)),now=new Date();
+  if(now>=close)return{ended:true};
+  if(now>=open)return{open:true};
+  return{days:Math.floor((open-now)/86400000)};
+}
 app.get('/board/notices',canPost,(req,res)=>{var i=ident(req);var mine=(db.notices||[]).filter(function(n){return n.toT===i.t&&n.toId===i.id;}).sort(function(a,b){return b.ts-a.ts;});db.notices.forEach(function(n){if(n.toT===i.t&&n.toId===i.id)n.read=true;});save();res.render('notices',{i:i,notices:mine});});
 app.get('/board/whispers',canPost,(req,res)=>{var i=ident(req);var mine=(db.whispers||[]).filter(function(w){return (w.fromT===i.t&&w.fromId===i.id)||(w.toT===i.t&&w.toId===i.id);});var conv={};mine.forEach(function(w){var other=(w.fromT===i.t&&w.fromId===i.id)?{t:w.toT,id:w.toId}:{t:w.fromT,id:w.fromId};var k=other.t+':'+other.id;if(!conv[k]||w.ts>conv[k].last.ts)conv[k]={other:other,last:w};});var list=Object.keys(conv).map(function(k){var c=conv[k];var p=party(c.other.t,c.other.id)||{name:'A stranger',avatar:''};var unread=mine.filter(function(w){return w.toT===i.t&&w.toId===i.id&&w.fromT===c.other.t&&w.fromId===c.other.id&&!w.read;}).length;return {other:c.other,last:c.last,name:p.name,avatar:p.avatar,unread:unread};}).sort(function(a,b){return b.last.ts-a.last.ts;});res.render('whispers',{i:i,conv:list});});
 app.get('/board/whisper/:t/:id',canPost,(req,res)=>{var i=ident(req);var ot=req.params.t,oid=parseInt(req.params.id);if(ot===i.t&&oid===i.id)return res.redirect('/board/whispers');if(ot!=='member'&&ot!=='patron')return res.redirect('/board/whispers');var p=party(ot,oid);if(!p)return res.redirect('/board/whispers');var msgs=(db.whispers||[]).filter(function(w){return ((w.fromT===i.t&&w.fromId===i.id&&w.toT===ot&&w.toId===oid)||(w.fromT===ot&&w.fromId===oid&&w.toT===i.t&&w.toId===i.id));}).sort(function(a,b){return a.ts-b.ts;});db.whispers.forEach(function(w){if(w.fromT===ot&&w.fromId===oid&&w.toT===i.t&&w.toId===i.id)w.read=true;});save();res.render('whisper',{i:i,other:{t:ot,id:oid,name:p.name,avatar:p.avatar},msgs:msgs});});

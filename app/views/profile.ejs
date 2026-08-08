@@ -19,6 +19,19 @@
   <div class="pro-banner<%= page.banner?' pro-banner--own':'' %>" aria-hidden="true">
     <% if(!page.banner){ %><span class="pro-banner__art"></span><% } %>
     <span class="pro-banner__fade"></span>
+    <%
+      /* Charms hang on the banner, where they cannot land on top of anything
+         anyone needs to read. Position is a percentage of the banner, so they
+         sit in the same place on a phone as on a laptop. The artwork is ours,
+         looked up by a key that has already been checked against the list. */
+    %>
+    <% if(page.charms.length){ %>
+      <span class="pro-charms">
+        <% page.charms.forEach(function(c){ %>
+          <span class="pro-charm is-<%= c.c %>" style="left:<%= c.x %>%;top:<%= c.y %>%;--c-size:<%= c.s %>"><%- charmSvg(c.k,c.c) %></span>
+        <% }) %>
+      </span>
+    <% } %>
   </div>
 
   <div class="container">

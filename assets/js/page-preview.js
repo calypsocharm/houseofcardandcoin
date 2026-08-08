@@ -79,6 +79,40 @@
     }, function (v) { return v; });
   }
 
+  // Charms are held by charms.js, which shouts when the arrangement changes.
+  // Repainting them here keeps the frame honest about where they will land.
+  function paintCharms(list) {
+    var pro = root();
+    if (!pro) return;
+    var d = frame.contentDocument;
+    var banner = d.querySelector('.pro-banner');
+    if (!banner) return;
+    var wrap = banner.querySelector('.pro-charms');
+    if (!wrap) {
+      wrap = d.createElement('span');
+      wrap.className = 'pro-charms';
+      banner.appendChild(wrap);
+    }
+    wrap.innerHTML = '';
+    (list || []).forEach(function (c) {
+      var s = d.createElement('span');
+      s.className = 'pro-charm is-' + c.c;
+      s.style.left = c.x + '%';
+      s.style.top = c.y + '%';
+      s.style.setProperty('--c-size', c.s || 1);
+      s.innerHTML = (window.__CHARM_ART__ || {})[c.k] || '';
+      wrap.appendChild(s);
+    });
+  }
+
+  document.addEventListener('charms:changed', function (e) { paintCharms(e.detail); });
+
+  function currentCharms() {
+    var store = document.getElementById('pgCharms');
+    if (!store) return [];
+    try { return JSON.parse(store.value || '[]') || []; } catch (e) { return []; }
+  }
+
   function setLine(d, sel, value, make, dress) {
     var el = d.querySelector(sel);
     if (!value) { if (el) el.textContent = ''; return; }
@@ -87,7 +121,7 @@
   }
 
   // The frame loads the page as last saved; put the unsaved form on top of it.
-  frame.addEventListener('load', paint);
+  frame.addEventListener('load', function () { paint(); paintCharms(currentCharms()); });
 
   ['input', 'change'].forEach(function (ev) {
     Object.keys(f).forEach(function (k) {

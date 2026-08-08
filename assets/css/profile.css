@@ -177,3 +177,18 @@
 @media(max-width:820px){
   .pro[data-layout="poster"] .pro-cols{grid-template-columns:1fr}
 }
+
+/* ── charms ─────────────────────────────────────────────────────────────
+   Hung on the banner, positioned as a percentage of it, so a charm sits in
+   the same place on a phone as on a laptop and can never land on top of
+   something that has to be read. */
+.pro-charms{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+.pro-charm{
+  position:absolute;transform:translate(-50%,-50%) scale(var(--c-size,1));
+  filter:drop-shadow(0 4px 8px rgba(0,0,0,.5));line-height:0;
+}
+.pro-charm svg{display:block;width:38px;height:38px}
+.pro-charm.is-seal svg [fill]:not([fill="none"]){fill:var(--u-seal)}
+.pro-charm.is-pale svg [fill]:not([fill="none"]){fill:#f7e6ba}
+.pro-charm.is-dark svg [fill]:not([fill="none"]){fill:#2a1c0e}
+@media(max-width:820px){ .pro-charm svg{width:28px;height:28px} }

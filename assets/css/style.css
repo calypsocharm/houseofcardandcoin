@@ -3519,3 +3519,41 @@ main:focus{outline:none}
   .pagekit__preview{position:static;order:2}
   .pagekit .btn{width:100%}
 }
+
+/* ── the charm mat ──────────────────────────────────────────────────────
+   Same shape as the real banner and wearing the same picture, so where you
+   drop a charm is where it lands. */
+.charmmat{
+  position:relative;aspect-ratio:1600/420;width:100%;margin-top:4px;
+  border:1px solid var(--line2);border-radius:4px;overflow:hidden;
+  background-color:#241909;background-size:cover;background-position:center;
+  background-image:
+    radial-gradient(120% 150% at 20% 0%,rgba(224,145,58,.28),transparent 60%),
+    linear-gradient(180deg,#2b1d10,#160f08);
+  cursor:crosshair;touch-action:none;
+}
+.charmmat.has-banner{background-image:none}
+.charmmat__hint{
+  position:absolute;inset:0;display:grid;place-items:center;
+  font-family:var(--display);font-size:.6rem;letter-spacing:.18em;text-transform:uppercase;
+  color:rgba(240,225,190,.55);pointer-events:none;text-align:center;padding:0 12px;
+}
+.charmmat__c{
+  position:absolute;transform:translate(-50%,-50%) scale(var(--c-size,1));
+  cursor:grab;line-height:0;touch-action:none;
+  filter:drop-shadow(0 4px 8px rgba(0,0,0,.55));
+}
+.charmmat__c.is-held{cursor:grabbing}
+.charmmat__c svg{display:block;width:34px;height:34px;pointer-events:none}
+.charmmat__c.is-seal svg [fill]:not([fill="none"]){fill:#8b2a2a}
+.charmmat__c.is-pale svg [fill]:not([fill="none"]){fill:#f7e6ba}
+.charmmat__c.is-dark svg [fill]:not([fill="none"]){fill:#2a1c0e}
+
+.charmtray{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+.charmtray__btn{
+  width:42px;height:42px;display:grid;place-items:center;cursor:pointer;
+  border:1px solid var(--line2);border-radius:3px;background:var(--ivory);
+}
+.charmtray__btn:hover{border-color:var(--gold-d);background:#fff}
+.charmtray__btn svg{width:24px;height:24px}
+.charmtray__btn svg [fill]:not([fill="none"]){fill:var(--gold-d)}
