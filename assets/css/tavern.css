@@ -454,3 +454,18 @@
   color:rgba(60,44,20,.55);vertical-align:1px;
 }
 .tav-said.is-me .tav-edited{color:rgba(248,233,204,.5)}
+
+/* ── Buying a card ────────────────────────────────────────────────────────
+   The coin sink. One card a night is free; if you cannot wait, buy the next.
+   Capped by the hand itself — five cards means four purchases at most. */
+.tav-buy{display:flex;gap:12px;align-items:center;flex-wrap:wrap;
+  margin-top:14px;padding-top:13px;border-top:1px solid rgba(120,95,45,.3)}
+.tav-buybtn{
+  border:1px solid #7a5514;border-radius:3px;cursor:pointer;
+  background:linear-gradient(#f0dfae,#dcc384);color:#3a2a10;
+  font-family:var(--display);text-transform:uppercase;letter-spacing:.1em;
+  font-size:.58rem;padding:9px 15px;
+  box-shadow:0 1px 0 rgba(255,250,225,.7) inset, 0 6px 14px -9px rgba(0,0,0,.7);
+}
+.tav-buybtn:hover{background:linear-gradient(#f7e9c2,#e6cf93)}
+.tav-buynote{flex:1;min-width:190px;font-size:.84rem;color:#6d5a34;line-height:1.5}

@@ -438,7 +438,7 @@ app.get('/board',(req,res)=>{
   };
   const threads=db.threads.slice().sort(function(a,b){return lastTouch(b)-lastTouch(a);});
   const polls=db.polls.slice().sort((a,b)=>b.ts-a.ts).map(function(p){const total=p.options.reduce((s,o)=>s+o.votes.length,0);const voted=i?!!p.options.find(o=>o.votes.find(v=>v.t===i.t&&v.id===i.id)):false;return Object.assign({},p,{total:total,voted:voted});});
-  res.render('board',{i:i,threads:threads,polls:polls,cats:BOARDCATS,q:req.query,leader:!!(i&&i.leader),ration:{canDraw:!!(i&&i.lastRation!==today),card:i?i.lastCard:null},hand:i?(i.hand||[]).map(cardInfo):[],pending:i&&i.pending?cardInfo(i.pending):null,handRank:i?handRank(i.hand||[]):null,handPrizes:HAND_PRIZES,tableHands:allHands(),special:SPECIALS[dayOfYear()%SPECIALS.length],gates:countdown(),notices:i?(db.notices||[]).filter(function(n){return n.toT===i.t&&n.toId===i.id&&!n.read;}).length:0,folk:pres.folk,quietHrs:quietHrs});
+  res.render('board',{i:i,threads:threads,polls:polls,cats:BOARDCATS,q:req.query,leader:!!(i&&i.leader),ration:{canDraw:!!(i&&i.lastRation!==today),card:i?i.lastCard:null},hand:i?(i.hand||[]).map(cardInfo):[],pending:i&&i.pending?cardInfo(i.pending):null,handRank:i?handRank(i.hand||[]):null,handPrizes:HAND_PRIZES,tableHands:allHands(),cardPrice:CARD_PRICE,special:SPECIALS[dayOfYear()%SPECIALS.length],gates:countdown(),notices:i?(db.notices||[]).filter(function(n){return n.toT===i.t&&n.toId===i.id&&!n.read;}).length:0,folk:pres.folk,quietHrs:quietHrs});
 });
 app.post('/board/thread',canPost,(req,res)=>{
   const i=ident(req);const body=(req.body.body||'').trim();let category=(req.body.category||'General').trim();
@@ -603,6 +603,27 @@ function dealOne(rec){
   }
   return rec.deck.pop();
 }
+// Coins had nowhere to go. This is the sink: you get one card a night for
+// free, and if you cannot wait you buy the next one now. It is naturally
+// bounded — a hand is five cards, so nobody can buy more than four ever — and
+// buying does not buy a *better* card, only a sooner one, since the deal is
+// still random. Patience or coin; either way you end up with five.
+const CARD_PRICE=15;
+app.post('/board/hand/buy',canPost,(req,res)=>{
+  var i=ident(req);var rec=holder(i);
+  if(!rec)return res.redirect('/board');
+  if(!Array.isArray(rec.hand))rec.hand=[];
+  if(rec.hand.length>=5)return res.redirect('/board#hand');
+  if((rec.coins||0)<CARD_PRICE)
+    return res.redirect('/board?e='+encodeURIComponent('That costs '+CARD_PRICE+' coins and you have '+(rec.coins||0)+'. Come back tomorrow for a free one.')+'#hand');
+  rec.coins=(rec.coins||0)-CARD_PRICE;
+  var card=dealOne(rec);
+  rec.hand.push(card);
+  rec.bought=(rec.bought||0)+1;
+  // deliberately does NOT touch lastRation or streak — the streak is for
+  // turning up, and buying a card is not turning up.
+  save();res.redirect('/board#hand');
+});
 app.post('/board/ration',canPost,(req,res)=>{
   var i=ident(req);var rec=holder(i);
   if(!rec)return res.redirect('/board');

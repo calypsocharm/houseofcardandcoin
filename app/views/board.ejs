@@ -236,6 +236,20 @@
             — <%= 5-hand.length %> still to come.</p>
         <% } %>
 
+        <% if(hand.length<5){ %>
+          <div class="tav-buy">
+            <% if((i.coins||0) >= cardPrice){ %>
+              <form method="post" action="/board/hand/buy">
+                <button class="tav-buybtn" type="submit">Buy the next card — <%= cardPrice %> coins</button>
+              </form>
+              <span class="tav-buynote">You have <%= i.coins||0 %>. Impatient? The House will deal you one now.</span>
+            <% } else { %>
+              <span class="tav-buynote">A card off the House costs <%= cardPrice %> coins — you have <%= i.coins||0 %>.
+                Turn up each night and the purse fills on its own.</span>
+            <% } %>
+          </div>
+        <% } %>
+
         <% if(handRank){ %>
           <p class="tav-prize"><b>Show this hand at the faire</b> and <%= handPrizes[handRank.tier] %>.
             What the House is giving away stays a secret until you show it — find the Dealer at the House of Card and Coin.
