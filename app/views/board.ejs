@@ -138,14 +138,18 @@
       function stamp(ts){ return new Date(ts).toLocaleDateString(undefined,{month:'short',day:'numeric'}); }
     %>
     <% threads.forEach(function(t){ %>
-      <% var run=[{who:t.authorName,av:t.authorAvatar,ty:t.authorType,uid:t.authorId,body:t.body,ts:t.ts,edited:t.edited,kind:'thread',rid:t.id}]
-             .concat((t.replies||[]).map(function(r){return {who:r.authorName,av:r.authorAvatar,ty:r.authorType,uid:r.authorId,body:r.body,ts:r.ts,edited:r.edited,kind:'reply',rid:r.id};})); %>
+      <%
+        /* reacts and tid ride along so a line can carry its own tally and know
+           which thread it belongs to — a reply's react route needs both ids. */
+      %>
+      <% var run=[{who:t.authorName,av:t.authorAvatar,ty:t.authorType,uid:t.authorId,body:t.body,ts:t.ts,edited:t.edited,kind:'thread',rid:t.id,tid:t.id,reacts:t.reacts}]
+             .concat((t.replies||[]).map(function(r){return {who:r.authorName,av:r.authorAvatar,ty:r.authorType,uid:r.authorId,body:r.body,ts:r.ts,edited:r.edited,kind:'reply',rid:r.id,tid:t.id,reacts:r.reacts};})); %>
       <div class="tav-run">
         <% run.forEach(function(m,n){
              var mine = i && m.ty===i.t && m.uid===i.id;
              var prev = n>0 ? run[n-1] : null;
              var same = prev && prev.ty===m.ty && prev.uid===m.uid; %>
-          <div class="tav-said<%= mine?' is-me':'' %><%= same?' is-cont':'' %>">
+          <div class="tav-said<%= mine?' is-me':'' %><%= same?' is-cont':'' %>" id="m<%= m.rid %>">
             <% var page = (m.ty==='member' && slugs[m.uid]) ? '/guild/'+slugs[m.uid] : null; %>
             <% if(same){ %>
               <span class="tav-face tav-face--ghost" aria-hidden="true"></span>
@@ -164,6 +168,37 @@
                 <p class="tav-who"><b><%= mine?'You':m.who %></b><span class="tav-when"><%= stamp(m.ts) %></span></p>
               <% } %>
               <div class="tav-scrap"><p><%= m.body %></p><% if(m.edited){ %><span class="tav-edited">edited</span><% } %></div>
+
+              <%
+                /* Raising a cup to a line. All of this worked on the server
+                   already — toggling, the tally, even telling the author — and
+                   had simply never been given a button. Signed out you see the
+                   tally of what has been raised, and nothing to press. */
+                var act = m.kind==='thread'
+                  ? '/board/thread/'+m.rid+'/react'
+                  : '/board/thread/'+m.tid+'/reply/'+m.rid+'/react';
+                var any = reacts.some(function(e){ return m.reacts && m.reacts[e] && m.reacts[e].length; });
+              %>
+              <% if(i || any){ %>
+                <div class="tav-reacts">
+                  <% reacts.forEach(function(e){
+                       var who = (m.reacts && m.reacts[e]) || [];
+                       var got = i && who.some(function(v){ return v.t===i.t && v.id===i.id; });
+                       if(!i && !who.length) return; %>
+                    <% if(i){ %>
+                      <form method="post" action="<%= act %>" class="tav-reactform">
+                        <input type="hidden" name="emoji" value="<%= e %>">
+                        <button type="submit" class="tav-react<%= got?' is-mine':'' %>"
+                                title="<%= got?'Take it back':'Raise a '+e %>">
+                          <span aria-hidden="true"><%= e %></span><% if(who.length){ %><b><%= who.length %></b><% } %>
+                        </button>
+                      </form>
+                    <% } else { %>
+                      <span class="tav-react is-read"><span aria-hidden="true"><%= e %></span><b><%= who.length %></b></span>
+                    <% } %>
+                  <% }) %>
+                </div>
+              <% } %>
               <% if(mine){ %>
                 <%
                   /* A week to put your own words right — replies included, which
