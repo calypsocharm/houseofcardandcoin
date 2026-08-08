@@ -1,0 +1,97 @@
+<%- include('_top',{title:who.name,active:'guild',desc:who.name+' of the House of Card and Coin — rank, faires camped, hand and doings before the Age of Chivalry Renaissance Festival.',image:'/assets/img/og/index.jpg',url:'https://houseofcardandcoin.com/guild/'+slug}) %>
+<link rel="stylesheet" href="/assets/css/profile.css?v=<%= typeof assetv!=='undefined'?assetv:'1' %>">
+
+<div class="pro">
+  <div class="pro-banner" aria-hidden="true"><span class="pro-banner__art"></span><span class="pro-banner__fade"></span></div>
+
+  <div class="container">
+    <div class="pro-ident">
+      <div class="pro-ident__row">
+        <% if(who.avatar){ %>
+          <img class="pro-face" src="<%= who.avatar %>" alt="<%= who.name %>">
+        <% } else { %>
+          <span class="pro-face pro-face--init"><%= who.name.slice(0,2).toUpperCase() %></span>
+        <% } %>
+        <div class="pro-ident__words">
+          <h1><%= who.name %></h1>
+          <div class="pro-pills">
+            <span class="pro-pill"><%= who.rank %></span>
+            <% if(who.title && who.title!==who.rank){ %><span class="pro-pill pro-pill--seal"><%= who.title %></span><% } %>
+            <% if(who.cls){ %><span class="pro-pill pro-pill--quiet"><%= who.cls %></span><% } %>
+            <% if(who.rsvp){ %><span class="pro-pill pro-pill--quiet">✓ Coming in 2026</span><% } %>
+          </div>
+          <% if(who.pledge){ %>
+            <p class="pro-note">A pledge of the House — awaiting the Guild Leader’s word.</p>
+          <% } %>
+        </div>
+      </div>
+      <% if(canWhisper){ %>
+        <p class="pro-acts"><a class="btn btn--wine" href="<%= whisperTo %>">Whisper to <%= who.name %></a></p>
+      <% } %>
+      <p class="pro-back"><a href="/guild.html">← Back to the roster</a><% if(isMe){ %> · <a href="/members">Edit your details in the Guild Hall</a><% } %></p>
+    </div>
+
+    <div class="pro-cols">
+      <div class="pro-rail">
+        <div class="pro-card">
+          <h2>The Sheet</h2>
+          <ul class="pro-sheet">
+            <li><span class="k">Rank</span><span class="v"><%= who.rank %></span></li>
+            <li><span class="k">Faires camped</span><span class="v"><%= who.faires %></span></li>
+            <li><span class="k">Coming in 2026</span><span class="v"><%= who.rsvp?'Yes':'Not said yet' %></span></li>
+            <li><span class="k">Bunk</span><span class="v"><%= bunks.length?bunks.join('; '):'None held' %></span></li>
+            <li><span class="k">Coins</span><span class="v"><%= who.coins %></span></li>
+            <% if(who.streak){ %><li><span class="k">Nights in a row</span><span class="v"><%= who.streak %></span></li><% } %>
+          </ul>
+        </div>
+
+        <div class="pro-card">
+          <h2>Bringing to Camp</h2>
+          <% if(bringing.length){ %>
+            <ul class="pro-sheet">
+              <% bringing.forEach(function(b){ %>
+                <li><span class="k"><%= b.name %></span><span class="v"><%= b.qty %></span></li>
+              <% }) %>
+            </ul>
+          <% } else { %>
+            <p class="pro-empty">Nothing claimed off the bring-list yet.<% if(isMe){ %> <a href="/members#bring">Claim something</a>.<% } %></p>
+          <% } %>
+        </div>
+      </div>
+
+      <div class="pro-main">
+        <div class="pro-card">
+          <h2>The Hand<% if(handRank){ %> — <b class="pro-rank"><%= handRank.name %></b><% } %></h2>
+          <% if(hand.length){ %>
+            <div class="pro-hand">
+              <% hand.forEach(function(c){ %>
+                <span class="pro-card-face <%= c.red?'is-red':'is-blk' %>">
+                  <b><%= c.r %><%= c.glyph %></b><b><%= c.r %><%= c.glyph %></b>
+                </span>
+              <% }) %>
+            </div>
+            <p class="pro-empty" style="margin-top:12px">Five nights, five cards. Shown at the faire for the finest hand of the weekend.</p>
+          <% } else { %>
+            <p class="pro-empty">No cards drawn yet.<% if(isMe){ %> <a href="/board#hand">Take tonight’s card</a>.<% } else { %> The House deals one a night to anyone who comes by the Tavern.<% } %></p>
+          <% } %>
+        </div>
+
+        <div class="pro-card">
+          <h2>Lately in the Tavern</h2>
+          <% if(talk.length){ %>
+            <% talk.forEach(function(s){ %>
+              <a class="pro-said" href="/board/thread/<%= s.tid %>">
+                <span class="pro-said__w"><%= new Date(s.ts).toLocaleDateString(undefined,{month:'short',day:'numeric'}) %></span>
+                <span class="pro-said__b"><%= s.body.length>190?s.body.slice(0,190)+'…':s.body %></span>
+              </a>
+            <% }) %>
+          <% } else { %>
+            <p class="pro-empty"><%= who.name %> has not spoken by the fire yet.<% if(isMe){ %> <a href="/board">Say something</a>.<% } %></p>
+          <% } %>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<%- include('_bot') %>

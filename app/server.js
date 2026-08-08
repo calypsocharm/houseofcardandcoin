@@ -100,7 +100,7 @@ app.use('/assets',express.static(path.join(__dirname,'..','assets')));
 app.use('/uploads',express.static(path.join(__dirname,'uploads'),{
   setHeaders:function(res){ res.setHeader('Content-Type','image/jpeg'); }
 }));
-app.get('/guild.html',(req,res)=>{const members=db.users.map(function(m){const bunks=db.bunks.filter(function(b){return b.userId===m.id;}).sort(function(a,b){return a.night<b.night?-1:1;}).map(function(b){return b.night+' \u00b7 Bunk '+b.bunk;});return{name:m.name,avatar:m.avatar,class:m.class,rank:rank(m),pledge:!!m.pledge,faires:m.faires||0,title:m.title||'',role:m.role||'',rsvp:!!m.rsvp,bunks:bunks};}).sort(function(a,b){const k=function(x){if(x.title==='Guild Leader')return 0;if(x.role==='leader'||x.title==='Guild Elder')return 1;if(x.pledge)return 3;return 2;};const ka=k(a),kb=k(b);if(ka!==kb)return ka-kb;return (b.faires||0)-(a.faires||0);});const bunkBoard=NIGHTS.map(function(n){return{night:n,bunks:BUNKS.map(function(b){const o=db.bunks.find(function(x){return x.night===n&&x.bunk===b;});return{bunk:b,taken:!!o,who:o?db.users.find(function(y){return y.id===o.userId;}):null};})};});res.render('guild',{members:members,bunkBoard:bunkBoard,comingCount:db.users.filter(function(x){return x.rsvp;}).length});});
+app.get('/guild.html',(req,res)=>{const slugs=slugById();const members=db.users.map(function(m){const bunks=db.bunks.filter(function(b){return b.userId===m.id;}).sort(function(a,b){return a.night<b.night?-1:1;}).map(function(b){return b.night+' \u00b7 Bunk '+b.bunk;});return{slug:slugs[m.id],name:m.name,avatar:m.avatar,class:m.class,rank:rank(m),pledge:!!m.pledge,faires:m.faires||0,title:m.title||'',role:m.role||'',rsvp:!!m.rsvp,bunks:bunks};}).sort(function(a,b){const k=function(x){if(x.title==='Guild Leader')return 0;if(x.role==='leader'||x.title==='Guild Elder')return 1;if(x.pledge)return 3;return 2;};const ka=k(a),kb=k(b);if(ka!==kb)return ka-kb;return (b.faires||0)-(a.faires||0);});const bunkBoard=NIGHTS.map(function(n){return{night:n,bunks:BUNKS.map(function(b){const o=db.bunks.find(function(x){return x.night===n&&x.bunk===b;});return{bunk:b,taken:!!o,who:o?db.users.find(function(y){return y.id===o.userId;}):null};})};});res.render('guild',{members:members,bunkBoard:bunkBoard,comingCount:db.users.filter(function(x){return x.rsvp;}).length});});
 app.post('/pigeon',async(req,res)=>{const{Name,Email,Reason,Message}=req.body||{};const ep=process.env.FORMSPREE_ENDPOINT;if(!ep){console.log('FORMSPREE_ENDPOINT not set; pigeon dropped');return res.redirect('/pigeon.html?e=1');}try{const r=await fetch(ep,{method:'POST',headers:{'Content-Type':'application/json','Accept':'application/json'},body:JSON.stringify({Name:Name||'',Email:Email||'',Reason:Reason||'',Message:Message||'',_subject:'New pigeon — House of Card and Coin',_replyto:Email||''})});if(!r.ok)throw new Error('formspree '+r.status);res.redirect('/pigeon.html?sent=1');}catch(e){console.log('pigeon forward error',e.message);res.redirect('/pigeon.html?e=1');}});
 // The static mount below is rooted at /var/www/hocc, which also contains app/ and
 // content/. Without this guard, /app/data/guild.json (every member's record and
@@ -113,7 +113,7 @@ app.use((req,res,next)=>BLOCKED.test(req.path)?res.status(404).send('Not found')
 // had not been bumped by hand — most recently leaving a signed-in member unable
 // to reach their own profile. So the stamp is rewritten here at serve time from
 // the real file mtimes, and never has to be remembered again.
-const ASSET_FILES=['assets/css/style.css','assets/css/tavern.css',
+const ASSET_FILES=['assets/css/style.css','assets/css/tavern.css','assets/css/profile.css',
   'assets/js/nav.js','assets/js/countdown.js','assets/js/hero-video.js','assets/js/avatar-crop.js'];
 function assetVersion(){
   let newest=0;
@@ -243,6 +243,61 @@ const INVITE_REQUIRED=normCode(INVITE)!=='';
 app.get('/api/me',(req,res)=>{
   res.set('Cache-Control','no-store');
   res.json(res.locals.me);
+});
+// ── Guildmates' own pages ───────────────────────────────────────────────────
+// Addresses are made from the display name: /guild/mama-bear. Renaming yourself
+// moves your page, which is fine at ten people and nobody is bookmarking. Two
+// people with the same name get -2 on the second, ordered by id so it is stable.
+function slugOf(name){
+  return String(name||'').toLowerCase().normalize('NFKD')
+    .replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'') || 'guildmate';
+}
+function slugMap(){
+  var used={}, out=[];
+  db.users.slice().sort(function(a,b){return a.id-b.id;}).forEach(function(u){
+    var s=slugOf(u.name);
+    if(used[s]){ used[s]++; s=s+'-'+used[s]; } else { used[s]=1; }
+    out.push({u:u,slug:s});
+  });
+  return out;
+}
+// {memberId: slug} — the views use this to make a face a link.
+function slugById(){
+  var m={}; slugMap().forEach(function(x){ m[x.u.id]=x.slug; }); return m;
+}
+app.get('/guild/:slug',(req,res)=>{
+  const hit=slugMap().find(function(x){return x.slug===req.params.slug;});
+  if(!hit)return res.status(404).render('notfound',{gates:countdown()});
+  const u=hit.u, i=ident(req);
+  // Everything on this page is already public somewhere else on the site.
+  // Contact email and phone are the leader's business and stay out of it.
+  const bunks=db.bunks.filter(function(b){return b.userId===u.id;})
+    .sort(function(a,b){return NIGHTS.indexOf(a.night)-NIGHTS.indexOf(b.night);})
+    .map(function(b){return b.night+' · Bunk '+b.bunk;});
+  const bringing=(db.claims||[]).filter(function(c){return c.userId===u.id;})
+    .map(function(c){
+      const item=db.items.find(function(x){return x.id===c.itemId;});
+      return item?{name:item.name,qty:c.qty}:null;
+    }).filter(Boolean);
+  const talk=[];
+  db.threads.forEach(function(t){
+    if(t.authorType==='member'&&t.authorId===u.id)talk.push({body:t.body,ts:t.ts,tid:t.id});
+    (t.replies||[]).forEach(function(r){
+      if(r.authorType==='member'&&r.authorId===u.id)talk.push({body:r.body,ts:r.ts,tid:t.id});
+    });
+  });
+  talk.sort(function(a,b){return b.ts-a.ts;});
+  res.render('profile',{
+    who:{name:u.name,avatar:u.avatar||'',rank:rank(u),title:u.title||'',pledge:!!u.pledge,
+         leader:u.role==='leader',cls:u.class||'',faires:u.faires||0,rsvp:!!u.rsvp,
+         coins:u.coins||0,streak:u.streak||0},
+    bunks:bunks, bringing:bringing, talk:talk.slice(0,5),
+    hand:(u.hand||[]).map(cardInfo), handRank:handRank(u.hand||[]),
+    isMe:!!(i&&i.t==='member'&&i.id===u.id), slug:hit.slug,
+    // Whispering used to hide behind the little figures in the tavern room.
+    // Those now lead here, so the door has to be on this page instead.
+    canWhisper:!!(i&&!(i.t==='member'&&i.id===u.id)), whisperTo:'/board/whisper/member/'+u.id
+  });
 });
 app.get('/faq',(req,res)=>res.render('faq'));
 app.get('/members/login',(req,res)=>res.render('login',{err:req.query.e||'',code:req.query.code||'',needCode:INVITE_REQUIRED}));
@@ -481,7 +536,7 @@ function tavernFolk(){
 function allHands(){
   var rows=[];
   (db.users||[]).forEach(function(u){
-    if(u.hand&&u.hand.length)rows.push({name:u.name,avatar:u.avatar,kind:'member',cards:u.hand.map(cardInfo),rank:handRank(u.hand)});
+    if(u.hand&&u.hand.length)rows.push({id:u.id,name:u.name,avatar:u.avatar,kind:'member',cards:u.hand.map(cardInfo),rank:handRank(u.hand)});
   });
   (db.patrons||[]).forEach(function(p){
     if(p.banned)return;
@@ -507,7 +562,7 @@ app.get('/board',(req,res)=>{
   };
   const threads=db.threads.slice().sort(function(a,b){return lastTouch(b)-lastTouch(a);}).map(freshenPost);
   const polls=db.polls.slice().sort((a,b)=>b.ts-a.ts).map(freshenPost).map(function(p){const total=p.options.reduce((s,o)=>s+o.votes.length,0);const voted=i?!!p.options.find(o=>o.votes.find(v=>v.t===i.t&&v.id===i.id)):false;return Object.assign({},p,{total:total,voted:voted});});
-  res.render('board',{i:i,threads:threads,polls:polls,cats:BOARDCATS,q:req.query,leader:!!(i&&i.leader),ration:{canDraw:!!(i&&i.lastRation!==today),card:i?i.lastCard:null},hand:i?(i.hand||[]).map(cardInfo):[],pending:i&&i.pending?cardInfo(i.pending):null,handRank:i?handRank(i.hand||[]):null,handPrizes:HAND_PRIZES,tableHands:allHands(),cardPrice:CARD_PRICE,special:SPECIALS[dayOfYear()%SPECIALS.length],gates:countdown(),notices:i?(db.notices||[]).filter(function(n){return n.toT===i.t&&n.toId===i.id&&!n.read;}).length:0,folk:pres.folk,quietHrs:quietHrs,editMs:EDIT_WINDOW,editDays:EDIT_DAYS});
+  res.render('board',{i:i,threads:threads,polls:polls,cats:BOARDCATS,q:req.query,leader:!!(i&&i.leader),ration:{canDraw:!!(i&&i.lastRation!==today),card:i?i.lastCard:null},hand:i?(i.hand||[]).map(cardInfo):[],pending:i&&i.pending?cardInfo(i.pending):null,handRank:i?handRank(i.hand||[]):null,handPrizes:HAND_PRIZES,tableHands:allHands(),cardPrice:CARD_PRICE,special:SPECIALS[dayOfYear()%SPECIALS.length],gates:countdown(),notices:i?(db.notices||[]).filter(function(n){return n.toT===i.t&&n.toId===i.id&&!n.read;}).length:0,folk:pres.folk,quietHrs:quietHrs,editMs:EDIT_WINDOW,editDays:EDIT_DAYS,slugs:slugById()});
 });
 app.post('/board/thread',canPost,(req,res)=>{
   const i=ident(req);const body=(req.body.body||'').trim();let category=(req.body.category||'General').trim();
@@ -751,7 +806,7 @@ app.post('/board/ration',canPost,(req,res)=>{
 });
 app.post('/board/thread/:id/react',canPost,(req,res)=>{const t=db.threads.find(function(x){return x.id==req.params.id;});if(!t)return res.redirect('/board');doReact(req,res,t);});
 app.post('/board/thread/:tid/reply/:rid/react',canPost,(req,res)=>{const t=db.threads.find(function(x){return x.id==req.params.tid;});if(!t)return res.redirect('/board');const r=t.replies.find(function(x){return x.id==req.params.rid;});if(!r)return res.redirect('/board/thread/'+t.id);doReact(req,res,r);});
-app.get('/board/rogues',(req,res)=>{const i=identRich(req);const counts={};function bump(k){counts[k]=(counts[k]||0)+1;}db.threads.forEach(function(t){bump(t.authorType+':'+t.authorId);t.replies.forEach(function(r){bump(r.authorType+':'+r.authorId);});});const rogues=[];db.patrons.forEach(function(p){if(p.banned)return;rogues.push({t:'patron',id:p.id,name:p.name,avatar:p.avatar,coins:p.coins||0,posts:counts['patron:'+p.id]||0,title:tavernTitle(p.coins||0),leader:false,guild:'',streak:p.streak||0});});db.users.forEach(function(u){rogues.push({t:'member',id:u.id,name:u.name,avatar:u.avatar,coins:u.coins||0,posts:counts['member:'+u.id]||0,title:u.title||tavernTitle(u.coins||0),leader:u.role==='leader',guild:u.class||'',streak:u.streak||0});});rogues.sort(function(a,b){return b.coins-a.coins||b.posts-a.posts;});res.render('rogues',{i:i,rogues:rogues});});
+app.get('/board/rogues',(req,res)=>{const i=identRich(req);const counts={};function bump(k){counts[k]=(counts[k]||0)+1;}db.threads.forEach(function(t){bump(t.authorType+':'+t.authorId);t.replies.forEach(function(r){bump(r.authorType+':'+r.authorId);});});const slugs=slugById();const rogues=[];db.patrons.forEach(function(p){if(p.banned)return;rogues.push({t:'patron',id:p.id,name:p.name,avatar:p.avatar,coins:p.coins||0,posts:counts['patron:'+p.id]||0,title:tavernTitle(p.coins||0),leader:false,guild:'',streak:p.streak||0});});db.users.forEach(function(u){rogues.push({t:'member',id:u.id,slug:slugs[u.id],name:u.name,avatar:u.avatar,coins:u.coins||0,posts:counts['member:'+u.id]||0,title:u.title||tavernTitle(u.coins||0),leader:u.role==='leader',guild:u.class||'',streak:u.streak||0});});rogues.sort(function(a,b){return b.coins-a.coins||b.posts-a.posts;});res.render('rogues',{i:i,rogues:rogues});});
 
 // ===== Tavern: streak, whispers, notices =====
 function yesterdayKey(){var d=new Date();d.setDate(d.getDate()-1);return d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate();}

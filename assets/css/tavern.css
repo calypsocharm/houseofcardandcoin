@@ -594,3 +594,11 @@
   font-family:var(--display);text-transform:uppercase;letter-spacing:.1em;
   font-size:.5rem;color:rgba(195,173,131,.5);padding:4px 2px;cursor:default;
 }
+
+/* A face is a way to that person's page. Kept quiet — a slight lift, no
+   underline, no colour change — so the tavern still reads as a conversation
+   rather than a directory. */
+.tav-facelink{display:inline-flex;border-radius:50%;transition:transform .16s var(--ease)}
+.tav-facelink:hover,.tav-facelink:focus-visible{transform:translateY(-2px)}
+.tav-namelink{color:inherit}
+.tav-namelink:hover,.tav-namelink:focus-visible{color:var(--gold-l);text-decoration:underline}

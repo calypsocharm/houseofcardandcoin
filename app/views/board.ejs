@@ -34,11 +34,18 @@
       </div>
 
       <div class="tav-folk">
-        <% folk.slice(0,5).forEach(function(f,n){ var mine = i && f.t===i.t && f.id===i.id; %>
+        <%
+          /* A face goes to that person's page now. Whispering has not gone
+             away — it moved onto the page, where it is a labelled button
+             rather than something you had to guess a small figure would do.
+             Tavern seats have no page, so they keep the whisper link. */
+        %>
+        <% folk.slice(0,5).forEach(function(f,n){ var mine = i && f.t===i.t && f.id===i.id;
+             var page = (f.t==='member' && slugs[f.id]) ? '/guild/'+slugs[f.id] : null; %>
           <a class="tav-body<%= mine?' is-me':'' %>" data-depth="<%= (n%2)?'near':'far' %>"
              style="animation-delay:-<%= n*1.3 %>s"
-             href="/board/whisper/<%= f.t %>/<%= f.id %>"
-             title="Whisper to <%= f.name %>">
+             href="<%= page || ('/board/whisper/'+f.t+'/'+f.id) %>"
+             title="<%= page ? f.name+'’s page' : 'Whisper to '+f.name %>">
             <% if(f.avatar){ %>
               <img class="tav-head" src="<%= f.avatar %>" alt="<%= f.name %>">
             <% } else { %>
@@ -138,8 +145,14 @@
              var prev = n>0 ? run[n-1] : null;
              var same = prev && prev.ty===m.ty && prev.uid===m.uid; %>
           <div class="tav-said<%= mine?' is-me':'' %><%= same?' is-cont':'' %>">
+            <% var page = (m.ty==='member' && slugs[m.uid]) ? '/guild/'+slugs[m.uid] : null; %>
             <% if(same){ %>
               <span class="tav-face tav-face--ghost" aria-hidden="true"></span>
+            <% } else if(page){ %>
+              <a href="<%= page %>" title="<%= m.who %>’s page" class="tav-facelink">
+                <% if(m.av){ %><img class="tav-face" src="<%= m.av %>" alt="<%= m.who %>">
+                <% } else { %><span class="tav-face"><%= (m.who||'?').slice(0,2).toUpperCase() %></span><% } %>
+              </a>
             <% } else if(m.av){ %>
               <img class="tav-face" src="<%= m.av %>" alt="<%= m.who %>">
             <% } else { %>
@@ -204,10 +217,13 @@
         <div class="tav-showgrid">
         <% tableHands.forEach(function(h){ %>
           <div class="tav-showtile<%= (i && h.name===i.name)?' is-mine':'' %>">
+            <% var hpage = (h.kind==='member' && slugs[h.id]) ? '/guild/'+slugs[h.id] : null; %>
             <div class="tav-showhead">
+              <% if(hpage){ %><a href="<%= hpage %>" class="tav-facelink" title="<%= h.name %>’s page"><% } %>
               <% if(h.avatar){ %><img class="tav-face tav-face--sm" src="<%= h.avatar %>" alt="<%= h.name %>">
               <% } else { %><span class="tav-face tav-face--sm"><%= h.name.slice(0,2).toUpperCase() %></span><% } %>
-              <span class="tav-showname"><%= h.name %></span>
+              <% if(hpage){ %></a><% } %>
+              <span class="tav-showname"><% if(hpage){ %><a href="<%= hpage %>" class="tav-namelink"><%= h.name %></a><% } else { %><%= h.name %><% } %></span>
             </div>
             <span class="tav-showcards">
               <% h.cards.forEach(function(c){ %>
