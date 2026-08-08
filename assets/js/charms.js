@@ -39,6 +39,14 @@
   var drop = document.querySelector('input[name="dropBanner"]');
   if (drop) drop.addEventListener('change', function () { if (drop.checked) dressMat(''); });
 
+  // Wax charms take the wax colour. The mat has to be told what is in the
+  // picker, or a seal charm previews in a colour nobody chose — which is
+  // exactly how somebody ends up picking against a preview that lies.
+  var sealPick = document.getElementById('pgSeal');
+  function wax() { if (sealPick) mat.style.setProperty('--u-seal', sealPick.value); }
+  if (sealPick) sealPick.addEventListener('input', wax);
+  wax();
+
   function publish() {
     store.value = JSON.stringify(charms);
     if (count) count.textContent = String(charms.length);

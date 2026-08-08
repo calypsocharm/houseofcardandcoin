@@ -3545,9 +3545,14 @@ main:focus{outline:none}
 }
 .charmmat__c.is-held{cursor:grabbing}
 .charmmat__c svg{display:block;width:34px;height:34px;pointer-events:none}
-.charmmat__c.is-seal svg [fill]:not([fill="none"]){fill:#8b2a2a}
-.charmmat__c.is-pale svg [fill]:not([fill="none"]){fill:#f7e6ba}
-.charmmat__c.is-dark svg [fill]:not([fill="none"]){fill:#2a1c0e}
+/* The same declarations as the page, and --u-seal is set on the mat from the
+   wax picker — it used to be a hardcoded wine here, so a seal charm previewed
+   in a colour nobody had chosen. */
+.charmmat__c{color:#e4c77f}
+.charmmat__c.is-gold{color:#e4c77f}
+.charmmat__c.is-seal{color:var(--u-seal,#8b2a2a)}
+.charmmat__c.is-pale{color:#f7e6ba}
+.charmmat__c.is-dark{color:#2a1c0e}
 
 .charmtray{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
 .charmtray__btn{
@@ -3556,4 +3561,4 @@ main:focus{outline:none}
 }
 .charmtray__btn:hover{border-color:var(--gold-d);background:#fff}
 .charmtray__btn svg{width:24px;height:24px}
-.charmtray__btn svg [fill]:not([fill="none"]){fill:var(--gold-d)}
+.charmtray__btn{color:var(--gold-d)}

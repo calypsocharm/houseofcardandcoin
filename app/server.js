@@ -238,13 +238,16 @@ const CHARM_ART={
   key:'<circle cx="8" cy="8" r="4.6" fill="none" stroke="F" stroke-width="2.4"/><path d="m11 11 8 8M16 16l2 2M14 18l2 2" stroke="F" stroke-width="2.4" fill="none" stroke-linecap="round"/>'
 };
 const CHARM_KEYS=Object.keys(CHARM_ART);
-const CHARM_INKS={gold:'#e4c77f',seal:'var(--u-seal)',dark:'#2a1c0e',pale:'#f7e6ba'};
+const CHARM_COLOURS=['gold','seal','pale','dark'];
 const CHARM_MAX=14;
-function charmSvg(k,ink){
+function charmSvg(k){
   var art=CHARM_ART[k]; if(!art)return '';
-  var fill=CHARM_INKS[ink]||CHARM_INKS.gold;
+  // currentColor rather than a baked hex: the colour then comes from CSS,
+  // which is the only way a stroke-drawn charm (the key) recolours along with
+  // a filled one, and the only way a wax charm can follow the wax colour you
+  // actually picked instead of a default written into a stylesheet.
   return '<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">'+
-    art.replace(/"F"/g,'"'+fill+'"')+'</svg>';
+    art.replace(/"F"/g,'"currentColor"')+'</svg>';
 }
 // Comes in as JSON from a hidden field, so every part of it is treated as a
 // stranger: unknown keys dropped, coordinates clamped to the banner, and the
@@ -261,7 +264,7 @@ function cleanCharms(raw){
       k:c.k,
       x:Math.round(Math.min(100,Math.max(0,x))*10)/10,
       y:Math.round(Math.min(100,Math.max(0,y))*10)/10,
-      c:CHARM_INKS[c.c]?c.c:'gold',
+      c:CHARM_COLOURS.indexOf(c.c)>=0?c.c:'gold',
       s:Math.min(2,Math.max(.6,Number(c.s)||1))
     });
   });
