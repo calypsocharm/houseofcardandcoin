@@ -68,9 +68,9 @@ const head=(active)=>`<!doctype html><html lang="en"><head><meta charset="utf-8"
 <nav class="nav-links" id="nl">${NAV.map(([l,h])=>`<a href="${h}"${h===active?' class="active"':''}>${l}</a>`).join("")}</nav></div></header>`;
 const footer=`<footer><div class="container"><div class="footer-grid">
 <div class="footer-brand"><a class="brand" href="/index.html" style="color:#f5e9c8"><img class="crest" src="${I}019.png" alt="House of Card and Coin crest"><span style="font-family:var(--display);font-weight:700;font-size:1.1rem">${SITE.name}<small style="display:block;font-size:.6rem;letter-spacing:.2em;text-transform:uppercase;color:var(--gold-l)">${SITE.tag}</small></span></a><p>A guild of dealers, readers, brokers and sellswords � weavers of fate at the Age of Chivalry Renaissance Festival, ${SITE.dates}, Sunset Park, Las Vegas.</p></div>
-<div><h4>The Guild</h4><ul>${NAV.slice(0,5).map(([l,h])=>`<li><a href="${h}">${l}</a></li>`).join("")}</ul></div>
-<div><h4>Faire</h4><ul><li><a href="/camp.html">Ren Faire Camp</a></li><li><a href="/events.html">Scroll of Events</a></li></ul></div>
-<div><h4>Send a Pigeon</h4><ul><li><a href="mailto:${SITE.email}">${SITE.email}</a></li><li>${SITE.loc}</li><li>${SITE.dates}</li></ul></div></div>
+<div><h3>The Guild</h3><ul>${NAV.slice(0,5).map(([l,h])=>`<li><a href="${h}">${l}</a></li>`).join("")}</ul></div>
+<div><h3>Faire</h3><ul><li><a href="/camp.html">Ren Faire Camp</a></li><li><a href="/events.html">Scroll of Events</a></li></ul></div>
+<div><h3>Send a Pigeon</h3><ul><li><a href="mailto:${SITE.email}">${SITE.email}</a></li><li>${SITE.loc}</li><li>${SITE.dates}</li></ul></div></div>
 <div class="footer-bottom"><span>&copy; 2024 � 2026 ${SITE.name}. All rights reserved.</span><span>${SITE.motto}</span></div></div></footer><script defer src="/assets/js/nav.js?v=20260807d"></script><script defer src="/assets/js/countdown.js?v=20260807d"></script><script>(function(){var r=new URLSearchParams(location.search).get("reason");if(!r)return;var s=document.querySelector('select[name="Reason"]');if(!s)return;for(var i=0;i<s.options.length;i++){if(s.options[i].value===r){s.selectedIndex=i;break;}}var m=document.querySelector('textarea[name="Message"]');if(m&&r==="Locked out of my account"&&!m.value){m.value="I cannot sign in to the Guild Hall. My login is: ";m.focus();}})();</script><script defer src="/assets/js/hero-video.js?v=20260807d"></script></body></html>`;
 const CTA=`<section class="section section--dark"><div class="container cta"><div><span class="eyebrow">Join the House</span><h2>Put me on the list!</h2><p>Quests, trading, tales, and a seat by the campfire await. Send your pigeon and claim your place in the House of Card and Coin.</p></div><div class="cta__actions"><a class="btn btn--gold" href="/pigeon.html">Send a Pigeon</a><a class="btn btn--ghost" href="/events.html">View the Scroll of Events</a></div></div></section>`;
 const fig=(local,aspect,cap,sub)=>`<figure class="fig fig--${aspect}"><img src="${I}${local}" alt="${esc(cap||"House of Card and Coin")}" loading="lazy">${cap?`<figcaption>${esc(cap)}${sub?`<span style="display:block;font-size:.74rem;letter-spacing:.1em;color:var(--gold-l);text-transform:uppercase">${esc(sub)}</span>`:""}</figcaption>`:""}</figure>`;
@@ -164,10 +164,10 @@ const ranks=`${head("/ranks.html")}
 <section class="section"><div class="container"><div class="bannerhead"><span class="eyebrow">? Guild Rank Paths ?</span><h2>From Pledge to Elder</h2><div class="rule"></div></div>
 <p class="lead center" style="margin-bottom:40px">All hail the Guild Leader, <b>Sir Caberk</b>, and the Guild Elder, <b>Mama Bear</b>. Your rank rises with the number of faires you've camped with the House. Anyone may sign up as a <b>Pledge</b>; the Guild Leader welcomes pledges into the House.</p>
 <div class="grid grid--4">
-<div class="rank"><h4>1 � Pledge</h4><p>Signed up, awaiting the Guild Leader’s welcome into the House.</p></div>
-<div class="rank"><h4>2 � Guildmate</h4><p>Accepted and sworn to the House � a Sir or Lady of the guild.</p></div>
-<div class="rank"><h4>3 � Veteran</h4><p>3+ faires � a seasoned hand around the campfire.</p></div>
-<div class="rank"><h4>4 � Elder</h4><p>6+ faires � a keeper of the House's tales and traditions.</p></div>
+<div class="rank"><h3>1 � Pledge</h3><p>Signed up, awaiting the Guild Leader’s welcome into the House.</p></div>
+<div class="rank"><h3>2 � Guildmate</h3><p>Accepted and sworn to the House � a Sir or Lady of the guild.</p></div>
+<div class="rank"><h3>3 � Veteran</h3><p>3+ faires � a seasoned hand around the campfire.</p></div>
+<div class="rank"><h3>4 � Elder</h3><p>6+ faires � a keeper of the House's tales and traditions.</p></div>
 </div></div></section>
 <section class="section section--parch2"><div class="container"><div class="bannerhead"><span class="eyebrow">The Quartermaster</span><h2>Keeper of the Bring-List &amp; Bunk Board</h2></div>
 <div class="scroll" style="max-width:760px;margin:0 auto;text-align:center"><p style="font-size:1.16rem;font-style:italic">The Quartermaster keeps the bring-list and the bunk board in the Guild Hall � sign in to claim a bunk, volunteer to bring firewood or chairs, and mark your faires attended to rise in rank.</p></div></div></section>
@@ -196,9 +196,9 @@ const events=`${head("/events.html")}
 <section class="pagehero"><video class="pagehero__bg" muted loop playsinline poster="${I}016.jpg" preload="none" data-src="/assets/vid-events.mp4"></video><div class="container pagehero__inner"><span class="eyebrow">Scroll of Events</span><h1>The Guild Event Schedule</h1><p>Three days of campfires, dinners, s'mores, and late nights of drinks and tales � the guild's true rhythm at the faire. ${SITE.faire}, ${SITE.dates}.</p></div></section>
 <section class="section"><div class="container">
 <div class="callout" style="margin-bottom:44px">
-<div class="fact"><div class="ic">??</div><h4>The Faire</h4><p>${SITE.faire}</p></div>
-<div class="fact"><div class="ic">??</div><h4>Dates &amp; Hours</h4><p>${SITE.dates}<br>Fri/Sat 10AM�10PM � Sun 10AM�5PM</p></div>
-<div class="fact"><div class="ic">??</div><h4>Location</h4><p>${SITE.loc}</p></div>
+<div class="fact"><div class="ic">??</div><h3>The Faire</h3><p>${SITE.faire}</p></div>
+<div class="fact"><div class="ic">??</div><h3>Dates &amp; Hours</h3><p>${SITE.dates}<br>Fri/Sat 10AM�10PM � Sun 10AM�5PM</p></div>
+<div class="fact"><div class="ic">??</div><h3>Location</h3><p>${SITE.loc}</p></div>
 </div>
 <div class="grid grid--3">
 ${days.map(d=>`<div class="day"><div class="day__hd"><span class="d">${d[0]}, ${d[1]}</span><span class="h">Gates: ${d[2]}</span></div><div class="day__bd">${d[3].map(e=>`<div class="event"><span class="t">${e[0]}</span><span class="b">${e[1]}</span></div>`).join("")}</div></div>`).join("")}
@@ -231,12 +231,12 @@ const camp=`${head("/camp.html")}
 </div></div></section>
 <section class="section section--parch2"><div class="container"><div class="bannerhead"><span class="eyebrow">?? Task Assignment List</span><h2>Six People � Example Split</h2></div>
 <div class="grid grid--3">
-<div class="task"><h4>Person 1 � Camp Captain</h4><p>Setup leader. Directs where chairs, mat, and awning go. Ensures the RV is level and power is hooked up. Oversees the tank-management plan.</p></div>
-<div class="task"><h4>Person 2 � Firepit &amp; Cooking Boss</h4><p>In charge of grilling, the propane stove, and camp cuisine. Keeps the feast coming and the fire tended.</p></div>
-<div class="task"><h4>Person 3 � Quest &amp; Lodging Steward</h4><p>Tends the tent, the bedding, and the guild's resting quarters. Keeps the camp cozy for the company.</p></div>
-<div class="task"><h4>Person 4 � Coin &amp; Provisions</h4><p>Manages the guild purse, provisions, and the all-important snack stock. Every bargain flows through here.</p></div>
-<div class="task"><h4>Person 5 � Herald &amp; Mischief</h4><p>The voice of the camp � announcements, songs, and organizer of riddles and chaos.</p></div>
-<div class="task"><h4>Person 6 � The Tokenmaster</h4><p>Guildmate broker. Hands out quests and rarely explains them. Keeper of the Quest Cards.</p></div>
+<div class="task"><h3>Person 1 � Camp Captain</h3><p>Setup leader. Directs where chairs, mat, and awning go. Ensures the RV is level and power is hooked up. Oversees the tank-management plan.</p></div>
+<div class="task"><h3>Person 2 � Firepit &amp; Cooking Boss</h3><p>In charge of grilling, the propane stove, and camp cuisine. Keeps the feast coming and the fire tended.</p></div>
+<div class="task"><h3>Person 3 � Quest &amp; Lodging Steward</h3><p>Tends the tent, the bedding, and the guild's resting quarters. Keeps the camp cozy for the company.</p></div>
+<div class="task"><h3>Person 4 � Coin &amp; Provisions</h3><p>Manages the guild purse, provisions, and the all-important snack stock. Every bargain flows through here.</p></div>
+<div class="task"><h3>Person 5 � Herald &amp; Mischief</h3><p>The voice of the camp � announcements, songs, and organizer of riddles and chaos.</p></div>
+<div class="task"><h3>Person 6 � The Tokenmaster</h3><p>Guildmate broker. Hands out quests and rarely explains them. Keeper of the Quest Cards.</p></div>
 </div></div></section>
 ${CTA}${footer}`;
 fs.writeFileSync(path.join(ROOT,"camp.html"),camp);
@@ -279,9 +279,9 @@ const pigeon=`${head("/pigeon.html")}
 <section class="pagehero"><div class="pagehero__bg" style="background-image:url('${I}006.jpg')"></div><div class="container pagehero__inner"><div class="medallion">&#x1F54A;<span class="scroll">&#x1F4DC;</span></div><span class="eyebrow">Carrier Pigeon</span><h1>Send Your Pigeon</h1><p>Send a message to the House � to join the list, hire a sellsword, or strike a bargain.</p></div></section>
 <section class="section"><div class="container contact-grid">
 <div><span class="eyebrow">Direct to the House</span><h2>By Letter or by Bird</h2><p class="lead">Reach the guild by pigeon for inquiries, the camp list, or to treat with the Broker. We answer in due course.</p>
-<ul class="info-list"><li><span class="ic">?</span><div><h4>Carrier Pigeon (Email)</h4><div class="val"><a href="mailto:${SITE.email}">${SITE.email}</a></div></div></li>
-<li><span class="ic">??</span><div><h4>The Shire</h4><div class="val">${SITE.loc}</div></div></li>
-<li><span class="ic">??</span><div><h4>The Faire</h4><div class="val">${SITE.faire}<br>${SITE.dates}</div></div></li></ul></div>
+<ul class="info-list"><li><span class="ic">?</span><div><h3>Carrier Pigeon (Email)</h3><div class="val"><a href="mailto:${SITE.email}">${SITE.email}</a></div></div></li>
+<li><span class="ic">??</span><div><h3>The Shire</h3><div class="val">${SITE.loc}</div></div></li>
+<li><span class="ic">??</span><div><h3>The Faire</h3><div class="val">${SITE.faire}<br>${SITE.dates}</div></div></li></ul></div>
 <div class="form"><h3 style="margin-bottom:6px">Send a Pigeon</h3><p class="muted" style="font-size:.96rem;margin-bottom:22px">Put me on the list � or send word to the House.</p>
 <form action="mailto:${SITE.email}" method="post" enctype="text/plain">
 <div class="field"><label for="n">Your Name</label><input id="n" name="Name" required placeholder="Good gentles' name"></div>
@@ -300,12 +300,12 @@ const treaty=`${head("/treaty.html")}
 <section class="pagehero"><div class="pagehero__bg" style="background-image:url('${I}018.png')"></div><div class="container pagehero__inner"><span class="eyebrow">Sellsword</span><h1>Treaty &amp; Terms</h1><p>When a bargain is struck, we honor it. Your objectives become our objectives. Here lie the terms under which the House of Card and Coin contracts its sellswords.</p></div></section>
 <section class="section"><div class="container" style="max-width:860px">
 <div class="poster"><span class="stamp">Sealed</span><h3>The Bargain, Sealed</h3><div class="rule" style="margin:18px auto"></div>
-<div class="article"><h4>Article I &middot; The Bargain</h4><p>A price is named and a hand is given. Once struck, the bargain holds � neither side may withdraw save by mutual consent.</p></div>
-<div class="article"><h4>Article II &middot; Discretion</h4><p>All matters are conducted with the utmost discretion. No word of the affair passes the lips of the company, on pain of forfeit.</p></div>
-<div class="article"><h4>Article III &middot; Composure</h4><p>Panic has no place in our ranks. Adversity is met with steady hands and quiet resolve.</p></div>
-<div class="article"><h4>Article IV &middot; Adaptable Force</h4><p>Guard service, discreet removal, or reinforcement for holdings � the company shapes itself to the need at hand.</p></div>
-<div class="article"><h4>Article V &middot; Honor</h4><p>The sellsword honors the bargain; the House honors the sellsword. Contractual integrity above all.</p></div>
-<div class="article"><h4>Article VI &middot; Terms of Coin</h4><p>Payment in coin or agreed trade � half upon the striking of the bargain, half upon completion. The ledger is kept by the Broker.</p></div>
+<div class="article"><h3>Article I &middot; The Bargain</h3><p>A price is named and a hand is given. Once struck, the bargain holds � neither side may withdraw save by mutual consent.</p></div>
+<div class="article"><h3>Article II &middot; Discretion</h3><p>All matters are conducted with the utmost discretion. No word of the affair passes the lips of the company, on pain of forfeit.</p></div>
+<div class="article"><h3>Article III &middot; Composure</h3><p>Panic has no place in our ranks. Adversity is met with steady hands and quiet resolve.</p></div>
+<div class="article"><h3>Article IV &middot; Adaptable Force</h3><p>Guard service, discreet removal, or reinforcement for holdings � the company shapes itself to the need at hand.</p></div>
+<div class="article"><h3>Article V &middot; Honor</h3><p>The sellsword honors the bargain; the House honors the sellsword. Contractual integrity above all.</p></div>
+<div class="article"><h3>Article VI &middot; Terms of Coin</h3><p>Payment in coin or agreed trade � half upon the striking of the bargain, half upon completion. The ledger is kept by the Broker.</p></div>
 <p style="text-align:center;margin-top:24px;font-style:italic;color:#cdb98f">� Sealed by the House of Card and Coin �</p>
 <div style="text-align:center;margin-top:18px"><a class="btn btn--gold" href="/pigeon.html">Treat with the Broker</a></div>
 </div></div></section>

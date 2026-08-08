@@ -165,7 +165,7 @@
   transform:rotate(-.25deg);
 }
 .tav-card h3{color:#5c1b1b;font-size:1.02rem}
-.tav-card h4{color:#7a5514}
+.tav-card h3,.tav-card h4{color:#7a5514}
 .tav-card p{color:#3c2c14}
 .tav-card .muted{color:#6d5a34}
 .tav-tally{color:#6d5a34}
