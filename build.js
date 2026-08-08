@@ -19,13 +19,13 @@ const footer=`<footer><div class="container"><div class="footer-grid">
 <div><h4>The Guild</h4><ul>${NAV.slice(0,5).map(([l,h])=>`<li><a href="${h}">${l}</a></li>`).join("")}</ul></div>
 <div><h4>Faire</h4><ul><li><a href="/camp.html">Ren Faire Camp</a></li><li><a href="/events.html">Scroll of Events</a></li></ul></div>
 <div><h4>Send a Pigeon</h4><ul><li><a href="mailto:${SITE.email}">${SITE.email}</a></li><li>${SITE.loc}</li><li>${SITE.dates}</li></ul></div></div>
-<div class="footer-bottom"><span>&copy; 2024 � 2026 ${SITE.name}. All rights reserved.</span><span>${SITE.motto}</span></div></div></footer><script defer src="/assets/js/auth-signal.js?v=20260807d"></script><script defer src="/assets/js/countdown.js?v=20260807d"></script><script>(function(){var r=new URLSearchParams(location.search).get("reason");if(!r)return;var s=document.querySelector('select[name="Reason"]');if(!s)return;for(var i=0;i<s.options.length;i++){if(s.options[i].value===r){s.selectedIndex=i;break;}}var m=document.querySelector('textarea[name="Message"]');if(m&&r==="Locked out of my account"&&!m.value){m.value="I cannot sign in to the Guild Hall. My login is: ";m.focus();}})();</script></body></html>`;
+<div class="footer-bottom"><span>&copy; 2024 � 2026 ${SITE.name}. All rights reserved.</span><span>${SITE.motto}</span></div></div></footer><script defer src="/assets/js/auth-signal.js?v=20260807d"></script><script defer src="/assets/js/countdown.js?v=20260807d"></script><script>(function(){var r=new URLSearchParams(location.search).get("reason");if(!r)return;var s=document.querySelector('select[name="Reason"]');if(!s)return;for(var i=0;i<s.options.length;i++){if(s.options[i].value===r){s.selectedIndex=i;break;}}var m=document.querySelector('textarea[name="Message"]');if(m&&r==="Locked out of my account"&&!m.value){m.value="I cannot sign in to the Guild Hall. My login is: ";m.focus();}})();</script><script defer src="/assets/js/hero-video.js?v=20260807d"></script></body></html>`;
 const CTA=`<section class="section section--dark"><div class="container cta"><div><span class="eyebrow">Join the House</span><h2>Put me on the list!</h2><p>Quests, trading, tales, and a seat by the campfire await. Send your pigeon and claim your place in the House of Card and Coin.</p></div><div class="cta__actions"><a class="btn btn--gold" href="/pigeon.html">Send a Pigeon</a><a class="btn btn--ghost" href="/events.html">View the Scroll of Events</a></div></div></section>`;
 const fig=(local,aspect,cap,sub)=>`<figure class="fig fig--${aspect}"><img src="${I}${local}" alt="${esc(cap||"House of Card and Coin")}" loading="lazy">${cap?`<figcaption>${esc(cap)}${sub?`<span style="display:block;font-size:.74rem;letter-spacing:.1em;color:var(--gold-l);text-transform:uppercase">${esc(sub)}</span>`:""}</figcaption>`:""}</figure>`;
 
 // ---------- HOME ----------
 const home=`${head("/index.html")}
-<section class="hero"><video class="hero__bg" autoplay muted loop playsinline poster="${I}000.jpg"><source src="/assets/vid.mp4" type="video/mp4"><img src="${I}000.jpg" alt=""></video>
+<section class="hero"><video class="hero__bg" muted loop playsinline poster="${I}000.jpg" preload="none" data-src="/assets/vid.mp4"><img src="${I}000.jpg" alt=""></video>
 <div class="container hero__inner"><span class="eyebrow">31st Annual � Age of Chivalry � Las Vegas</span>
 <h1>House of Card &amp; Coin</h1>
 <p class="sub">Whispers, wagers, and well-kept secrets. Hark, traveler � step into a curious world beyond the pale of your comfort zone, where fortunes shift, destinies unfurl, and every bargain has its price.</p>
@@ -79,7 +79,7 @@ fs.writeFileSync(path.join(ROOT,"guild.html"),guild);
 
 // ---------- SELLSWORD ----------
 const sellsword=`${head("/sellsword.html")}
-<section class="pagehero"><video class="pagehero__bg" autoplay muted loop playsinline poster="${I}011.jpg"><source src="/assets/vid-armor.mp4" type="video/mp4"></video><div class="container pagehero__inner"><span class="eyebrow">Sellsword</span><h1>Discreet Removal &amp; Tailored Guard Services</h1><p>We thrive on the unexpected, celebrate cleverness, and meet adversity with unwavering composure.</p></div></section>
+<section class="pagehero"><video class="pagehero__bg" muted loop playsinline poster="${I}011.jpg" preload="none" data-src="/assets/vid-armor.mp4"></video><div class="container pagehero__inner"><span class="eyebrow">Sellsword</span><h1>Discreet Removal &amp; Tailored Guard Services</h1><p>We thrive on the unexpected, celebrate cleverness, and meet adversity with unwavering composure.</p></div></section>
 <section class="section"><div class="container"><div class="bannerhead"><span class="eyebrow">For Hire</span><h2>Comprehensive Security Solutions</h2><div class="rule"></div></div>
 <div class="grid grid--3">
 <div class="scroll"><h3>??? Tailored Guard Services</h3><p><b>Adaptable Force:</b> From disciplined shield walls to swift flanking maneuvers, our company shapes itself to your need. Contractual integrity: when a bargain is struck, we honor it � your objectives become our objectives.</p></div>
@@ -125,7 +125,7 @@ const days=[
 ]]
 ];
 const events=`${head("/events.html")}
-<section class="pagehero"><video class="pagehero__bg" autoplay muted loop playsinline poster="${I}016.jpg"><source src="/assets/vid-events.mp4" type="video/mp4"></video><div class="container pagehero__inner"><span class="eyebrow">Scroll of Events</span><h1>The Guild Event Schedule</h1><p>Three days of campfires, dinners, s'mores, and late nights of drinks and tales � the guild's true rhythm at the faire. ${SITE.faire}, ${SITE.dates}.</p></div></section>
+<section class="pagehero"><video class="pagehero__bg" muted loop playsinline poster="${I}016.jpg" preload="none" data-src="/assets/vid-events.mp4"></video><div class="container pagehero__inner"><span class="eyebrow">Scroll of Events</span><h1>The Guild Event Schedule</h1><p>Three days of campfires, dinners, s'mores, and late nights of drinks and tales � the guild's true rhythm at the faire. ${SITE.faire}, ${SITE.dates}.</p></div></section>
 <section class="section"><div class="container">
 <div class="callout" style="margin-bottom:44px">
 <div class="fact"><div class="ic">??</div><h4>The Faire</h4><p>${SITE.faire}</p></div>
