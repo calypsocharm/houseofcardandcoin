@@ -3499,3 +3499,10 @@ a.navdrawer__who:hover,a.navdrawer__who:focus-visible{background:rgba(226,199,12
 .berth__who{display:flex;flex-direction:column;text-align:left;line-height:1.25}
 .berth__who b{font-family:var(--display);font-size:.9rem;color:var(--ink)}
 .berth__who small{font-size:.72rem;color:var(--muted);letter-spacing:.04em}
+
+/* The milestone line beside the countdown — a word that changes as the date
+   comes on, rather than only ever a smaller number. */
+.chip--note{
+  background:rgba(226,199,127,.14);border-color:var(--gold-d);color:var(--gold-l);
+  font-style:italic;letter-spacing:.02em;
+}

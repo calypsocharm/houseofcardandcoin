@@ -387,3 +387,21 @@
   border:1px solid var(--line2);
 }
 .pro-scrap__head .pro-scrap__w{flex:1;min-width:0;margin:0}
+
+/* ── marks ──────────────────────────────────────────────────────────────
+   What somebody has actually done, counted from what the site already
+   holds. Only earned marks appear, so this block is absent on a page that
+   has nothing to show rather than being a column of noughts. */
+.pro-marks{list-style:none;margin:0;padding:0;display:grid;gap:7px}
+.pro-marks li{
+  display:flex;align-items:baseline;gap:9px;
+  padding:6px 0;border-bottom:1px dotted var(--line);
+}
+.pro-marks li:last-child{border-bottom:0}
+.pro-marks b{
+  min-width:34px;text-align:right;font-family:var(--display);
+  font-size:calc(1.05rem * var(--u-scale,1));color:var(--u-accent,var(--wine));
+  font-variant-numeric:tabular-nums;
+}
+.pro-marks li.is-gold b{color:var(--gold-d)}
+.pro-marks span{font-size:calc(.86rem * var(--u-scale,1));color:var(--muted)}

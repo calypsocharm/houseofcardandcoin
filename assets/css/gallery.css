@@ -36,36 +36,38 @@
   display:grid;gap:16px;
   grid-template-columns:repeat(auto-fill,minmax(210px,1fr));
 }
+/* Kept plain on purpose: the pictures are the point, so the frame around
+   them is a hairline and nothing else. */
 .galcard{
-  margin:0;background:var(--ivory);border:1px solid var(--line);border-radius:3px;
-  overflow:hidden;box-shadow:0 12px 30px -26px rgba(60,40,15,.9);
-  display:flex;flex-direction:column;
+  margin:0;background:transparent;border:0;border-radius:3px;
+  overflow:visible;display:flex;flex-direction:column;
 }
-.galcard__shot{display:block;aspect-ratio:1;overflow:hidden;background:var(--parchment2)}
+.galcard__shot{display:block;aspect-ratio:1;overflow:hidden;border-radius:3px;
+  background:var(--parchment2);border:1px solid var(--line)}
 .galcard__shot img{
   width:100%;height:100%;object-fit:cover;display:block;
   transition:transform .4s var(--ease);
 }
 .galcard__shot:hover img,.galcard__shot:focus-visible img{transform:scale(1.05)}
-.galcard__foot{padding:11px 12px 12px;position:relative}
+.galcard__foot{padding:8px 2px 0;position:relative}
 .galcard__who{display:flex;align-items:center;gap:9px}
 .galcard__who .postpic,.galcard__who .postpic--init{
-  width:28px;height:28px;border-radius:50%;object-fit:cover;flex-shrink:0;
+  width:22px;height:22px;border-radius:50%;object-fit:cover;flex-shrink:0;
   border:1px solid var(--line2);
 }
 .galcard__who span{display:flex;flex-direction:column;line-height:1.25;min-width:0}
-.galcard__who b{font-family:var(--display);font-size:.78rem;color:var(--ink)}
+.galcard__who b{font-family:var(--display);font-size:.72rem;color:var(--ink2)}
 .galcard__who b a{color:inherit}
 .galcard__who b a:hover{text-decoration:underline}
 .galcard__who small{font-size:.7rem;color:var(--muted)}
-.galcard__cap{margin-top:8px;font-size:.92rem;color:var(--ink2);line-height:1.5}
+.galcard__cap{margin-top:5px;font-size:.86rem;color:var(--muted);line-height:1.45}
 
 /* Out of the way until wanted, like the strike control on the tavern. */
-.galcard__x{position:absolute;right:8px;bottom:8px;opacity:0;transition:opacity .18s}
+.galcard__x{position:absolute;right:0;bottom:0;opacity:0;transition:opacity .18s}
 .galcard:hover .galcard__x,.galcard__x:focus-within{opacity:1}
 .galcard__x button{
   font-family:var(--display);font-size:.5rem;letter-spacing:.12em;text-transform:uppercase;
-  color:var(--muted);background:var(--ivory);border:1px solid var(--line2);
+  color:var(--muted);background:var(--parchment);border:1px solid var(--line2);
   border-radius:2px;padding:3px 7px;cursor:pointer;
 }
 .galcard__x button:hover{color:var(--wine);border-color:var(--wine)}

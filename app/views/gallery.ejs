@@ -17,14 +17,14 @@
     <form class="galadd" method="post" action="/gallery/add" enctype="multipart/form-data">
       <div class="galadd__row">
         <label class="galadd__pick">
-          <input type="file" name="photo" accept="image/*" required>
+          <input type="file" name="photo" id="galPhoto" accept="image/*" required>
           <span>Choose a picture</span>
         </label>
         <input class="galadd__cap" name="caption" maxlength="140" placeholder="A word about it, if you like…" aria-label="Caption">
         <button class="btn btn--gold" type="submit">Put it up</button>
       </div>
-      <p class="galadd__note">Anything you put here everyone can see. It is resized on the way in, and the
-        location your phone tucks into a photo is stripped off.</p>
+      <p class="galadd__note" id="galNote">Everyone can see what you put here. Big pictures are shrunk
+        before they are sent, and the location your phone hides in a photo is stripped off.</p>
     </form>
   <% } else { %>
     <p class="muted center" style="margin-bottom:30px">
@@ -72,4 +72,7 @@
 
 </div></section>
 
+<% if(canAdd){ %>
+<script defer src="/assets/js/gallery.js?v=<%= typeof assetv!=='undefined'?assetv:'1' %>"></script>
+<% } %>
 <%- include('_bot') %>

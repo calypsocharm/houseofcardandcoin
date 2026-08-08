@@ -72,6 +72,17 @@
 
     <div class="pro-cols">
       <div class="pro-rail">
+        <% if(marks.length){ %>
+        <div class="pro-card">
+          <h2>Marks</h2>
+          <ul class="pro-marks">
+            <% marks.forEach(function(m){ %>
+              <li<%= m.gold?' class="is-gold"':'' %>><b><%= m.n %></b><span><%= m.w %></span></li>
+            <% }) %>
+          </ul>
+        </div>
+        <% } %>
+
         <div class="pro-card">
           <h2>The Sheet</h2>
           <ul class="pro-sheet">

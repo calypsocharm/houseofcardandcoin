@@ -123,7 +123,7 @@ app.use((req,res,next)=>BLOCKED.test(req.path)?res.status(404).send('Not found')
 // to reach their own profile. So the stamp is rewritten here at serve time from
 // the real file mtimes, and never has to be remembered again.
 const ASSET_FILES=['assets/css/style.css','assets/css/tavern.css','assets/css/profile.css','assets/css/gallery.css','assets/css/weekend.css',
-  'assets/js/nav.js','assets/js/countdown.js','assets/js/hero-video.js','assets/js/avatar-crop.js','assets/js/dress.js'];
+  'assets/js/nav.js','assets/js/countdown.js','assets/js/hero-video.js','assets/js/avatar-crop.js','assets/js/dress.js','assets/js/gallery.js'];
 function assetVersion(){
   let newest=0;
   ASSET_FILES.forEach(function(f){
@@ -461,6 +461,32 @@ app.post('/gallery/:id/remove',canPost,(req,res)=>{
   save();res.redirect('/gallery?removed=1');
 });
 
+// Marks on a page: what somebody has actually done, counted from what the site
+// already holds rather than by anybody awarding anything. Only earned marks are
+// shown — a page full of zeroes says nothing, and a new pledge should not open
+// their own page to a list of things they have not done.
+function marksFor(u){
+  var out=[];
+  var said=0;
+  db.threads.forEach(function(t){
+    if(t.authorType==='member'&&t.authorId===u.id)said++;
+    (t.replies||[]).forEach(function(r){ if(r.authorType==='member'&&r.authorId===u.id)said++; });
+  });
+  var shot=(db.photos||[]).filter(function(p){return p.byT==='member'&&p.byId===u.id;}).length;
+  var signed=(db.wall||[]).filter(function(w){return w.toId===u.id;}).length;
+  var took=champions().filter(function(c){return c.kind==='member'&&c.name===u.name;})[0];
+  var bunks=(db.bunks||[]).filter(function(b){return b.userId===u.id;}).length;
+
+  if(u.faires)  out.push({n:u.faires, w:'faire'+(u.faires===1?'':'s')+' camped'});
+  if(took&&took.taken) out.push({n:took.taken, w:'round'+(took.taken===1?'':'s')+' taken', gold:true});
+  if(u.streak>1) out.push({n:u.streak, w:'nights in a row'});
+  if(said)      out.push({n:said,     w:'line'+(said===1?'':'s')+' by the fire'});
+  if(shot)      out.push({n:shot,     w:'picture'+(shot===1?'':'s')+' on the wall'});
+  if(signed)    out.push({n:signed,   w:'signature'+(signed===1?'':'s')+' on their scroll'});
+  if(bunks)     out.push({n:bunks,    w:'night'+(bunks===1?'':'s')+' bunked'});
+  if(u.coins)   out.push({n:u.coins,  w:'coins'});
+  return out;
+}
 // ── Guildmates' own pages ───────────────────────────────────────────────────
 // Addresses are made from the display name: /guild/mama-bear. Renaming yourself
 // moves your page, which is fine at ten people and nobody is bookmarking. Two
@@ -510,7 +536,7 @@ app.get('/guild/:slug',(req,res)=>{
          coins:u.coins||0,streak:u.streak||0},
     bunks:bunks, bringing:bringing, talk:talk.slice(0,5),
     hand:(u.hand||[]).map(cardInfo), handRank:handRank(u.hand||[]),
-    page:pageOf(u), charmSvg:charmSvg, charmKeys:CHARM_KEYS, charmMax:CHARM_MAX,
+    page:pageOf(u), marks:marksFor(u), charmSvg:charmSvg, charmKeys:CHARM_KEYS, charmMax:CHARM_MAX,
     fonts:FONTS, fontKeys:FONT_KEYS, sizeKeys:SIZE_KEYS, sizes:SIZES,
     backdrops:BACKDROPS, layouts:LAYOUTS,
     wall:wallFor(u.id), canSign:!!i, i:i, leader:!!(i&&i.leader), q:req.query,
@@ -944,7 +970,7 @@ app.get('/board',(req,res)=>{
     });
   }
   const polls=db.polls.slice().sort((a,b)=>b.ts-a.ts).map(freshenPost).map(function(p){const total=p.options.reduce((s,o)=>s+o.votes.length,0);const voted=i?!!p.options.find(o=>o.votes.find(v=>v.t===i.t&&v.id===i.id)):false;return Object.assign({},p,{total:total,voted:voted});});
-  res.render('board',{i:i,threads:threads,polls:polls,cats:BOARDCATS,q:req.query,leader:!!(i&&i.leader),ration:{canDraw:!!(i&&i.lastRation!==today),card:i?i.lastCard:null},hand:i?(i.hand||[]).map(cardInfo):[],pending:i&&i.pending?cardInfo(i.pending):null,handRank:i?handRank(i.hand||[]):null,handPrizes:HAND_PRIZES,tableHands:allHands(),cardPrice:CARD_PRICE,special:SPECIALS[dayOfYear()%SPECIALS.length],gates:countdown(),notices:i?(db.notices||[]).filter(function(n){return n.toT===i.t&&n.toId===i.id&&!n.read;}).length:0,folk:pres.folk,quietHrs:quietHrs,editMs:EDIT_WINDOW,editDays:EDIT_DAYS,slugs:slugById(),reacts:REACTS,seenBefore:seenBefore,find:find,found:threads.length});
+  res.render('board',{i:i,threads:threads,polls:polls,cats:BOARDCATS,q:req.query,leader:!!(i&&i.leader),ration:{canDraw:!!(i&&i.lastRation!==today),card:i?i.lastCard:null},hand:i?(i.hand||[]).map(cardInfo):[],pending:i&&i.pending?cardInfo(i.pending):null,handRank:i?handRank(i.hand||[]):null,handPrizes:HAND_PRIZES,tableHands:allHands(),cardPrice:CARD_PRICE,special:SPECIALS[dayOfYear()%SPECIALS.length],gates:countdown(),near:nearness(countdown()),notices:i?(db.notices||[]).filter(function(n){return n.toT===i.t&&n.toId===i.id&&!n.read;}).length:0,folk:pres.folk,quietHrs:quietHrs,editMs:EDIT_WINDOW,editDays:EDIT_DAYS,slugs:slugById(),reacts:REACTS,seenBefore:seenBefore,find:find,found:threads.length});
 });
 app.post('/board/thread',canPost,(req,res)=>{
   const i=ident(req);const body=(req.body.body||'').trim();let category=(req.body.category||'General').trim();
@@ -1224,6 +1250,16 @@ function notify(toT,toId,text){if(!Array.isArray(db.notices))db.notices=[];db.no
 // the old local-time version counted to an hour before the faire opens, and
 // disagreed with the festival's own countdown. Whole days not yet elapsed, to
 // match how theirs reads — rounding up showed 62 against their 61 days 23 hours.
+// A word for how close the faire is, so the Tavern can warm up as it nears
+// rather than the date being a number nobody feels.
+function nearness(g){
+  if(g.ended)return "ended";
+  if(g.open)return "open";
+  if(g.days<=1)return "eve";
+  if(g.days<=7)return "week";
+  if(g.days<=30)return "month";
+  return "far";
+}
 function countdown(){
   var open=new Date(Date.UTC(2026,9,9,17,0,0)),close=new Date(Date.UTC(2026,9,12,0,0,0)),now=new Date();
   if(now>=close)return{ended:true};

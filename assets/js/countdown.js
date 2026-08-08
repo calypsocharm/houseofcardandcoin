@@ -28,6 +28,20 @@
     return '<b>' + n + '</b> ' + word + (n === 1 ? '' : 's');
   }
 
+  /* A word that changes as the date comes on, so the countdown says something
+     at the moments worth marking rather than only ever counting down. Filled
+     into any [data-gates-note]; pages without one are unaffected. */
+  var notes = document.querySelectorAll("[data-gates-note]");
+  function milestone(d) {
+    if (d > 30) return "";
+    if (d > 14) return "Under a month. Time to think about garb.";
+    if (d > 7)  return "A fortnight out. Claim a bunk before they go.";
+    if (d > 3)  return "A week to go. Check your kit and your hand.";
+    if (d > 1)  return "Days away now. Pack the small logs.";
+    if (d === 1) return "Tomorrow. The fire is nearly lit.";
+    return "Today. See you at the gates.";
+  }
+
   function tick() {
     var now = new Date();
     var text;
@@ -50,6 +64,15 @@
       el.innerHTML = text;
       el.hidden = false;
     });
+
+    if (notes.length) {
+      var say = (now >= close) ? "" : (now >= open) ? "The gates are open."
+              : milestone(Math.floor((open - now) / 86400000));
+      Array.prototype.forEach.call(notes, function (n) {
+        n.textContent = say;
+        n.hidden = !say;
+      });
+    }
   }
 
   tick();
