@@ -31,6 +31,7 @@
     ['Scroll of Events',    '/events.html'],
     ['Ren Faire Camp',      '/camp.html'],
     ['The Tavern',          '/board'],
+    ['The Roll of Hands',   '/board/roll'],
     ['Questions & Customs', '/faq'],
     ['Carrier Pigeon',      '/pigeon.html']
   ];

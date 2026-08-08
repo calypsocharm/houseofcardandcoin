@@ -12,7 +12,21 @@
 <% }) %></div><% } else { %><p class="muted center">The roster fills as guildmates join the Hall.</p><% } %>
 <p class="muted center" style="margin-top:24px">Want your portrait on the board? <a href="/members/login" style="color:var(--gold-d);font-weight:600">Sign in</a> to set your class, your face and your own page, and to claim a bunk.</p>
 </div></section>
-<section class="section" id="bunks"><div class="container"><div class="bannerhead"><span class="eyebrow">⚜ Camp Bunks ⚜</span><h2>Who Is in Which Bunk</h2><div class="rule"></div></div><p class="lead center" style="margin-bottom:30px">Three nights, three bunks each. See where the House is bedded down &mdash; guildmates, claim your bunk under Profile.</p><div class="grid grid--3"><% bunkBoard.forEach(function(d){ %><div class="day"><div class="day__hd"><span class="d"><%= d.night %></span><span class="h">3 bunks</span></div><div class="day__bd"><% d.bunks.forEach(function(b){ %><div class="event"><span class="t">Bunk <%= b.bunk %></span><span class="b"><% if(b.taken){ %><b style="color:var(--wine)"><%= b.who?b.who.name:'a guildmate' %></b><% } else { %><span class="muted">Open</span><% } %></span></div><% }) %></div></div><% }) %></div></div></section><section class="section section--parch2"><div class="container"><div class="bannerhead"><span class="eyebrow">A Consortium of Specialists</span><h2>Where Chance, Destiny &amp; Deals Align</h2><div class="rule"></div></div>
+<section class="section" id="bunks"><div class="container"><div class="bannerhead"><span class="eyebrow">⚜ Camp Bunks ⚜</span><h2>Who Is in Which Bunk</h2><div class="rule"></div></div><p class="lead center" style="margin-bottom:22px">Two berths are spoken for all weekend;
+  the other <b>three are open each night</b> &mdash; guildmates, claim yours under Profile.</p>
+<% if(berths.length){ %>
+<div class="berths">
+  <p class="berths__lbl">Kept berths</p>
+  <div class="berths__row">
+  <% berths.forEach(function(b){ %>
+    <div class="berth">
+      <%- include("_avatar",{name:b.who,avatar:b.avatar,slug:b.slug}) %>
+      <span class="berth__who"><b><%= b.who %></b><small><%= b.berth %></small></span>
+    </div>
+  <% }) %>
+  </div>
+</div>
+<% } %><div class="grid grid--3"><% bunkBoard.forEach(function(d){ %><div class="day"><div class="day__hd"><span class="d"><%= d.night %></span><span class="h">3 bunks</span></div><div class="day__bd"><% d.bunks.forEach(function(b){ %><div class="event"><span class="t">Bunk <%= b.bunk %></span><span class="b"><% if(b.taken){ %><b style="color:var(--wine)"><%= b.who?b.who.name:'a guildmate' %></b><% } else { %><span class="muted">Open</span><% } %></span></div><% }) %></div></div><% }) %></div></div></section><section class="section section--parch2"><div class="container"><div class="bannerhead"><span class="eyebrow">A Consortium of Specialists</span><h2>Where Chance, Destiny &amp; Deals Align</h2><div class="rule"></div></div>
 <p class="lead center" style="margin-bottom:40px">Greetings, discerning Faire-goer! If you find yourself drawn to the more intriguing corners of the marketplace — where wit is as valuable as coin and opportunity often wears a disguise — you've found your way to us.</p>
 <div class="grid grid--3">
 <div class="scroll"><h3>🃏 The Dealer of Dares &amp; Delights</h3><p>Step up to the table of our resident card maestro. Whether you crave the thrill of a game of chance, a test of your strategic mind, or simply an amusing diversion, you'll find it here. Expect lively play and sharp wits.</p></div>

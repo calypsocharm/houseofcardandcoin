@@ -1,0 +1,91 @@
+<%- include('_top',{title:'The Roll of Hands',active:'board',desc:'Every round of the House of Card and Coin — the leading hand and who held what, kept from one round to the next.',image:'/assets/img/og/index.jpg',url:'https://houseofcardandcoin.com/board/roll'}) %>
+<link rel="stylesheet" href="/assets/css/tavern.css?v=<%= typeof cssv!=='undefined'?cssv:'1' %>">
+
+<div class="tav">
+  <div class="container roll">
+
+    <div class="roll__head">
+      <p class="roll__eyebrow">⚜ The Roll of Hands ⚜</p>
+      <h1>Who Held What</h1>
+      <p class="roll__lead">
+        <% if(gates.ended){ %>The faire has been and gone.
+        <% } else if(gates.open){ %>The gates are open — bring your hand to the table.
+        <% } else { %>A round runs until the House calls it. Then the deck is shuffled and it begins again,
+          which is how the game lasts all the way to the gates.<% } %>
+      </p>
+      <p class="roll__back"><a href="/board">← Back to the Tavern</a></p>
+    </div>
+
+    <% if(q.closed){ %>
+      <p class="roll__said">Round <%= q.closed %> is closed and written into the roll. Every deck is shuffled — the next card is there for the taking.</p>
+    <% } %>
+    <% if(q.e==='empty'){ %>
+      <p class="roll__warn">Nobody is holding a card, so there was no round to close.</p>
+    <% } %>
+
+    <!-- ── the round being played now ──────────────────────────────────── -->
+    <section class="roll__now">
+      <h2>The round in play</h2>
+      <% if(table.length){ %>
+        <div class="roll__grid">
+          <% table.forEach(function(h,n){ %>
+            <div class="roll__tile<%= n===0?' is-top':'' %>">
+              <div class="roll__who">
+                <%- include('_avatar',{name:h.name,avatar:h.avatar,slug:h.kind==='member'&&h.id?(slugs[h.id]||''):''}) %>
+                <span class="roll__name"><%= h.name %><% if(n===0){ %><small>leading</small><% } %></span>
+              </div>
+              <span class="roll__cards">
+                <% h.cards.forEach(function(c){ %>
+                  <span class="pcard pcard--tiny<%= c.red?' is-red':'' %>"><b class="pcard__r"><%= c.r==='T'?'10':c.r %></b><span class="pcard__s"><%= c.glyph %></span></span>
+                <% }) %>
+              </span>
+              <p class="roll__rank"><%= h.rank?h.rank.name:'—' %><% if(h.rank&&h.rank.short){ %> <small>on <%= h.rank.cards %></small><% } %></p>
+            </div>
+          <% }) %>
+        </div>
+      <% } else { %>
+        <p class="roll__none">No cards are out. Come by the Tavern of an evening and the House will deal you one.</p>
+      <% } %>
+
+      <% if(leader){ %>
+        <form class="roll__close" method="post" action="/members/admin/round/close"
+              onsubmit="return confirm('Close this round? Every hand goes into the roll and all the decks are shuffled.')">
+          <button class="btn btn--wine" type="submit">Call the round</button>
+          <span>Writes the table into the roll below and starts a fresh one.</span>
+        </form>
+      <% } %>
+    </section>
+
+    <!-- ── rounds already played ───────────────────────────────────────── -->
+    <% if(rounds.length){ %>
+      <section class="roll__past">
+        <h2>Rounds already played</h2>
+        <% rounds.forEach(function(r){ %>
+          <div class="roll__round">
+            <p class="roll__rhead">
+              <b>Round <%= r.n %></b>
+              <span><%= new Date(r.ended).toLocaleDateString(undefined,{month:'long',day:'numeric'}) %></span>
+            </p>
+            <% r.hands.forEach(function(h,n){ %>
+              <div class="roll__line<%= n===0?' is-win':'' %>">
+                <span class="roll__lname">
+                  <% if(n===0){ %><span class="roll__crown" title="Took the round">✦</span><% } %>
+                  <% if(h.slug){ %><a href="/guild/<%= h.slug %>"><%= h.name %></a><% } else { %><%= h.name %><% } %>
+                </span>
+                <span class="roll__lcards">
+                  <% h.cards.forEach(function(c){ %>
+                    <span class="pcard pcard--tiny<%= c.red?' is-red':'' %>"><b class="pcard__r"><%= c.r==='T'?'10':c.r %></b><span class="pcard__s"><%= c.glyph %></span></span>
+                  <% }) %>
+                </span>
+                <span class="roll__lrank"><%= h.rank?h.rank.name:'—' %></span>
+              </div>
+            <% }) %>
+          </div>
+        <% }) %>
+      </section>
+    <% } %>
+
+  </div>
+</div>
+
+<%- include('_bot') %>
