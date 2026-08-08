@@ -1,56 +1,53 @@
-# What's left
+# Roadmap — closed
 
-Updated 2026-08-07, **63 days before the gates open**.
+Closed 2026-08-07, 63 days before the gates open.
 
-**The honest state: the site does what a small local guild needs.** Most of
-what was on the earlier list assumed strangers arriving at a big public event
-— packing lists, carpool matching, maps, calendar exports, analytics. You are
-ten people in Las Vegas who know each other and have camped before. Those were
-solving problems you do not have, and they are struck off rather than parked.
+Nothing is outstanding. What follows is a record of what was decided, so a
+future session does not reopen questions that were already settled.
 
 ---
 
-## Done
+## Settled, deliberately not doing
 
-The lockout has a route (pigeon → she resets from Administration). Pledges are
-told when they are accepted, with a badge on every page. Sign-in is throttled.
-CSRF has two locks. The roster can be downloaded off the server. The 404 is a
-real page. Coins buy your next card. You can edit your own posts. Bunks need a
-faire camped, one bed a night, first come first served. Card backs are her own
-damask. The gates countdown is on the landing page. Avatars crop, compress and
-clean up after themselves. Sessions survive restarts.
+**Email of any kind.** No sender was set up, by her choice. The part that
+needed automating — telling a Pledge they were accepted — the site handles
+itself with an in-page notice and a header badge. Reminders mean messaging ten
+people directly, which is fine at this size.
 
----
+**Packing list, carpool matching, map and directions, calendar export,
+analytics, tavern pagination, phone-number capture.** All struck at her call.
+They assumed strangers arriving at a large public event. This is ten people in
+Las Vegas who know each other and have camped before.
 
-## Genuinely left
+**The dinner show time and the tavern artwork.** Both raised, both declined.
+Do not raise them again unasked.
 
-**1. The dinner show has no time on the site.** ✅ verified — `camp.html` says
-"Saturday evening" and nothing anywhere gives a clock time. This one still
-matters because guildies buying their own passes will look for it, and because
-the poker prize may point at it. I cannot invent it — it needs the actual time
-from the Age of Chivalry organisers.
-
-**2. The tavern room is still drawn with CSS.** The card backs are her damask
-now and the difference is obvious. The room — timber, firelight, the figures —
-is still gradients pretending to be a place. One collaged interior would carry
-the whole page. Only she can make it.
-
-**3. The homepage loads 4.2 MB of video.** Two autoplaying mp4s. Worth an hour
-before October if anyone is likely to open the site on their phone at camp;
-ignorable if not.
+**`style.css` is 93% duplicate text** — 459 KB raw, 17 KB over the wire once
+gzip has it. A tidiness matter, invisible to anyone using the site.
 
 ---
 
-## Deliberately not doing
+## Rules that are load-bearing
 
-Packing list, carpool coordination, map and directions, calendar export,
-analytics, tavern pagination, phone-number capture. All struck at her call:
-a local guild that knows each other does not need them, and building them
-would be work for its own sake.
+Changing these changes the guild, not just the code.
 
-**Email** stays off the table too. Reminders mean her messaging ten people,
-which is fine at this size — the part that actually needed automating,
-"you have been accepted", the site now handles on its own.
+- **Registration is open.** `GUILD_INVITE_CODE` is blank in production, which
+  switches the invite requirement off. Put a value back to turn it on again.
+- **Signing up makes you a Pledge**, not a guildmate. The Guild Leader accepts
+  by hand from Administration.
+- **Bunks need a faire already camped.** Nine beds across three nights, one bed
+  per person per night, first come first served. Acceptance alone does not
+  earn one.
+- **Five-card stud.** One card a night, no trading, and 15 coins buys the next
+  one early — capped at four purchases because a hand is five cards.
+- **Hands are public** and the deal uses crypto randomness, because people can
+  compare them.
 
-`style.css` is still 93% duplicate text. Invisible to anyone using the site
-now that gzip is on, so it is a tidiness matter, not a priority.
+---
+
+## Verified at close
+
+25 pages and assets return 200. Member data, source, and build scripts all
+404. Cross-site POSTs are refused. The 404 is a real page. Four security
+headers present. Hero videos load on laptops and never on phones — the
+homepage went 4.2 MB to 475 KB, the Scroll of Events 5.3 MB to 2 KB.
