@@ -127,6 +127,45 @@
           <% } %>
         </div>
 
+        <div class="pro-card" id="wall">
+          <h2>Sign <%= isMe?'Your':'Their' %> Scroll</h2>
+          <% if(q && q.e){ %><p class="pro-warn"><%= q.e %></p><% } %>
+
+          <% if(canSign){ %>
+            <form class="pro-sign" method="post" action="/guild/<%= slug %>/sign">
+              <input name="body" maxlength="400" required
+                     placeholder="<%= isMe?'Leave a line on your own scroll…':'Leave a line for '+who.name+'…' %>"
+                     aria-label="Leave a line on this scroll">
+              <button class="btn btn--wine" type="submit">Sign</button>
+            </form>
+          <% } else { %>
+            <p class="pro-empty"><a href="/members/login">Sign in</a> or
+              <a href="/tavern">claim a seat in the Tavern</a> to leave a line. Anyone may read it.</p>
+          <% } %>
+
+          <% if(wall.length){ %>
+            <% wall.forEach(function(w){ %>
+              <div class="pro-scrap">
+                <p class="pro-scrap__w">
+                  <% if(w.slug){ %><a href="/guild/<%= w.slug %>"><%= w.who %></a><% } else { %><%= w.who %><% } %>
+                  <span class="pro-scrap__when"><%= new Date(w.ts).toLocaleDateString(undefined,{month:'short',day:'numeric'}) %></span>
+                </p>
+                <p class="pro-scrap__b"><%= w.body %></p>
+                <% if(canSign && (isMe || (i && i.t===w.fromT && i.id===w.fromId) || leader)){ %>
+                  <form method="post" action="/guild/wall/<%= w.id %>/remove" class="pro-scrap__x"
+                        onsubmit="return confirm('Take this line off the scroll?')">
+                    <button type="submit">Strike</button>
+                  </form>
+                <% } %>
+              </div>
+            <% }) %>
+          <% } else { %>
+            <p class="pro-empty" style="margin-top:12px">
+              <%= isMe?'Nobody has signed your scroll yet.':'No one has signed this scroll yet — be the first.' %>
+            </p>
+          <% } %>
+        </div>
+
         <div class="pro-card">
           <h2>Lately in the Tavern</h2>
           <% if(talk.length){ %>

@@ -397,11 +397,55 @@ app.get('/guild/:slug',(req,res)=>{
     bunks:bunks, bringing:bringing, talk:talk.slice(0,5),
     hand:(u.hand||[]).map(cardInfo), handRank:handRank(u.hand||[]),
     page:pageOf(u), charmSvg:charmSvg,
+    wall:wallFor(u.id), canSign:!!i, i:i, leader:!!(i&&i.leader), q:req.query,
     isMe:!!(i&&i.t==='member'&&i.id===u.id), slug:hit.slug,
     // Whispering used to hide behind the little figures in the tavern room.
     // Those now lead here, so the door has to be on this page instead.
     canWhisper:!!(i&&!(i.t==='member'&&i.id===u.id)), whisperTo:'/board/whisper/member/'+u.id
   });
+});
+// ── Signing someone's scroll ────────────────────────────────────────────────
+// Anyone with a seat may leave a line on a guildmate's page; anyone at all may
+// read it. Like the Tavern, the note remembers who wrote it rather than what
+// they looked like, so a face is looked up fresh every time it is drawn.
+if(!Array.isArray(db.wall))db.wall=[];
+function wallFor(userId){
+  return (db.wall||[]).filter(function(w){return w.toId===userId;})
+    .sort(function(a,b){return b.ts-a.ts;})
+    .map(function(w){
+      var f=faceNow(w.fromT,w.fromId,w.fromAvatar,w.fromName);
+      return {id:w.id,body:w.body,ts:w.ts,who:f.name,avatar:f.avatar,
+              fromT:w.fromT,fromId:w.fromId,
+              slug:w.fromT==='member'?(slugById()[w.fromId]||''):''};
+    });
+}
+app.post('/guild/:slug/sign',canPost,(req,res)=>{
+  const hit=slugMap().find(function(x){return x.slug===req.params.slug;});
+  if(!hit)return res.redirect('/guild.html');
+  const i=ident(req);
+  const body=String(req.body.body||'').trim().slice(0,400);
+  const back='/guild/'+hit.slug+'#wall';
+  if(!body)return res.redirect(back+'?e='+encodeURIComponent('Say something first'));
+  db.wall.push({id:nid(),toId:hit.u.id,fromT:i.t,fromId:i.id,fromName:i.name,fromAvatar:i.avatar||'',body:body,ts:Date.now()});
+  // Tell them, unless they are signing their own — the House does not need to
+  // notify anybody that they have spoken to themselves.
+  if(!(i.t==='member'&&i.id===hit.u.id)){
+    notify('member',hit.u.id,i.name+' signed your scroll — “'+(body.length>90?body.slice(0,90)+'…':body)+'”');
+  }
+  save();res.redirect(back);
+});
+app.post('/guild/wall/:id/remove',canPost,(req,res)=>{
+  const i=ident(req);
+  const w=(db.wall||[]).find(function(x){return x.id==req.params.id;});
+  if(!w)return res.redirect('/guild.html');
+  // Whoever wrote it, whoever's page it is on, or the Guild Leader.
+  const mine=w.fromT===i.t&&w.fromId===i.id;
+  const myPage=i.t==='member'&&i.id===w.toId;
+  if(!mine&&!myPage&&!i.leader)return res.status(403).send('Not yours to strike');
+  db.wall=db.wall.filter(function(x){return x.id!=req.params.id;});
+  save();
+  const owner=db.users.find(function(u){return u.id===w.toId;});
+  res.redirect('/guild/'+(owner?slugById()[owner.id]:'')+'#wall');
 });
 app.get('/faq',(req,res)=>res.render('faq'));
 app.get('/members/login',(req,res)=>res.render('login',{err:req.query.e||'',code:req.query.code||'',needCode:INVITE_REQUIRED}));

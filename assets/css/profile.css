@@ -251,3 +251,46 @@
   .pro-seal{width:60px;height:60px;right:18px;top:calc(var(--banner-h,140px) - 20px)}
   .pro-seal__mark{font-size:calc(.94rem * var(--u-scale,1))}
 }
+
+/* ── the scroll people sign ─────────────────────────────────────────────
+   Torn scraps pinned to the page, each one edged in the owner's wax colour
+   so a scroll reads as belonging to whoever it is on. */
+.pro-sign{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:6px}
+.pro-sign input{
+  flex:1;min-width:190px;font-family:var(--u-font,var(--serif));
+  font-size:calc(.95rem * var(--u-scale,1));padding:10px 12px;
+  border:1px solid var(--line2);border-radius:2px;background:#fff;color:var(--ink);
+}
+.pro-sign input:focus{outline:2px solid var(--u-accent,var(--wine));outline-offset:1px}
+
+.pro-scrap{
+  position:relative;
+  background:linear-gradient(180deg,#fffdf5,#f6ecd4);
+  border:1px solid var(--line);border-left:3px solid var(--u-seal,var(--wine));
+  padding:11px 13px;margin-top:11px;border-radius:2px;
+  box-shadow:0 6px 16px -14px rgba(0,0,0,.7);
+}
+.pro-scrap__w{
+  font-family:var(--u-font,var(--display));
+  font-size:calc(.68rem * var(--u-scale,1));letter-spacing:.13em;text-transform:uppercase;
+  color:var(--u-accent,var(--wine));
+}
+.pro-scrap__w a{color:inherit}
+.pro-scrap__w a:hover{text-decoration:underline}
+.pro-scrap__when{float:right;color:var(--muted);letter-spacing:.08em}
+.pro-scrap__b{margin-top:5px;font-size:calc(.99rem * var(--u-scale,1));color:var(--u-ink,var(--ink))}
+
+/* The strike control keeps out of the way until you go looking for it. */
+.pro-scrap__x{position:absolute;right:8px;bottom:6px;opacity:0;transition:opacity .18s}
+.pro-scrap:hover .pro-scrap__x,.pro-scrap__x:focus-within{opacity:1}
+.pro-scrap__x button{
+  font-family:var(--display);font-size:.5rem;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--muted);background:transparent;border:1px solid var(--line2);
+  border-radius:2px;padding:3px 7px;cursor:pointer;
+}
+.pro-scrap__x button:hover{color:var(--wine);border-color:var(--wine)}
+
+.pro-warn{
+  background:#f7e7e7;border:1px solid var(--wine-l);color:var(--wine);
+  padding:9px 12px;border-radius:2px;margin-bottom:10px;font-size:.92rem;
+}
