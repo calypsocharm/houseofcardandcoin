@@ -22,6 +22,9 @@
     motto:    document.getElementById('pgMotto'),
     about:    document.getElementById('pgAbout'),
     banner:   document.getElementById('pgBanner'),
+    ink:      document.getElementById('pgInk'),
+    font:     document.getElementById('pgFont'),
+    size:     document.getElementById('pgSize'),
     drop:     document.querySelector('input[name="dropBanner"]')
   };
 
@@ -44,6 +47,11 @@
     if (f.tint)   pro.style.setProperty('--u-tint',   f.tint.value);
     if (f.backdrop) pro.dataset.backdrop = f.backdrop.value;
     if (f.layout)   pro.dataset.layout   = f.layout.value;
+    if (f.ink)  pro.style.setProperty('--u-ink', f.ink.value);
+    // the family and the scale are looked up from the lists the server sent,
+    // so the preview shows the same thing the page will
+    if (f.font && window.__FONTS__) pro.style.setProperty('--u-font', window.__FONTS__[f.font.value] || '');
+    if (f.size && window.__SIZES__) pro.style.setProperty('--u-scale', window.__SIZES__[f.size.value] || '1');
 
     var banner = d.querySelector('.pro-banner');
     if (banner) {

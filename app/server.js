@@ -208,6 +208,21 @@ function shrinkBanner(req,res,next){
 // words, so the worst a bad value can do is fall back to the default.
 const BACKDROPS=['plain','weave','timber','damask','stars'];
 const LAYOUTS=['sheet','scroll','poster'];
+// Faces, chosen from here rather than typed. Only Cinzel and EB Garamond are
+// fetched by the site; the rest are already on the machine, so picking one
+// costs nothing and cannot fail to a surprise. The stack is looked up by key,
+// so nobody supplies a font-family string of their own.
+const FONTS={
+  garamond:{label:'Garamond',    stack:'"EB Garamond","Palatino Linotype",Palatino,Georgia,serif'},
+  cinzel:  {label:'Cinzel',      stack:'"Cinzel",Georgia,serif'},
+  georgia: {label:'Georgia',     stack:'Georgia,"Times New Roman",serif'},
+  palatino:{label:'Palatino',    stack:'"Palatino Linotype",Palatino,"Book Antiqua",Georgia,serif'},
+  ledger:  {label:'Ledger hand', stack:'"Courier New",Courier,monospace'},
+  plain:   {label:'Plain',       stack:'"Trebuchet MS","Segoe UI",Helvetica,Arial,sans-serif'}
+};
+const FONT_KEYS=Object.keys(FONTS);
+const SIZES={small:'0.94',normal:'1',large:'1.12',huge:'1.26'};
+const SIZE_KEYS=Object.keys(SIZES);
 // Charms — the glitter. Drawn here, placed by whoever owns the page, which is
 // the whole trick: all the fun of a decorated page and not a line of anybody
 // else's code. The key is looked up in this map, so a made-up one draws nothing
@@ -263,6 +278,11 @@ function pageOf(u){
     tint:pickHex(u.cTint,'#f4ead2'),
     backdrop:pickOne(u.backdrop,BACKDROPS,'plain'),
     layout:pickOne(u.layout,LAYOUTS,'sheet'),
+    font:pickOne(u.font,FONT_KEYS,'garamond'),
+    fontStack:FONTS[pickOne(u.font,FONT_KEYS,'garamond')].stack,
+    size:pickOne(u.size,SIZE_KEYS,'normal'),
+    sizeScale:SIZES[pickOne(u.size,SIZE_KEYS,'normal')],
+    ink:pickHex(u.cInk,'#241a12'),
     sparkle:!!u.sparkle,
     charms:Array.isArray(u.charms)?u.charms:[],
     // Only ever written by us as '/uploads/<multer's hex name>'. Checked anyway,
@@ -444,7 +464,7 @@ app.get('/members',au,(req,res)=>{
   })();
   const bunksLeft=NIGHTS.length*BUNKS.length-db.bunks.length;
   const items=db.items.map(it=>{const cl=db.claims.filter(c=>c.itemId===it.id);const claimed=cl.reduce((s,c)=>s+c.qty,0);return{...it,claimed,remaining:Math.max(0,it.need-claimed),claims:cl.map(c=>({qty:c.qty,who:db.users.find(y=>y.id===c.userId)})),mine:cl.find(c=>c.userId===u.id)};});
-  res.render('hall',{u,page:pageOf(u),mySlug:slugById()[u.id]||'',backdrops:BACKDROPS,layouts:LAYOUTS,charmKeys:CHARM_KEYS,charmSvg:charmSvg,charmMax:CHARM_MAX,rank:rank(u),classes:CLASSES,bunkBoard,bunksLeft,items,bringers,leader:u.role==='leader',users:u.role==='leader'?db.users.map(function(m){return{name:m.name,class:m.class,faires:m.faires,rank:rank(m),pledge:!!m.pledge,leader:m.role==='leader',title:m.title||'',avatar:m.avatar,id:m.id,contactEmail:m.contactEmail||'',phone:m.phone||'',bunks:db.bunks.filter(function(b){return b.userId===m.id}).map(function(b){return b.night+' \u00b7 Bunk '+b.bunk;})};}):[],announcements:db.announcements,outreach:{emails:db.users.filter(function(x){return x.contactEmail;}).map(function(x){return x.contactEmail;}),phones:db.users.filter(function(x){return x.phone;}).map(function(x){return x.phone;})},invite:INVITE,err:req.query.e||"",q:req.query});
+  res.render('hall',{u,page:pageOf(u),mySlug:slugById()[u.id]||'',backdrops:BACKDROPS,layouts:LAYOUTS,fonts:FONTS,fontKeys:FONT_KEYS,sizeKeys:SIZE_KEYS,sizes:SIZES,charmKeys:CHARM_KEYS,charmSvg:charmSvg,charmMax:CHARM_MAX,rank:rank(u),classes:CLASSES,bunkBoard,bunksLeft,items,bringers,leader:u.role==='leader',users:u.role==='leader'?db.users.map(function(m){return{name:m.name,class:m.class,faires:m.faires,rank:rank(m),pledge:!!m.pledge,leader:m.role==='leader',title:m.title||'',avatar:m.avatar,id:m.id,contactEmail:m.contactEmail||'',phone:m.phone||'',bunks:db.bunks.filter(function(b){return b.userId===m.id}).map(function(b){return b.night+' \u00b7 Bunk '+b.bunk;})};}):[],announcements:db.announcements,outreach:{emails:db.users.filter(function(x){return x.contactEmail;}).map(function(x){return x.contactEmail;}),phones:db.users.filter(function(x){return x.phone;}).map(function(x){return x.phone;})},invite:INVITE,err:req.query.e||"",q:req.query});
 });
 // How your page looks. Separate from the details form above because these are
 // about presentation and those are about the guild — and because this one
@@ -458,6 +478,9 @@ app.post('/members/page',au,up.single('banner'),shrinkBanner,(req,res)=>{
   u.cTint=pickHex(req.body.tint,'#f4ead2');
   u.backdrop=pickOne(req.body.backdrop,BACKDROPS,'plain');
   u.layout=pickOne(req.body.layout,LAYOUTS,'sheet');
+  u.font=pickOne(req.body.font,FONT_KEYS,'garamond');
+  u.size=pickOne(req.body.size,SIZE_KEYS,'normal');
+  u.cInk=pickHex(req.body.ink,'#241a12');
   u.sparkle=!!req.body.sparkle;
   u.charms=cleanCharms(req.body.charms);
   if(req.body.dropBanner&&u.banner&&u.banner.startsWith('/uploads/')){

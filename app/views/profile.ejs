@@ -15,7 +15,7 @@
      a tag here; the quoting around them is the template's own. */
 %>
 <div class="pro" data-backdrop="<%= page.backdrop %>" data-layout="<%= page.layout %>"
-     style="--u-accent:<%= page.accent %>;--u-seal:<%= page.seal %>;--u-tint:<%= page.tint %><% if(page.banner){ %>;--u-banner:url('<%= page.banner %>')<% } %>">
+     style="--u-accent:<%= page.accent %>;--u-seal:<%= page.seal %>;--u-tint:<%= page.tint %>;--u-ink:<%= page.ink %>;--u-font:<%= page.fontStack %>;--u-scale:<%= page.sizeScale %><% if(page.banner){ %>;--u-banner:url('<%= page.banner %>')<% } %>">
   <div class="pro-banner<%= page.banner?' pro-banner--own':'' %>" aria-hidden="true">
     <% if(!page.banner){ %><span class="pro-banner__art"></span><% } %>
     <span class="pro-banner__fade"></span>
