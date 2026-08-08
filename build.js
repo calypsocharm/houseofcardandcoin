@@ -82,7 +82,7 @@ const home=`${head("/index.html")}
 <h1>House of Card &amp; Coin</h1>
 <p class="sub">Whispers, wagers, and well-kept secrets. Hark, traveler � step into a curious world beyond the pale of your comfort zone, where fortunes shift, destinies unfurl, and every bargain has its price.</p>
 <div class="hero__cta"><a class="btn btn--gold" href="/guild.html">Enter the Guild</a><a class="btn btn--ghost" href="/events.html">Scroll of Events</a></div>
-<div class="hero__meta"><span class="chip chip--count" id="gatesCountdown" hidden></span><span class="chip"><b>${SITE.dates}</b></span><span class="chip">Gates 10AM�10PM</span><span class="chip">Sunset Park, Las Vegas</span></div></div></section>
+<div class="hero__meta"><span class="chip chip--count" id="gatesCountdown" hidden></span><span class="chip"><b>${SITE.dates}</b></span><span class="chip">Fri &amp; Sat 10AM–10PM · Sun to 5PM</span><span class="chip">Sunset Park, Las Vegas</span></div></div></section>
 
 <section class="section"><div class="container"><div class="bannerhead"><span class="eyebrow">Before the Gates Open</span><h2>Three Ways In</h2><div class="rule"></div></div>
 <div class="grid grid--3">

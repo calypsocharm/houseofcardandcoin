@@ -1054,7 +1054,7 @@ function notify(toT,toId,text){if(!Array.isArray(db.notices))db.notices=[];db.no
 // disagreed with the festival's own countdown. Whole days not yet elapsed, to
 // match how theirs reads — rounding up showed 62 against their 61 days 23 hours.
 function countdown(){
-  var open=new Date(Date.UTC(2026,9,9,17,0,0)),close=new Date(Date.UTC(2026,9,12,5,0,0)),now=new Date();
+  var open=new Date(Date.UTC(2026,9,9,17,0,0)),close=new Date(Date.UTC(2026,9,12,0,0,0)),now=new Date();
   if(now>=close)return{ended:true};
   if(now>=open)return{open:true};
   return{days:Math.floor((open-now)/86400000)};

@@ -1,6 +1,6 @@
 /* The clock until the gates open.
 
-   The gates open 10:00 Friday 9 October 2026 and the faire ends 22:00 on the
+   The gates open 10:00 Friday 9 October 2026 and the faire ends 17:00 on the
    11th — Las Vegas time, which in October is PDT, seven hours behind UTC. That
    is written as an absolute instant rather than "10 o'clock wherever this
    happens to be running": the old version used local time, so the VPS (which
@@ -16,7 +16,7 @@
    this runs, or if it never does. */
 (function () {
   var open  = new Date(Date.UTC(2026, 9, 9, 17, 0, 0));   // 10:00 PDT
-  var close = new Date(Date.UTC(2026, 9, 12, 5, 0, 0));   // 22:00 PDT on the 11th
+  var close = new Date(Date.UTC(2026, 9, 12, 0, 0, 0));   // 17:00 PDT on the 11th
 
   var slots = [];
   var chip = document.getElementById('gatesCountdown');
