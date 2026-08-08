@@ -33,6 +33,14 @@
       </span>
     <% } %>
   </div>
+  <%
+    /* The wax seal, pressed into the corner of the banner with your initials.
+       The colour picker was called "wax seal" before there was one, which meant
+       it only tinted a title badge that most people never see — so on most pages
+       it appeared to do nothing at all. Now it has something to colour. */
+    var initials = String(who.name||'?').trim().split(/\s+/).map(function(w){return w.charAt(0);}).join('').slice(0,2).toUpperCase();
+  %>
+  <span class="pro-seal" aria-hidden="true"><span class="pro-seal__mark"><%= initials %></span></span>
 
   <div class="container">
     <div class="pro-ident">
