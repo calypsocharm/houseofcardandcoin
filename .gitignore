@@ -11,6 +11,10 @@ askpass.exe
 app/data/
 app/uploads/
 
+# original camera-resolution artwork (kept locally for re-crops; the web
+# version lives in assets/img/)
+20260531_144549.jpg
+
 # logs
 *.log
 
