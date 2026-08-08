@@ -3380,3 +3380,80 @@ main:focus{outline:none}
   .handpitch__card:nth-child(4){transform:rotate(9.5deg) translateX(20px)}
   .handpitch__card:nth-child(5){transform:rotate(19deg) translateX(40px)}
 }
+
+/* ── One nav, at every width ──────────────────────────────────────────────
+   Two layouts were being kept honest at once: a row of links above 1200px and
+   a hamburger below it. The row was the half that kept breaking — it ran off
+   the edge of a laptop window once a signed-in member added a name pill, a
+   hall link and a sign-out button, taking the profile with it.
+
+   Now it is one button everywhere, opening a panel that nav.js fills to suit
+   whoever is signed in. .js-nav is set by an inline script in the head rather
+   than by this file, so it lands before first paint and nothing flashes; a
+   browser with scripting off never gets the class and keeps the plain row it
+   always had, instead of a button that would do nothing. */
+.js-nav .nav{position:relative}
+.js-nav .nav .nav-links{display:none}
+.js-nav .nav .menu-toggle{display:flex;margin-left:auto;position:relative}
+
+.js-nav .menu-toggle span{transition:transform .25s var(--ease),opacity .18s}
+.js-nav .menu-toggle[aria-expanded="true"] span:nth-child(1){transform:translateY(7px) rotate(45deg)}
+.js-nav .menu-toggle[aria-expanded="true"] span:nth-child(2){opacity:0}
+.js-nav .menu-toggle[aria-expanded="true"] span:nth-child(3){transform:translateY(-7px) rotate(-45deg)}
+
+/* Unread notices show on the closed button, so news reaches you without a click. */
+.menu-toggle--dot::after{content:"";position:absolute;top:0;right:1px;width:8px;height:8px;
+  border-radius:50%;background:var(--gold-l);box-shadow:0 0 0 2px var(--dark)}
+
+.js-nav .nav .nav-links.navdrawer.open{
+  display:flex;flex-direction:column;gap:0;align-items:stretch;
+  position:absolute;top:calc(100% - 6px);right:28px;left:auto;
+  width:min(322px,calc(100vw - 32px));
+  max-height:calc(100vh - 96px);overflow-y:auto;
+  background:linear-gradient(180deg,#241a10,#160f09);
+  border:1px solid var(--gold-d);border-radius:9px;
+  box-shadow:0 28px 64px -26px rgba(0,0,0,.9),inset 0 1px 0 rgba(226,199,127,.14);
+  padding:0 0 6px;z-index:70;
+  animation:navdrop .22s var(--ease) both}
+@keyframes navdrop{from{opacity:0;transform:translateY(-9px)}to{opacity:1;transform:none}}
+
+/* Who you are, at the top, so the menu answers that before you ask it. */
+.navdrawer__who{display:flex;align-items:center;gap:11px;padding:13px 18px;
+  border-bottom:1px solid rgba(226,199,127,.18)}
+.navdrawer__face{width:38px;height:38px;border-radius:50%;object-fit:cover;flex-shrink:0;
+  border:1px solid var(--gold-d);background:var(--dark)}
+.navdrawer__face--none{display:flex;align-items:center;justify-content:center;
+  font-family:var(--display);font-size:1rem;color:var(--gold-l)}
+.navdrawer__name{display:flex;flex-direction:column;min-width:0}
+.navdrawer__name b{font-family:var(--display);font-size:.92rem;letter-spacing:.02em;color:#f5e9c8;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.navdrawer__name small{font-size:.58rem;letter-spacing:.2em;text-transform:uppercase;color:var(--gold-l)}
+
+.navdrawer__label{font-family:var(--display);font-size:.57rem;letter-spacing:.28em;
+  text-transform:uppercase;color:var(--gold);margin:0;padding:15px 18px 6px}
+
+.nav .navdrawer a{display:flex;align-items:center;justify-content:space-between;gap:10px;
+  padding:9px 18px;border:0;border-radius:0;
+  font-family:var(--display);font-size:.73rem;font-weight:600;letter-spacing:.13em;
+  text-transform:uppercase;color:rgba(245,233,200,.84);
+  transition:background .18s,color .18s}
+.nav .navdrawer a:hover,.nav .navdrawer a:focus-visible{background:rgba(226,199,127,.09);color:var(--gold-l)}
+.nav .navdrawer a.active{color:var(--gold-l);background:rgba(226,199,127,.06);
+  box-shadow:inset 3px 0 0 var(--gold)}
+.nav .navdrawer a.active::after{display:none}
+
+.navdrawer__count{font-family:var(--serif);font-size:.66rem;letter-spacing:.04em;
+  text-transform:none;background:var(--wine);color:#f5e9c8;border:1px solid var(--wine-l);
+  border-radius:999px;padding:0 8px;flex-shrink:0}
+
+.navdrawer__foot{display:flex;flex-direction:column;gap:9px;padding:14px 18px 8px;margin-top:8px;
+  border-top:1px solid rgba(226,199,127,.18)}
+.nav .navdrawer .nav-login{margin:0;width:100%}
+.nav .navdrawer .nav-logout{margin:0;width:100%;display:flex}
+.navdrawer__note{font-family:var(--serif);font-size:.76rem;line-height:1.5;letter-spacing:0;
+  text-transform:none;text-align:center;color:rgba(245,233,200,.5)}
+
+@media(prefers-reduced-motion:reduce){
+  .js-nav .nav .nav-links.navdrawer.open{animation:none}
+  .js-nav .menu-toggle span{transition:none}
+}

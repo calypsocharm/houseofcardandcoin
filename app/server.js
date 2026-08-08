@@ -84,6 +84,16 @@ app.use(function(req,res,next){
   // they land — there is no email, so the site itself has to carry the word.
   var me = res.locals.u ? {t:'member',id:res.locals.u.id} : (res.locals.patron ? {t:'patron',id:res.locals.patron.id} : null);
   res.locals.unread = me ? (db.notices||[]).filter(function(n){return n.toT===me.t&&n.toId===me.id&&!n.read;}).length : 0;
+  // The nav panel is built from this — on the EJS pages inline, so the menu is
+  // right on the first paint, and on the generated static pages via /api/me,
+  // which hands back exactly this object. Nothing in it is private; it is your
+  // own name read back to you.
+  var u=res.locals.u, p=res.locals.patron;
+  res.locals.me = u
+    ? {signedIn:true,kind:'member',name:u.name,avatar:u.avatar||'',rank:rank(u),pledge:!!u.pledge,leader:u.role==='leader',unread:res.locals.unread}
+    : (p&&!p.banned)
+      ? {signedIn:true,kind:'patron',name:p.name,avatar:p.avatar||'',rank:'Tavern guest',pledge:false,leader:false,unread:res.locals.unread}
+      : {signedIn:false};
   next();
 });
 app.use('/assets',express.static(path.join(__dirname,'..','assets')));
@@ -108,7 +118,7 @@ app.use((req,res,next)=>BLOCKED.test(req.path)?res.status(404).send('Not found')
 // to reach their own profile. So the stamp is rewritten here at serve time from
 // the real file mtimes, and never has to be remembered again.
 const ASSET_FILES=['assets/css/style.css','assets/css/tavern.css',
-  'assets/js/auth-signal.js','assets/js/countdown.js','assets/js/hero-video.js','assets/js/avatar-crop.js'];
+  'assets/js/nav.js','assets/js/countdown.js','assets/js/hero-video.js','assets/js/avatar-crop.js'];
 function assetVersion(){
   let newest=0;
   ASSET_FILES.forEach(function(f){
@@ -116,6 +126,9 @@ function assetVersion(){
   });
   return String(Math.floor(newest));
 }
+// The EJS pages stamp their own script tags with this. Read once at boot, which
+// is enough — a deploy restarts the app, so the stamp moves when the files do.
+app.locals.assetv=assetVersion();
 const htmlCache=new Map();
 app.use(function(req,res,next){
   if(req.method!=='GET')return next();
@@ -224,13 +237,8 @@ const INVITE_REQUIRED=normCode(INVITE)!=='';
 // The static marketing pages (index.html, camp.html…) have a header baked in at
 // build time, so they cannot know who you are. They ask here instead.
 app.get('/api/me',(req,res)=>{
-  const u=req.session.uid?db.users.find(x=>x.id===req.session.uid):null;
-  const p=(!u&&req.session.pid)?db.patrons.find(x=>x.id===req.session.pid):null;
   res.set('Cache-Control','no-store');
-  const unread=function(t,id){return (db.notices||[]).filter(function(n){return n.toT===t&&n.toId===id&&!n.read;}).length;};
-  if(u)return res.json({signedIn:true,kind:'member',name:u.name,unread:unread('member',u.id)});
-  if(p&&!p.banned)return res.json({signedIn:true,kind:'patron',name:p.name,unread:unread('patron',p.id)});
-  res.json({signedIn:false});
+  res.json(res.locals.me);
 });
 app.get('/faq',(req,res)=>res.render('faq'));
 app.get('/members/login',(req,res)=>res.render('login',{err:req.query.e||'',code:req.query.code||'',needCode:INVITE_REQUIRED}));
@@ -697,5 +705,16 @@ app.get('/health',(req,res)=>res.json({ok:true,t:Date.now()}));// A wrong URL us
 // on a white page with no way back. Must sit after every route, before the
 // error handler.
 app.use((req,res)=>{ res.status(404).render('notfound',{gates:countdown()}); });
-app.use((err,req,res,next)=>{if(err&&err.code==="LIMIT_FILE_SIZE")return res.redirect("/members?e="+encodeURIComponent("Image too large - max 25MB. Try a smaller photo."));if(err)return res.status(500).send("Error: "+(err.message||err));});
+app.use((err,req,res,next)=>{
+  if(!err)return next();
+  // Someone who navigates away while the hero video is still downloading aborts
+  // a response Express was mid-way through streaming. The reply is already gone,
+  // so answering with a 500 on top of it throws ERR_HTTP_HEADERS_SENT and buries
+  // the real error under a stack trace. Hand it back to Express, which closes the
+  // socket quietly. Behind nginx this rarely surfaces; running the app directly
+  // it fills the log.
+  if(res.headersSent)return next(err);
+  if(err.code==="LIMIT_FILE_SIZE")return res.redirect("/members?e="+encodeURIComponent("Image too large - max 25MB. Try a smaller photo."));
+  res.status(500).send("Error: "+(err.message||err));
+});
 app.listen(PORT,()=>console.log('House of Card and Coin guild app on http://localhost:'+PORT));
