@@ -727,3 +727,44 @@
 .tally__score b{display:block;font-family:var(--display);font-size:1.2rem;color:var(--gold-l);line-height:1}
 .tally__score small{font-size:.68rem;color:var(--smoke)}
 .roll__note{text-align:center;color:var(--smoke);font-size:.82rem;margin-top:12px}
+
+/* ── searching the talk, and what is new ────────────────────────────────
+   Coming back to a long evening, you could not tell where you had left off,
+   and by October there will be a lot to scroll past. */
+.tav-find{
+  display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;
+  margin:0 0 18px;
+}
+.tav-find form{display:flex;gap:7px;align-items:center;flex:1;min-width:220px}
+.tav-find input{
+  flex:1;min-width:150px;font-family:var(--serif);font-size:.92rem;padding:8px 12px;
+  border:1px solid rgba(226,199,127,.28);border-radius:999px;
+  background:rgba(255,246,225,.06);color:#f0e2c0;
+}
+.tav-find input::placeholder{color:var(--smoke)}
+.tav-find input:focus{outline:2px solid var(--gold-d);outline-offset:1px}
+.tav-find button{
+  font-family:var(--display);font-size:.58rem;letter-spacing:.16em;text-transform:uppercase;
+  padding:8px 15px;border-radius:999px;cursor:pointer;
+  border:1px solid var(--gold-d);background:transparent;color:var(--gold-l);
+}
+.tav-find button:hover{background:rgba(226,199,127,.12)}
+.tav-find__clear{font-size:.78rem;color:var(--smoke);white-space:nowrap}
+.tav-find__clear:hover{color:var(--gold-l);text-decoration:underline}
+.tav-find__new{
+  font-family:var(--display);font-size:.6rem;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--gold-l);white-space:nowrap;
+}
+.tav-find__new b{font-size:.86rem}
+.tav-found{color:var(--smoke);margin:0 0 18px;font-size:.94rem}
+.tav-found a{color:var(--gold-l)}
+.tav-found a:hover{text-decoration:underline}
+
+/* A line said since you were last here. A mark down the edge rather than a
+   colour change, so it does not shout over the conversation. */
+.tav-said.is-new .tav-scrap{box-shadow:inset 3px 0 0 var(--gold)}
+.tav-said.is-new .tav-when::after{
+  content:"new";margin-left:7px;padding:1px 6px;border-radius:999px;
+  font-family:var(--display);font-size:.5rem;letter-spacing:.14em;text-transform:uppercase;
+  background:rgba(226,199,127,.18);color:var(--gold-l);
+}

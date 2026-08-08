@@ -127,7 +127,43 @@
 
     <div class="tav-mark"><span>Talk by the fire</span></div>
 
-    <% if(!threads.length){ %>
+    <%
+      /* Searching the talk, and a count of what has been said since you were
+         last here. Both are plain GET so a search can be shared or bookmarked
+         and the back button behaves. */
+      var newLines = 0;
+      if(seenBefore){
+        threads.forEach(function(t){
+          if(t.ts>seenBefore && !(i && t.authorType===i.t && t.authorId===i.id)) newLines++;
+          (t.replies||[]).forEach(function(r){
+            if(r.ts>seenBefore && !(i && r.authorType===i.t && r.authorId===i.id)) newLines++;
+          });
+        });
+      }
+    %>
+    <div class="tav-find">
+      <form method="get" action="/board" role="search">
+        <input type="search" name="find" value="<%= find %>" maxlength="60"
+               placeholder="Search the talk…" aria-label="Search the talk">
+        <button type="submit">Look</button>
+        <% if(find){ %><a class="tav-find__clear" href="/board">Clear</a><% } %>
+      </form>
+      <% if(newLines){ %>
+        <p class="tav-find__new"><b><%= newLines %></b> new since you were last here</p>
+      <% } %>
+    </div>
+
+    <% if(find){ %>
+      <p class="tav-found">
+        <% if(threads.length){ %>
+          <%= found %> conversation<%= found===1?'':'s' %> with “<%= find %>” in <%= found===1?'it':'them' %>.
+        <% } else { %>
+          Nothing said about “<%= find %>” yet. <a href="/board">Back to the talk</a>.
+        <% } %>
+      </p>
+    <% } %>
+
+    <% if(!threads.length && !find){ %>
       <p class="muted tav-bare">No one has spoken yet. Say the first thing.</p>
     <% } %>
 
@@ -148,8 +184,9 @@
         <% run.forEach(function(m,n){
              var mine = i && m.ty===i.t && m.uid===i.id;
              var prev = n>0 ? run[n-1] : null;
-             var same = prev && prev.ty===m.ty && prev.uid===m.uid; %>
-          <div class="tav-said<%= mine?' is-me':'' %><%= same?' is-cont':'' %>" id="m<%= m.rid %>">
+             var same = prev && prev.ty===m.ty && prev.uid===m.uid;
+             var fresh = seenBefore && m.ts > seenBefore && !mine; %>
+          <div class="tav-said<%= mine?' is-me':'' %><%= same?' is-cont':'' %><%= fresh?' is-new':'' %>" id="m<%= m.rid %>">
             <% var page = (m.ty==='member' && slugs[m.uid]) ? '/guild/'+slugs[m.uid] : null; %>
             <% if(same){ %>
               <span class="tav-face tav-face--ghost" aria-hidden="true"></span>

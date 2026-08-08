@@ -888,9 +888,30 @@ app.get('/board',(req,res)=>{
   const lastTouch=function(t){
     return (t.replies&&t.replies.length)?Math.max(t.ts,t.replies[t.replies.length-1].ts):t.ts;
   };
-  const threads=db.threads.slice().sort(function(a,b){return lastTouch(b)-lastTouch(a);}).map(freshenPost);
+  // Coming back to a long evening, you could not tell where you had left off.
+  // The mark is set from the last visit, then moved forward — so this page
+  // still shows what was new when you arrived, and the next one is measured
+  // from now. Read before it is written, or you would never see anything.
+  const seenBefore=(i&&holder(i))?(holder(i).lastBoard||0):0;
+  if(i){ const rec=holder(i); if(rec){ rec.lastBoard=Date.now(); save(); } }
+
+  // Searching the talk. Matches the words and the name that said them, so
+  // "bunk" and "Mama Bear" both find something.
+  const find=String(req.query.find||'').trim().slice(0,60);
+  const needle=find.toLowerCase();
+  function hits(p){
+    if(!needle)return true;
+    return String(p.body||'').toLowerCase().indexOf(needle)>=0
+        || String(p.authorName||'').toLowerCase().indexOf(needle)>=0;
+  }
+  let threads=db.threads.slice().sort(function(a,b){return lastTouch(b)-lastTouch(a);}).map(freshenPost);
+  if(needle){
+    threads=threads.filter(function(t){
+      return hits(t)||(t.replies||[]).some(hits);
+    });
+  }
   const polls=db.polls.slice().sort((a,b)=>b.ts-a.ts).map(freshenPost).map(function(p){const total=p.options.reduce((s,o)=>s+o.votes.length,0);const voted=i?!!p.options.find(o=>o.votes.find(v=>v.t===i.t&&v.id===i.id)):false;return Object.assign({},p,{total:total,voted:voted});});
-  res.render('board',{i:i,threads:threads,polls:polls,cats:BOARDCATS,q:req.query,leader:!!(i&&i.leader),ration:{canDraw:!!(i&&i.lastRation!==today),card:i?i.lastCard:null},hand:i?(i.hand||[]).map(cardInfo):[],pending:i&&i.pending?cardInfo(i.pending):null,handRank:i?handRank(i.hand||[]):null,handPrizes:HAND_PRIZES,tableHands:allHands(),cardPrice:CARD_PRICE,special:SPECIALS[dayOfYear()%SPECIALS.length],gates:countdown(),notices:i?(db.notices||[]).filter(function(n){return n.toT===i.t&&n.toId===i.id&&!n.read;}).length:0,folk:pres.folk,quietHrs:quietHrs,editMs:EDIT_WINDOW,editDays:EDIT_DAYS,slugs:slugById(),reacts:REACTS});
+  res.render('board',{i:i,threads:threads,polls:polls,cats:BOARDCATS,q:req.query,leader:!!(i&&i.leader),ration:{canDraw:!!(i&&i.lastRation!==today),card:i?i.lastCard:null},hand:i?(i.hand||[]).map(cardInfo):[],pending:i&&i.pending?cardInfo(i.pending):null,handRank:i?handRank(i.hand||[]):null,handPrizes:HAND_PRIZES,tableHands:allHands(),cardPrice:CARD_PRICE,special:SPECIALS[dayOfYear()%SPECIALS.length],gates:countdown(),notices:i?(db.notices||[]).filter(function(n){return n.toT===i.t&&n.toId===i.id&&!n.read;}).length:0,folk:pres.folk,quietHrs:quietHrs,editMs:EDIT_WINDOW,editDays:EDIT_DAYS,slugs:slugById(),reacts:REACTS,seenBefore:seenBefore,find:find,found:threads.length});
 });
 app.post('/board/thread',canPost,(req,res)=>{
   const i=ident(req);const body=(req.body.body||'').trim();let category=(req.body.category||'General').trim();
