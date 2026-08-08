@@ -56,6 +56,24 @@ app.use(session({
   saveUninitialized:false,
   cookie:{maxAge:7*864e5,httpOnly:true,sameSite:'lax',secure:false} // nginx terminates TLS
 }));
+// ── CSRF ──────────────────────────────────────────────────────────────────
+// The session cookie is already SameSite=lax, which stops a cross-site form
+// post carrying it at all. This is the second lock: every state-changing
+// request must say it came from here. Checking the origin rather than issuing
+// tokens means all 46 existing forms keep working untouched — a token scheme
+// silently breaks whichever form you forget, and that is a worse failure than
+// the one it prevents.
+app.use(function(req,res,next){
+  if(req.method!=='POST')return next();
+  const host=req.headers.host;
+  const from=req.headers.origin||req.headers.referer;
+  if(!from)return next();          // some privacy tools strip both; do not lock those people out
+  let sameHost=false;
+  try{ sameHost=new URL(from).host===host; }catch(e){ sameHost=false; }
+  if(sameHost)return next();
+  console.log('blocked cross-site POST to '+req.path+' from '+from);
+  res.status(403).send('That request did not come from the House. Go back and try again.');
+});
 // The header decides whether you are signed in from res.locals.u — but only the
 // Guild Hall was passing it, so every other page (tavern, guild, threads…) drew
 // "Guild Login" even while you were signed in. Set it once, for everyone.
@@ -118,13 +136,44 @@ function shrinkAvatar(req,res,next){
     })
     .catch(function(e){ console.log('avatar resize failed, keeping original:',e.message); next(); });
 }
+// Sign-in could be guessed at as fast as a script could post. Five wrong
+// answers from one address in fifteen minutes and it stops listening for a
+// while. Kept in memory on purpose: a restart forgiving everyone is fine, and
+// it means no new dependency.
+const loginTries=new Map();
+setInterval(function(){
+  const now=Date.now();
+  loginTries.forEach(function(v,k){ if(now-v.first>15*60000) loginTries.delete(k); });
+}, 5*60000).unref();
+function throttleLogin(req,res,next){
+  const key=(req.headers['x-forwarded-for']||req.ip||'?').split(',')[0].trim();
+  const now=Date.now();
+  const rec=loginTries.get(key);
+  if(rec && now-rec.first < 15*60000 && rec.n >= 5){
+    const mins=Math.ceil((15*60000-(now-rec.first))/60000);
+    return res.redirect('/members/login?e='+encodeURIComponent('Too many attempts. Try again in '+mins+' minute'+(mins===1?'':'s')+', or send a pigeon to the Guild Leader.'));
+  }
+  req._loginKey=key;
+  next();
+}
+function noteBadLogin(req){
+  const key=req._loginKey; if(!key)return;
+  const now=Date.now(); const rec=loginTries.get(key);
+  if(!rec || now-rec.first > 15*60000) loginTries.set(key,{first:now,n:1});
+  else rec.n++;
+}
+function clearLoginTries(req){ if(req._loginKey) loginTries.delete(req._loginKey); }
 function au(req,res,next){if(req.session.uid)return next();res.redirect('/members/login');}
-// Bunks are for sworn guildmates. A Pledge has an account but has not been
-// accepted into the House yet, so the camp is not theirs to book.
+// Bunks are not a perk of acceptance. Three beds a night, more guildmates
+// than that, so the House keeps them for people who have already camped a
+// faire — and past that it is first come, first served. One bed per night:
+// nobody sleeps in two at once.
+function bunkEligible(u){ return !!u && !u.pledge && (u.faires||0) >= 1; }
 function sworn(req,res,next){
   const u=cur(req);
   if(!u)return res.redirect('/members/login');
-  if(u.pledge)return res.redirect('/members?e='+encodeURIComponent('Bunks are for sworn guildmates. Ask the Guild Leader to accept your pledge, and the camp is yours.')+'#bunks');
+  if(u.pledge)return res.redirect('/members?e='+encodeURIComponent('Bunks are for sworn guildmates. Ask the Guild Leader to accept your pledge first.')+'#bunks');
+  if((u.faires||0)<1)return res.redirect('/members?e='+encodeURIComponent('The bunks are kept for guildmates who have camped a faire with the House. Camp one with us and the next is yours to claim.')+'#bunks');
   next();
 }
 function al(req,res,next){const u=db.users.find(x=>x.id===req.session.uid);if(u&&u.role==='leader')return next();res.status(403).send('Leader only');}
@@ -171,9 +220,9 @@ app.post('/members/register',up.single('avatar'),shrinkAvatar,(req,res)=>{const{
   db.users.push(u);save();req.session.uid=u.id;// A new pledge lands on a page that explains what a pledge is and what
   // happens next, rather than being dropped into the Hall unexplained.
   res.redirect(first?'/members':'/members?new=1');});
-app.post('/members/login',(req,res)=>{const{email,password}=req.body;const u=db.users.find(x=>x.email===email.toLowerCase());
-  if(!u||!bcrypt.compareSync(password,u.passhash))return res.redirect('/members/login?e='+encodeURIComponent('Bad email or password'));
-  req.session.uid=u.id;res.redirect('/members');});
+app.post('/members/login',throttleLogin,(req,res)=>{const{email,password}=req.body;const u=db.users.find(x=>x.email===String(email||'').toLowerCase());
+  if(!u||!bcrypt.compareSync(password||'',u.passhash)){noteBadLogin(req);return res.redirect('/members/login?e='+encodeURIComponent('Bad email or password'));}
+  clearLoginTries(req);req.session.uid=u.id;res.redirect('/members');});
 app.post('/members/logout',(req,res)=>{req.session.destroy(()=>res.redirect('/'));});
 app.get('/members',au,(req,res)=>{
   const u=cur(req);
@@ -186,6 +235,7 @@ app.get('/members',au,(req,res)=>{
       open:bunks.filter(x=>!x.taken).length,
       full:bunks.every(x=>x.taken),
       iHaveOne:bunks.some(x=>x.mine),
+      canBunk:bunkEligible(u),
       waiting:queue.length,
       myPlace:myIdx<0?0:myIdx+1,
       queueNames:queue.map(w=>{const p=db.users.find(x=>x.id===w.userId);return p?p.name:'?';})
@@ -279,6 +329,19 @@ app.post('/members/bring/unclaim',au,(req,res)=>{const u=cur(req);const itemId=p
 app.post('/members/bring/add',au,al,(req,res)=>{const{name,need}=req.body;if(!name)return res.redirect('/members#bring');db.items.push({id:nid(),name,need:Math.max(1,parseInt(need||1))});save();res.redirect('/members#bring');});
 app.post('/members/bring/remove',au,al,(req,res)=>{const id=parseInt(req.body.itemId);db.items=db.items.filter(x=>x.id!==id);db.claims=db.claims.filter(c=>c.itemId!==id);save();res.redirect('/members#bring');});
 app.post('/members/password',au,(req,res)=>{const u=cur(req);if(!u)return res.redirect('/members/login');const curp=req.body.current||'',np=(req.body.new||'').trim();if(!bcrypt.compareSync(curp,u.passhash))return res.redirect('/members?pw=bad#profile');if(np.length<6)return res.redirect('/members?pw=short#profile');u.passhash=bcrypt.hashSync(np,10);save();res.redirect('/members?pw=ok#profile');});// Accept a Pledge into the guild (or put someone back to Pledge by mistake-fix).
+// Backups live on the same box they protect — lose the VPS and you lose them
+// with it. This hands the Guild Leader a copy she can keep on her own machine,
+// which is the only off-box copy that actually exists.
+app.get('/members/admin/backup',al,(req,res)=>{
+  const stamp=new Date().toISOString().slice(0,10);
+  let payload;
+  try{ payload=fs.readFileSync(DATA,'utf8'); }
+  catch(e){ return res.status(500).send('Could not read the roster'); }
+  res.setHeader('Content-Type','application/json; charset=utf-8');
+  res.setHeader('Content-Disposition','attachment; filename="hocc-guild-'+stamp+'.json"');
+  res.setHeader('Cache-Control','no-store');
+  res.send(payload);
+});
 app.post('/members/admin/promote',al,(req,res)=>{const u=db.users.find(x=>x.id===parseInt(req.body.id));if(u&&u.pledge){u.pledge=false;notify('member',u.id,'You have been accepted into the House of Card and Coin. You are a Guildmate now — the camp bunks are yours to claim.');save();}res.redirect('/members#admin');});
 app.post('/members/admin/demote',al,(req,res)=>{const u=db.users.find(x=>x.id===parseInt(req.body.id));if(u&&u.role!=='leader'){u.pledge=true;save();}res.redirect('/members#admin');});
 // Someone taps Claim, realises they don't need the night, and never releases
@@ -315,9 +378,10 @@ app.post('/tavern/register',up.single('avatar'),shrinkAvatar,(req,res)=>{
   const p={id:nid(),name,email,passhash:bcrypt.hashSync(password,10),avatar:req.file?('/uploads/'+req.file.filename):'',banned:false,created:Date.now()};
   db.patrons.push(p);save();req.session.pid=p.id;res.redirect('/board');
 });
-app.post('/tavern/login',(req,res)=>{
+app.post('/tavern/login',throttleLogin,(req,res)=>{
   const email=(req.body.email||'').toLowerCase().trim();const p=db.patrons.find(x=>x.email===email);
-  if(!p||!bcrypt.compareSync(req.body.password||'',p.passhash))return res.redirect('/tavern?e='+encodeURIComponent('Bad email or password'));
+  if(!p||!bcrypt.compareSync(req.body.password||'',p.passhash)){noteBadLogin(req);return res.redirect('/tavern?e='+encodeURIComponent('Bad email or password'));}
+  clearLoginTries(req);
   if(p.banned)return res.redirect('/tavern?e='+encodeURIComponent("You've been 86'd from the tavern"));
   req.session.pid=p.id;res.redirect('/board');
 });
@@ -412,6 +476,38 @@ app.post('/board/poll/:id/vote',canPost,(req,res)=>{
   p.options.forEach(o=>{o.votes=o.votes.filter(v=>!(v.t===i.t&&v.id===i.id));});
   const opt=p.options.find(o=>o.id===optId);if(opt)opt.votes.push({t:i.t,id:i.id});
   save();res.redirect('/board#polls');
+});
+// Your own words are yours. Only the leader could strike anything, so a typo
+// was permanent unless you asked her. Edits keep a mark so nothing is silently
+// rewritten under a reply.
+app.post('/board/thread/:id/edit',canPost,(req,res)=>{
+  const i=ident(req);
+  const t=db.threads.find(x=>x.id==req.params.id);
+  if(!t)return res.redirect('/board');
+  if(!(t.authorType===i.t&&t.authorId===i.id)&&!i.leader)return res.status(403).send('Not yours to change');
+  const body=(req.body.body||'').trim();
+  if(!body)return res.redirect('/board');
+  t.body=body; t.edited=Date.now();
+  save();res.redirect('/board');
+});
+app.post('/board/thread/:id/mine/delete',canPost,(req,res)=>{
+  const i=ident(req);
+  const t=db.threads.find(x=>x.id==req.params.id);
+  if(!t)return res.redirect('/board');
+  if(!(t.authorType===i.t&&t.authorId===i.id))return res.status(403).send('Not yours to remove');
+  db.threads=db.threads.filter(x=>x.id!=req.params.id);
+  save();res.redirect('/board');
+});
+app.post('/board/reply/:id/mine/delete',canPost,(req,res)=>{
+  const i=ident(req);
+  let found=null;
+  db.threads.forEach(function(t){
+    (t.replies||[]).forEach(function(r){ if(r.id==req.params.id) found={t:t,r:r}; });
+  });
+  if(!found)return res.redirect('/board');
+  if(!(found.r.authorType===i.t&&found.r.authorId===i.id))return res.status(403).send('Not yours to remove');
+  found.t.replies=found.t.replies.filter(function(r){return r.id!=req.params.id;});
+  save();res.redirect('/board');
 });
 app.post('/board/thread/:id/delete',leaderOnly,(req,res)=>{db.threads=db.threads.filter(x=>x.id!=req.params.id);save();res.redirect('/board');});
 app.post('/board/reply/:id/delete',leaderOnly,(req,res)=>{db.threads.forEach(t=>{t.replies=t.replies.filter(r=>r.id!=req.params.id);});save();res.redirect('/board');});
@@ -541,5 +637,9 @@ app.get('/board/whispers',canPost,(req,res)=>{var i=ident(req);var mine=(db.whis
 app.get('/board/whisper/:t/:id',canPost,(req,res)=>{var i=ident(req);var ot=req.params.t,oid=parseInt(req.params.id);if(ot===i.t&&oid===i.id)return res.redirect('/board/whispers');if(ot!=='member'&&ot!=='patron')return res.redirect('/board/whispers');var p=party(ot,oid);if(!p)return res.redirect('/board/whispers');var msgs=(db.whispers||[]).filter(function(w){return ((w.fromT===i.t&&w.fromId===i.id&&w.toT===ot&&w.toId===oid)||(w.fromT===ot&&w.fromId===oid&&w.toT===i.t&&w.toId===i.id));}).sort(function(a,b){return a.ts-b.ts;});db.whispers.forEach(function(w){if(w.fromT===ot&&w.fromId===oid&&w.toT===i.t&&w.toId===i.id)w.read=true;});save();res.render('whisper',{i:i,other:{t:ot,id:oid,name:p.name,avatar:p.avatar},msgs:msgs});});
 app.post('/board/whisper/:t/:id',canPost,(req,res)=>{var i=ident(req);var ot=req.params.t,oid=parseInt(req.params.id);if(ot===i.t&&oid===i.id)return res.redirect('/board/whispers');var body=(req.body.body||'').trim();if(!body)return res.redirect('/board/whisper/'+ot+'/'+oid);if(!Array.isArray(db.whispers))db.whispers=[];db.whispers.push({id:nid(),fromT:i.t,fromId:i.id,toT:ot,toId:oid,body:body,ts:Date.now(),read:false});notify(ot,oid,i.name+' whispered you');save();res.redirect('/board/whisper/'+ot+'/'+oid);});
 
-app.get('/health',(req,res)=>res.json({ok:true,t:Date.now()}));app.use((err,req,res,next)=>{if(err&&err.code==="LIMIT_FILE_SIZE")return res.redirect("/members?e="+encodeURIComponent("Image too large - max 25MB. Try a smaller photo."));if(err)return res.status(500).send("Error: "+(err.message||err));});
+app.get('/health',(req,res)=>res.json({ok:true,t:Date.now()}));// A wrong URL used to hit Express's default and print "Cannot GET /whatever"
+// on a white page with no way back. Must sit after every route, before the
+// error handler.
+app.use((req,res)=>{ res.status(404).render('notfound',{gates:countdown()}); });
+app.use((err,req,res,next)=>{if(err&&err.code==="LIMIT_FILE_SIZE")return res.redirect("/members?e="+encodeURIComponent("Image too large - max 25MB. Try a smaller photo."));if(err)return res.status(500).send("Error: "+(err.message||err));});
 app.listen(PORT,()=>console.log('House of Card and Coin guild app on http://localhost:'+PORT));

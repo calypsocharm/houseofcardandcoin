@@ -421,3 +421,36 @@
   content:"";position:absolute;inset:3px;border:1px solid rgba(226,190,110,.3);border-radius:3px;
 }
 .pcard--tiny.is-empty::after{inset:2px}
+
+/* ── Your own words ───────────────────────────────────────────────────────
+   Only the leader could strike anything, so a typo was permanent. These sit
+   quiet until you hover your own line.                                    */
+.tav-own{display:flex;gap:7px;align-items:center;flex-wrap:wrap;margin-top:6px;
+  opacity:0;transition:opacity .18s}
+.tav-said:hover .tav-own,.tav-own:focus-within{opacity:.85}
+.tav-said.is-me .tav-own{justify-content:flex-end}
+.tav-editbox summary,.tav-mine-del{
+  font-family:var(--display);text-transform:uppercase;letter-spacing:.1em;
+  font-size:.5rem;color:var(--smoke);cursor:pointer;
+  border:1px solid rgba(194,161,77,.28);background:transparent;
+  border-radius:2px;padding:4px 9px;list-style:none;
+}
+.tav-editbox summary::-webkit-details-marker{display:none}
+.tav-editbox summary:hover,.tav-mine-del:hover{color:#f0e2c0;border-color:var(--gold-d)}
+.tav-mine-del{border-color:rgba(139,42,42,.4);color:#c98a8a}
+.tav-mine-del:hover{color:#f0c8c8;border-color:var(--wine-l)}
+.tav-editbox form{display:flex;gap:6px;margin-top:7px;min-width:230px}
+.tav-editbox input{
+  flex:1;min-width:0;background:rgba(20,14,6,.5);border:1px solid rgba(194,161,77,.28);
+  border-radius:14px;color:#f2e6c9;font-family:var(--serif);font-size:.88rem;padding:7px 12px;
+}
+.tav-editbox input:focus{outline:none;border-color:var(--gold)}
+.tav-editbox button{
+  border:0;border-radius:14px;background:var(--wine);color:#f6e7c4;cursor:pointer;
+  font-family:var(--display);text-transform:uppercase;letter-spacing:.11em;font-size:.52rem;padding:7px 13px;
+}
+.tav-edited{
+  display:inline-block;margin-left:7px;font-size:.68rem;font-style:italic;
+  color:rgba(60,44,20,.55);vertical-align:1px;
+}
+.tav-said.is-me .tav-edited{color:rgba(248,233,204,.5)}

@@ -1,0 +1,22 @@
+<%- include('_top',{title:'Lost',desc:'That page could not be found at the House of Card and Coin.'}) %>
+<section class="section" style="padding-top:130px"><div class="container" style="max-width:640px;text-align:center">
+  <div class="bannerhead"><span class="eyebrow">⚜ A Wrong Turning ⚜</span><h2>This road leads nowhere</h2><div class="rule"></div></div>
+  <p class="lead">Whatever you were looking for is not here — mistyped, moved, or a page the House never had.
+    No matter. The fire is still lit.</p>
+  <div class="hero__cta" style="justify-content:center;margin-top:26px;flex-wrap:wrap">
+    <a class="btn btn--gold" href="/index.html">Back to the House</a>
+    <a class="btn btn--wine" href="/board">The Tavern</a>
+    <a class="btn btn--ghost" href="/guild.html">The Guild</a>
+  </div>
+  <p class="muted" style="margin-top:30px;font-size:.9rem">
+    Looking for something in particular? <a href="/pigeon.html" style="color:var(--wine);font-weight:600">Send a pigeon</a>
+    and someone will point you the right way.
+  </p>
+  <% if(typeof gates!=='undefined' && gates && !gates.ended){ %>
+    <p class="muted" style="margin-top:8px;font-size:.9rem">
+      <% if(gates.open){ %>The gates are open — you should be at the faire, not here.
+      <% } else { %><b style="color:var(--wine)"><%= gates.days %></b> days until the gates open.<% } %>
+    </p>
+  <% } %>
+</div></section>
+<%- include('_bot') %>
