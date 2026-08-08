@@ -3,7 +3,7 @@
 <div class="login-backdrop"></div>
 <div class="login-veil"></div>
 <section class="section" style="padding-top:120px"><div class="container" style="max-width:540px">
-<div class="bannerhead"><span class="eyebrow" style="color:var(--gold-l)">Members Only</span><h2 style="color:#f8edd1">Guild Hall</h2><div class="rule"></div></div>
+<div class="bannerhead"><span class="eyebrow" style="color:var(--gold-l)">Members Only</span><h2 style="color:#f8edd1">Your Place in the House</h2><div class="rule"></div></div>
 <% if(err){ %><div class="login-card scroll" style="border-color:var(--wine);margin-bottom:18px;color:var(--wine)"><%= err %></div><% } %>
 <% var code = (typeof code !== 'undefined' && code) ? code : ''; var needCode = (typeof needCode === 'undefined') ? true : needCode; %>
 <div class="login-card scroll"><h3 style="color:var(--wine)">Sign In</h3><form method="post" action="/members/login"><div class="field"><label>Username or Email</label><input type="text" name="email" autocomplete="username" autocapitalize="none" autocorrect="off" spellcheck="false" required></div><div class="field"><label>Password</label><input type="password" name="password" autocomplete="current-password" required></div><button class="btn btn--gold" style="width:100%;justify-content:center">Enter the Hall</button></form><p class="muted" style="margin:12px 0 0;font-size:.86rem;text-align:center">Forgotten your password? <a href="/pigeon.html?reason=Locked%20out%20of%20my%20account" style="color:var(--wine);font-weight:600">Send a pigeon</a> and the Guild Leader will set you a new one.</p></div>

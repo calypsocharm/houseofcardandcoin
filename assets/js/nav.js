@@ -87,13 +87,13 @@
       who.appendChild(name);
       panel.appendChild(who);
 
-      panel.appendChild(el('p', 'navdrawer__label', patron ? 'Your seat' : 'Your hall'));
+      panel.appendChild(el('p', 'navdrawer__label', patron ? 'Your seat' : 'Yours'));
 
       // The Tavern is left out of a patron's own section — it is already down
       // in The House, and listing a room twice makes the menu look padded.
       var mine = patron
         ? [['Your hand', '/board#hand'], ['Notices', '/board/notices']]
-        : [['Guild Hall', '/members'], ['Your hand', '/board#hand'], ['Notices', '/board/notices']];
+        : [['Profile', '/members'], ['Your hand', '/board#hand'], ['Notices', '/board/notices']];
       if (me.leader) mine.push(['Administration', '/members#admin']);
 
       mine.forEach(function (x) {

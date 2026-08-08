@@ -1,4 +1,4 @@
-<%- include('_top',{title:'Guild Hall',u:u}) %>
+<%- include('_top',{title:'Profile',u:u}) %>
 <% if(typeof err!=="undefined"&&err){ %><div class="container" style="max-width:600px;margin:90px auto 0"><div class="scroll" style="border-color:var(--wine);color:var(--wine)"><%= err %></div></div><% } %>
 <% if(typeof q!=="undefined" && q.new && u.pledge){ %>
 <section class="section" style="padding-top:118px;padding-bottom:0"><div class="container" style="max-width:720px">
@@ -33,7 +33,7 @@
   </div>
 </div></section>
 <% } %>
-<section class="section section--parch2" style="padding-top:120px"><div class="container"><div class="bannerhead"><span class="eyebrow">Guild Hall</span><h2>Welcome, <%= u.name %></h2><div class="rule"></div></div>
+<section class="section section--parch2" style="padding-top:120px"><div class="container"><div class="bannerhead"><span class="eyebrow">Your Profile</span><h2>Welcome, <%= u.name %></h2><div class="rule"></div></div>
 <div style="display:flex;gap:18px;align-items:center;flex-wrap:wrap;justify-content:center"><% if(u.avatar){ %><img src="<%= u.avatar %>" style="width:96px;height:96px;border-radius:50%;border:3px solid var(--gold);object-fit:cover"><% } else { %><div class="member" style="padding:0;background:transparent;border:0;box-shadow:none"><div class="avatar"><%= u.name.slice(0,2).toUpperCase() %></div></div><% } %><div style="text-align:center"><div style="font-family:var(--display);font-size:1.2rem;color:var(--wine)"><%= rank %></div><div class="muted"><% if(u.class){ %>Class: <b><%= u.class %></b> &middot; <% } %>Faires with the guild: <b><%= u.faires %></b></div></div></div>
 </div></section>
 
