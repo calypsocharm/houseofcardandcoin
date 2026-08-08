@@ -146,6 +146,64 @@
           </div>
         <% } %>
 
+        <%
+          /* Spoken for. Who backed a pledge is public — that is the point of
+             being brought in by somebody. What they said is the Guild Leader's
+             alone, so a guildmate can be candid about character without it
+             being read by the person they are describing. Kept on the page
+             after acceptance, because who brought you in is worth remembering. */
+        %>
+        <% if(who.pledge || vouches.length){ %>
+          <div class="pro-card" id="vouch">
+            <h2>Spoken For</h2>
+
+            <% if(vouches.length){ %>
+              <p class="pro-vouchlead">
+                <b><%= vouches.length %></b> guildmate<%= vouches.length===1?'':'s' %>
+                <%= vouches.length===1?'has':'have' %> spoken for <%= isMe?'you':who.name %>.
+              </p>
+              <ul class="pro-vouches">
+                <% vouches.forEach(function(v){ %>
+                  <li>
+                    <%- include('_avatar',{name:v.who,avatar:v.avatar,slug:v.slug}) %>
+                    <span class="pro-vouch__who">
+                      <b><% if(v.slug){ %><a href="/guild/<%= v.slug %>"><%= v.who %></a><% } else { %><%= v.who %><% } %></b>
+                      <small><%= new Date(v.ts).toLocaleDateString(undefined,{month:'short',day:'numeric'}) %></small>
+                      <% if(leader && v.word){ %><em class="pro-vouch__word">“<%= v.word %>”</em><% } %>
+                    </span>
+                    <% if(i && i.t==='member' && (i.id===v.byId || leader)){ %>
+                      <form method="post" action="/guild/vouch/<%= v.id %>/withdraw" class="pro-vouch__x"
+                            onsubmit="return confirm('Withdraw this?')">
+                        <button type="submit">Withdraw</button>
+                      </form>
+                    <% } %>
+                  </li>
+                <% }) %>
+              </ul>
+              <% if(leader){ %>
+                <p class="pro-vouchnote">What each of them said is shown to you alone.</p>
+              <% } %>
+            <% } else if(who.pledge){ %>
+              <p class="pro-empty"><%= isMe?'Nobody has spoken for you yet.':'Nobody has spoken for '+who.name+' yet.' %>
+                The House would rather people were brought in by someone than wander in.</p>
+            <% } %>
+
+            <% if(canVouch && !vouchedAlready){ %>
+              <form class="pro-vouchform" method="post" action="/guild/<%= slug %>/vouch">
+                <label for="vouchWord">Speak for <%= who.name %></label>
+                <input id="vouchWord" name="word" maxlength="300"
+                       placeholder="How do you know them? (the Guild Leader alone reads this)">
+                <button class="btn btn--wine" type="submit">I vouch for them</button>
+                <small>Your name is shown on this page. What you write is for the Guild Leader only.</small>
+              </form>
+            <% } else if(canVouch && vouchedAlready){ %>
+              <p class="pro-vouchmine">You have spoken for <%= who.name %>.</p>
+            <% } else if(who.pledge && i && i.t==='member' && !isMe){ %>
+              <p class="pro-empty">Only sworn guildmates may speak for a pledge.</p>
+            <% } %>
+          </div>
+        <% } %>
+
         <div class="pro-card">
           <h2>The Hand<% if(handRank){ %> — <b class="pro-rank"><%= handRank.name %></b><% } %></h2>
           <% if(hand.length){ %>

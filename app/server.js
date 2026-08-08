@@ -461,6 +461,57 @@ app.post('/gallery/:id/remove',canPost,(req,res)=>{
   save();res.redirect('/gallery?removed=1');
 });
 
+// ── Vouching for a pledge ───────────────────────────────────────────────────
+// Better that people are brought in by somebody than that strangers wander in.
+// A sworn guildmate can speak for a pledge; the Guild Leader still decides, by
+// hand, as she always has. A vouch informs that, it does not perform it.
+//
+// Only sworn guildmates may vouch — a pledge vouching for a pledge is two
+// strangers agreeing with each other, which is worth nothing. Nobody may vouch
+// for themselves.
+if(!Array.isArray(db.vouches))db.vouches=[];
+function isSworn(u){ return !!u && !u.pledge; }
+function vouchesFor(userId){
+  return (db.vouches||[]).filter(function(v){return v.forId===userId;})
+    .sort(function(a,b){return a.ts-b.ts;})
+    .map(function(v){
+      var by=db.users.find(function(x){return x.id===v.byId;});
+      return {id:v.id, byId:v.byId, word:v.word||'', ts:v.ts,
+              who:by?by.name:(v.byName||'a guildmate'),
+              avatar:by?(by.avatar||''):'',
+              slug:by?(slugById()[by.id]||''):''};
+    });
+}
+app.post('/guild/:slug/vouch',au,(req,res)=>{
+  const me=cur(req);
+  const hit=slugMap().find(function(x){return x.slug===req.params.slug;});
+  if(!hit)return res.redirect('/guild.html');
+  const them=hit.u, page='/guild/'+hit.slug, back=page+'#vouch';
+  // The query has to come before the fragment or it is simply part of it,
+  // which is how these messages were being lost.
+  const nope=function(msg){ return page+'?e='+encodeURIComponent(msg)+'#vouch'; };
+  if(!isSworn(me))   return res.redirect(nope('Only sworn guildmates may speak for a pledge.'));
+  if(me.id===them.id)return res.redirect(nope('You cannot speak for yourself.'));
+  if(!them.pledge)   return res.redirect(nope(them.name+' is already sworn to the House.'));
+  if((db.vouches||[]).some(function(v){return v.forId===them.id&&v.byId===me.id;}))
+    return res.redirect(nope('You have already spoken for them.'));
+  db.vouches.push({id:nid(),forId:them.id,byId:me.id,byName:me.name,
+    word:String(req.body.word||'').trim().slice(0,300),ts:Date.now()});
+  notify('member',them.id,me.name+' has spoken for you to the House.');
+  const leader=db.users.find(function(x){return x.role==='leader';});
+  if(leader&&leader.id!==me.id)notify('member',leader.id,me.name+' vouched for '+them.name+' — a pledge awaiting your word.');
+  save();res.redirect(back);
+});
+app.post('/guild/vouch/:id/withdraw',au,(req,res)=>{
+  const me=cur(req);
+  const v=(db.vouches||[]).find(function(x){return x.id==req.params.id;});
+  if(!v)return res.redirect('/guild.html');
+  if(v.byId!==me.id&&me.role!=='leader')return res.status(403).send('Not yours to withdraw');
+  const them=db.users.find(function(u){return u.id===v.forId;});
+  db.vouches=db.vouches.filter(function(x){return x.id!=req.params.id;});
+  save();
+  res.redirect('/guild/'+(them?slugById()[them.id]:'')+'#vouch');
+});
 // What your own page is still missing. Only you ever see these, only while the
 // thing is missing, and never more than three at once — the point is a nudge,
 // not a list of everything you have failed to do. Ordered by what actually
@@ -558,7 +609,9 @@ app.get('/guild/:slug',(req,res)=>{
          coins:u.coins||0,streak:u.streak||0},
     bunks:bunks, bringing:bringing, talk:talk.slice(0,5),
     hand:(u.hand||[]).map(cardInfo), handRank:handRank(u.hand||[]),
-    page:pageOf(u), marks:marksFor(u), nudges:(i&&i.t==='member'&&i.id===u.id)?nudgesFor(u):[], charmSvg:charmSvg, charmKeys:CHARM_KEYS, charmMax:CHARM_MAX,
+    page:pageOf(u), marks:marksFor(u), vouches:vouchesFor(u.id),
+    canVouch:!!(i&&i.t==='member'&&i.id!==u.id&&u.pledge&&isSworn(db.users.find(function(x){return x.id===i.id;}))),
+    vouchedAlready:!!(i&&i.t==='member'&&(db.vouches||[]).some(function(v){return v.forId===u.id&&v.byId===i.id;})), nudges:(i&&i.t==='member'&&i.id===u.id)?nudgesFor(u):[], charmSvg:charmSvg, charmKeys:CHARM_KEYS, charmMax:CHARM_MAX,
     fonts:FONTS, fontKeys:FONT_KEYS, sizeKeys:SIZE_KEYS, sizes:SIZES,
     backdrops:BACKDROPS, layouts:LAYOUTS,
     wall:wallFor(u.id), canSign:!!i, i:i, leader:!!(i&&i.leader), q:req.query,
@@ -589,7 +642,9 @@ app.post('/guild/:slug/sign',canPost,(req,res)=>{
   const i=ident(req);
   const body=String(req.body.body||'').trim().slice(0,400);
   const back='/guild/'+hit.slug+'#wall';
-  if(!body)return res.redirect(back+'?e='+encodeURIComponent('Say something first'));
+  // Same trap as the vouch route: a query after the fragment is part of the
+  // fragment, so this message was never reaching the page.
+  if(!body)return res.redirect('/guild/'+hit.slug+'?e='+encodeURIComponent('Say something first')+'#wall');
   db.wall.push({id:nid(),toId:hit.u.id,fromT:i.t,fromId:i.id,fromName:i.name,fromAvatar:i.avatar||'',body:body,ts:Date.now()});
   // Tell them, unless they are signing their own — the House does not need to
   // notify anybody that they have spoken to themselves.
@@ -673,7 +728,7 @@ app.get('/members',au,(req,res)=>{
   })();
   const bunksLeft=NIGHTS.length*BUNKS.length-db.bunks.length;
   const items=db.items.map(it=>{const cl=db.claims.filter(c=>c.itemId===it.id);const claimed=cl.reduce((s,c)=>s+c.qty,0);return{...it,claimed,remaining:Math.max(0,it.need-claimed),claims:cl.map(c=>({qty:c.qty,who:db.users.find(y=>y.id===c.userId)})),mine:cl.find(c=>c.userId===u.id)};});
-  res.render('hall',{u,page:pageOf(u),mySlug:slugById()[u.id]||'',backdrops:BACKDROPS,layouts:LAYOUTS,fonts:FONTS,fontKeys:FONT_KEYS,sizeKeys:SIZE_KEYS,sizes:SIZES,charmKeys:CHARM_KEYS,charmSvg:charmSvg,charmMax:CHARM_MAX,rank:rank(u),classes:CLASSES,bunkBoard,bunksLeft,items,bringers,leader:u.role==='leader',users:u.role==='leader'?db.users.map(function(m){return{slug:slugById()[m.id]||'',berth:m.berth||'',name:m.name,class:m.class,faires:m.faires,rank:rank(m),pledge:!!m.pledge,leader:m.role==='leader',title:m.title||'',avatar:m.avatar,id:m.id,contactEmail:m.contactEmail||'',phone:m.phone||'',bunks:db.bunks.filter(function(b){return b.userId===m.id}).map(function(b){return b.night+' \u00b7 Bunk '+b.bunk;})};}):[],announcements:db.announcements,outreach:{emails:db.users.filter(function(x){return x.contactEmail;}).map(function(x){return x.contactEmail;}),phones:db.users.filter(function(x){return x.phone;}).map(function(x){return x.phone;})},invite:INVITE,err:req.query.e||"",q:req.query});
+  res.render('hall',{u,page:pageOf(u),mySlug:slugById()[u.id]||'',backdrops:BACKDROPS,layouts:LAYOUTS,fonts:FONTS,fontKeys:FONT_KEYS,sizeKeys:SIZE_KEYS,sizes:SIZES,charmKeys:CHARM_KEYS,charmSvg:charmSvg,charmMax:CHARM_MAX,rank:rank(u),classes:CLASSES,bunkBoard,bunksLeft,items,bringers,leader:u.role==='leader',users:u.role==='leader'?db.users.map(function(m){return{slug:slugById()[m.id]||'',berth:m.berth||'',vouches:vouchesFor(m.id),name:m.name,class:m.class,faires:m.faires,rank:rank(m),pledge:!!m.pledge,leader:m.role==='leader',title:m.title||'',avatar:m.avatar,id:m.id,contactEmail:m.contactEmail||'',phone:m.phone||'',bunks:db.bunks.filter(function(b){return b.userId===m.id}).map(function(b){return b.night+' \u00b7 Bunk '+b.bunk;})};}):[],announcements:db.announcements,outreach:{emails:db.users.filter(function(x){return x.contactEmail;}).map(function(x){return x.contactEmail;}),phones:db.users.filter(function(x){return x.phone;}).map(function(x){return x.phone;})},invite:INVITE,err:req.query.e||"",q:req.query});
 });
 // How your page looks. Separate from the details form above because these are
 // about presentation and those are about the guild — and because this one
@@ -719,7 +774,7 @@ app.post('/members/profile',au,up.single('avatar'),shrinkAvatar,(req,res)=>{cons
   if(req.file)u.avatar='/uploads/'+req.file.filename;save();res.redirect('/members#profile');});
 app.post('/members/bunk',au,sworn,(req,res)=>{const u=cur(req);const{night,bunk}=req.body;b=parseInt(bunk);
   if(!NIGHTS.includes(night)||!BUNKS.includes(b))return res.redirect('/members#bunks');
-  if(db.bunks.find(x=>x.night===night&&x.bunk===b))return res.redirect('/members#bunks?e=taken');
+  if(db.bunks.find(x=>x.night===night&&x.bunk===b))return res.redirect('/members?e=taken#bunks');
   // limit a member to one bunk per night
   db.bunks=db.bunks.filter(x=>!(x.night===night&&x.userId===u.id));
   db.bunks.push({id:nid(),night,bunk:b,userId:u.id});save();res.redirect('/members#bunks');});

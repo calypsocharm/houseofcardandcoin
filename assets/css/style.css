@@ -3506,3 +3506,16 @@ a.navdrawer__who:hover,a.navdrawer__who:focus-visible{background:rgba(226,199,12
   background:rgba(226,199,127,.14);border-color:var(--gold-d);color:var(--gold-l);
   font-style:italic;letter-spacing:.02em;
 }
+
+/* Who spoke for a pledge, in Administration — the words are the Guild
+   Leader's alone, and this panel is only ever rendered for her. */
+.admvouch{
+  margin-top:11px;padding:9px 11px;border-radius:3px;
+  background:rgba(226,199,127,.08);border:1px solid rgba(226,199,127,.28);
+}
+.admvouch__h{font-family:var(--display);font-size:.6rem;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--gold-l);margin-bottom:5px}
+.admvouch__h b{font-size:.82rem}
+.admvouch__v{font-size:.8rem;color:#e0cca4;line-height:1.5;margin-top:3px}
+.admvouch__v b{color:#f5e9c8}
+.admvouch__none{font-size:.78rem;color:#9d8a62;font-style:italic}

@@ -445,3 +445,51 @@
 .nudge__not:hover{color:var(--ink2)}
 .nudge.is-going{opacity:0;transform:translateY(-6px);transition:opacity .25s,transform .25s}
 @media(prefers-reduced-motion:reduce){.nudge.is-going{transition:none}}
+
+/* ── spoken for ─────────────────────────────────────────────────────────
+   Who backed a pledge, and — to the Guild Leader alone — what they said. */
+.pro-vouchlead{color:var(--ink2);margin-bottom:12px}
+.pro-vouchlead b{color:var(--u-accent,var(--wine))}
+.pro-vouches{list-style:none;margin:0;padding:0;display:grid;gap:9px}
+.pro-vouches li{
+  position:relative;display:flex;align-items:flex-start;gap:11px;
+  background:linear-gradient(180deg,#fffdf5,#f6ecd4);
+  border:1px solid var(--line);border-left:3px solid var(--u-seal,var(--wine));
+  border-radius:2px;padding:10px 12px;
+}
+.pro-vouches .postpic,.pro-vouches .postpic--init{
+  width:30px;height:30px;border-radius:50%;object-fit:cover;flex-shrink:0;
+  border:1px solid var(--line2);
+}
+.pro-vouch__who{display:flex;flex-direction:column;min-width:0;flex:1;line-height:1.4}
+.pro-vouch__who b{font-family:var(--u-font,var(--display));font-size:calc(.82rem * var(--u-scale,1));color:var(--ink)}
+.pro-vouch__who b a{color:inherit}
+.pro-vouch__who b a:hover{text-decoration:underline}
+.pro-vouch__who small{font-size:.7rem;color:var(--muted)}
+.pro-vouch__word{
+  margin-top:5px;font-size:calc(.9rem * var(--u-scale,1));color:var(--ink2);
+  font-style:italic;line-height:1.5;
+}
+.pro-vouch__x{position:absolute;right:8px;bottom:6px;opacity:0;transition:opacity .18s}
+.pro-vouches li:hover .pro-vouch__x,.pro-vouch__x:focus-within{opacity:1}
+.pro-vouch__x button{
+  font-family:var(--display);font-size:.5rem;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--muted);background:transparent;border:1px solid var(--line2);
+  border-radius:2px;padding:3px 7px;cursor:pointer;
+}
+.pro-vouch__x button:hover{color:var(--wine);border-color:var(--wine)}
+.pro-vouchnote{margin-top:10px;font-size:.82rem;color:var(--muted);font-style:italic}
+
+.pro-vouchform{margin-top:16px;padding-top:14px;border-top:1px solid var(--line)}
+.pro-vouchform label{
+  display:block;font-family:var(--display);font-size:.58rem;letter-spacing:.2em;
+  text-transform:uppercase;color:var(--u-accent,var(--wine));margin-bottom:7px;
+}
+.pro-vouchform input{
+  width:100%;font-family:var(--u-font,var(--serif));font-size:calc(.95rem * var(--u-scale,1));
+  padding:10px 12px;border:1px solid var(--line2);border-radius:2px;background:#fff;color:var(--ink);
+}
+.pro-vouchform input:focus{outline:2px solid var(--u-accent,var(--wine));outline-offset:1px}
+.pro-vouchform .btn{margin-top:10px}
+.pro-vouchform small{display:block;margin-top:8px;font-size:.8rem;color:var(--muted);line-height:1.5}
+.pro-vouchmine{margin-top:14px;color:var(--forest);font-weight:600;font-size:.92rem}
