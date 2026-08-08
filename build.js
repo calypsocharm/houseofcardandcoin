@@ -151,7 +151,6 @@ const camp=`${head("/camp.html")}
 <li><b>Six 3-day passes</b> � plus six festival T-shirt vouchers and six festival poster vouchers.</li>
 <li><b>Earliest access</b> � we claim the spot Thursday, October 8; guildies camp from Friday, October 9.</li>
 <li><b>Private campground</b> � designated potties and private entertainment.</li>
-<li><b>Voucher pickup</b> � Clark County Merchandise Booth inside Vendor Village, during festival hours (sizes first-come, first-served).</li>
 </ul>
 <p class="muted" style="margin-top:16px">? <b>Dry camping space</b> � no water service, dump station, or servicing is provided by Clark County (contact Las Vegas Toilet Rentals to arrange). RV trailers must unhook from the tow vehicle; no vehicles may remain hitched during the event. Camp spots are very limited and first-come, first-served. <b>No showers on site.</b></p></div>
 <div>

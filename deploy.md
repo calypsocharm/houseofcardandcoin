@@ -121,6 +121,13 @@ ssh -o PreferredAuthentications=password -o PubkeyAuthentication=no root@187.124
 fragments in `content/`. **Edit `content/` and `build.js`, not the generated HTML** —
 a rebuild overwrites the root `.html` files.
 
+> ⚠️ **Do not run `build.js` without checking first.** `camp.html` has three
+> sections the generator does not know about — Facilities & Bathrooms, Food &
+> Drink, and Wristbands & the RV Gate — added to the HTML directly at some
+> point. A rebuild would delete all three. Fold them into `build.js` before
+> ever regenerating, or keep editing the HTML directly and accept that
+> `build.js` is now stale for this page.
+>
 > `build.js` line 2 hardcodes an absolute Windows path:
 > `const ROOT="C:/Users/Calyp/OneDrive/Documents/New project/houseofcardandcoin-site"`.
 > It still writes to the **old OneDrive folder**. Change it to `__dirname` (or to the
