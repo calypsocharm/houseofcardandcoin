@@ -38,13 +38,24 @@
 <%
   /* Decided here rather than in a deferred script so the doors are up before
      the first paint — otherwise you would see the Tavern for a frame and then
-     have a door shut in your face. Once a session: a fine trick the first time,
-     a toll gate by the fifth. ?enter=1 replays it on demand. */
+     have a door shut in your face.
+
+     Once a day, which is the rhythm the Tavern is actually used at: people come
+     of an evening to take their card, and that arrival is the moment worth
+     opening the doors for. It was once a browser session, which turned out to
+     be far rarer than intended — leave a tab open all week and you see it once.
+     Coming back from another page in the same day does not replay it, so it
+     never becomes a toll gate. ?enter=1 replays it whenever you want.
+
+     The date is kept in localStorage, so it survives closing the browser; the
+     old sessionStorage key is no longer read. Local dates on purpose — the day
+     should turn over at your midnight, not UTC's. */
 %>
 <script>(function(){try{
   if(window.matchMedia('(prefers-reduced-motion:reduce)').matches)return;
-  if(!/[?&]enter=1/.test(location.search)&&sessionStorage.getItem('hocc-tavern'))return;
-  sessionStorage.setItem('hocc-tavern','1');
+  var d=new Date(), today=d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate();
+  if(!/[?&]enter=1/.test(location.search)&&localStorage.getItem('hocc-tavern-day')===today)return;
+  localStorage.setItem('hocc-tavern-day',today);
   document.documentElement.className+=' tav-enter';
 }catch(e){}})();</script>
 <% } %>
