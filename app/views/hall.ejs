@@ -62,6 +62,81 @@
 <div class="scroll"><h3>How Ranks Rise</h3><ul class="camp-list"><li><b>Pledge</b> — signed up, awaiting the Guild Leader's welcome into the House</li><li><b>Guildmate</b> — accepted and sworn to the House</li><li><b>Veteran</b> — 3+ faires</li><li><b>Elder</b> — 6+ faires</li><li><b>Guild Leader &amp; Guild Elder</b> — by appointment of the House (Sir Caberk &amp; Mama Bear)</li></ul></div><div class="scroll"><h3>Change Password</h3><form method="post" action="/members/password"><div class="field"><label>Current password</label><input type="password" name="current" aria-label="Your current password" required></div><div class="field"><label>New password</label><input type="password" name="new" aria-label="Your new password" required minlength="6"></div><button class="btn btn--gold">Update Password</button></form></div>
 </div></div></section>
 
+<!-- ── How your own page looks ──────────────────────────────────────────────
+     Presentation, kept apart from the details above, which are guild business.
+     Every value here is checked on the way in: the colours against a six-digit
+     hex, the rest against a fixed list. Nothing typed becomes markup. -->
+<section class="section section--parch2" id="page"><div class="container" style="max-width:820px">
+  <div class="bannerhead"><span class="eyebrow">⚜ Make It Yours ⚜</span><h2>Your Page</h2><div class="rule"></div></div>
+  <p class="lead center" style="margin-bottom:26px">This is what folk see at
+    <a href="/guild/<%= mySlug %>" style="color:var(--wine);font-weight:600">/guild/<%= mySlug %></a>.
+    The sheet fills itself in — this is the dressing.</p>
+
+  <form method="post" action="/members/page" enctype="multipart/form-data" class="pagekit">
+
+    <div class="field">
+      <label for="pgMotto">Your motto <span class="muted" style="font-size:.8rem">— one line, under your name</span></label>
+      <input id="pgMotto" name="motto" maxlength="90" value="<%= page.motto %>"
+             placeholder="Every bargain has its price…">
+    </div>
+
+    <div class="field">
+      <label for="pgAbout">Of yourself <span class="muted" style="font-size:.8rem">— a few lines, if you like</span></label>
+      <textarea id="pgAbout" name="about" rows="4" maxlength="700"
+                placeholder="Who you are at camp, what you answer to, where to find you after dark."><%= page.about %></textarea>
+    </div>
+
+    <div class="pagekit__row">
+      <div class="field">
+        <label for="pgAccent">Accent</label>
+        <input id="pgAccent" type="color" name="accent" value="<%= page.accent %>">
+      </div>
+      <div class="field">
+        <label for="pgSeal">Wax seal</label>
+        <input id="pgSeal" type="color" name="seal" value="<%= page.seal %>">
+      </div>
+      <div class="field">
+        <label for="pgTint">Background</label>
+        <input id="pgTint" type="color" name="tint" value="<%= page.tint %>">
+      </div>
+    </div>
+
+    <div class="pagekit__row">
+      <div class="field">
+        <label for="pgBack">Backdrop</label>
+        <select id="pgBack" name="backdrop">
+          <% backdrops.forEach(function(b){ %>
+            <option value="<%= b %>"<%= page.backdrop===b?' selected':'' %>><%= b.charAt(0).toUpperCase()+b.slice(1) %></option>
+          <% }) %>
+        </select>
+      </div>
+      <div class="field">
+        <label for="pgLay">Arrangement</label>
+        <select id="pgLay" name="layout">
+          <% layouts.forEach(function(l){ %>
+            <option value="<%= l %>"<%= page.layout===l?' selected':'' %>><%= l==='sheet'?'Two column':(l==='scroll'?'Scroll':'Poster') %></option>
+          <% }) %>
+        </select>
+      </div>
+    </div>
+
+    <div class="field">
+      <label for="pgBanner">Banner across the top <span class="muted" style="font-size:.8rem">— wide suits it best</span></label>
+      <input id="pgBanner" type="file" name="banner" accept="image/*">
+      <% if(page.banner){ %>
+        <img src="<%= page.banner %>" alt="Your current banner" class="pagekit__ban">
+        <label class="pagekit__check"><input type="checkbox" name="dropBanner" value="1"> Take this banner off</label>
+      <% } %>
+    </div>
+
+    <label class="pagekit__check">
+      <input type="checkbox" name="sparkle" value="1"<%= page.sparkle?' checked':'' %>> Sparkles follow the cursor on my page
+    </label>
+
+    <button class="btn btn--gold" style="margin-top:8px">Save my page</button>
+  </form>
+</div></section>
+
 <section class="section" id="rsvp"><div class="container" style="max-width:680px;text-align:center"><div class="bannerhead"><span class="eyebrow">Are You Coming This Year?</span><h2>RSVP for the 2026 Faire</h2><div class="rule"></div></div><% if(u.rsvp){ %><p>You are marked as <b style="color:var(--forest)">coming</b> to the 2026 Faire.</p><form method="post" action="/members/rsvp" style="margin-top:14px"><button class="btn btn--ghost">I am no longer coming</button></form><% } else { %><p class="lead">Let the House know you will be there &mdash; your name gets a "Coming" mark on the public guild page.</p><form method="post" action="/members/rsvp" style="margin-top:14px"><button class="btn btn--gold">I am coming this year!</button></form><% } %></div></section><section class="section section--parch2" id="bunks"><div class="container"><div class="bannerhead"><span class="eyebrow">⚜ Camp Bunks ⚜</span><h2>Reserve a Night &amp; a Bunk</h2><div class="rule"></div></div>
 <p class="lead center">Three bunks, three nights — one bed per person per night. Release yours if plans change so a guildmate can take it.</p>
 <p class="lead center" style="max-width:660px;margin:0 auto 6px;font-size:.98rem">There are only nine beds all weekend, so they are kept for guildmates who have <b>already camped a faire</b> with the House. Beyond that it is first come, first served.</p>

@@ -187,6 +187,44 @@ function shrinkAvatar(req,res,next){
     })
     .catch(function(e){ console.log('avatar resize failed, keeping original:',e.message); next(); });
 }
+// Banners are wide, not square, and they sit behind a name — so a face-finding
+// crop is wrong here. Take the middle and let the picture speak.
+function shrinkBanner(req,res,next){
+  if(!req.file)return next();
+  var p=req.file.path, input;
+  try{ input=fs.readFileSync(p); }
+  catch(e){ console.log('banner read failed, keeping original:',e.message); return next(); }
+  sharp(input).rotate()
+    .resize(1600,420,{fit:'cover'})
+    .jpeg({quality:76,mozjpeg:true})
+    .toBuffer()
+    .then(function(buf){ fs.writeFileSync(p,buf); req.file.size=buf.length; next(); })
+    .catch(function(e){ console.log('banner resize failed, keeping original:',e.message); next(); });
+}
+// ── What a guildmate may set on their own page ──────────────────────────────
+// Only ever chosen from these, or matched against a pattern. Nothing a member
+// types is allowed to become markup or a style rule: the colours are checked
+// against a six-digit hex and everything else has to be one of these exact
+// words, so the worst a bad value can do is fall back to the default.
+const BACKDROPS=['plain','weave','timber','damask','stars'];
+const LAYOUTS=['sheet','scroll','poster'];
+const HEX=/^#[0-9a-f]{6}$/i;
+function pickHex(v,fallback){ v=String(v||'').trim(); return HEX.test(v)?v.toLowerCase():fallback; }
+function pickOne(v,list,fallback){ v=String(v||'').trim(); return list.indexOf(v)>=0?v:fallback; }
+function pageOf(u){
+  return {
+    motto:u.motto||'', about:u.about||'',
+    accent:pickHex(u.cAccent,'#6e1a1a'),
+    seal:pickHex(u.cSeal,'#8b2a2a'),
+    tint:pickHex(u.cTint,'#f4ead2'),
+    backdrop:pickOne(u.backdrop,BACKDROPS,'plain'),
+    layout:pickOne(u.layout,LAYOUTS,'sheet'),
+    sparkle:!!u.sparkle,
+    // Only ever written by us as '/uploads/<multer's hex name>'. Checked anyway,
+    // because it ends up inside a style attribute on a public page.
+    banner:/^\/uploads\/[a-f0-9]+$/i.test(String(u.banner||''))?u.banner:''
+  };
+}
 // Sign-in could be guessed at as fast as a script could post. Five wrong
 // answers from one address in fifteen minutes and it stops listening for a
 // while. Kept in memory on purpose: a restart forgiving everyone is fine, and
@@ -293,6 +331,7 @@ app.get('/guild/:slug',(req,res)=>{
          coins:u.coins||0,streak:u.streak||0},
     bunks:bunks, bringing:bringing, talk:talk.slice(0,5),
     hand:(u.hand||[]).map(cardInfo), handRank:handRank(u.hand||[]),
+    page:pageOf(u),
     isMe:!!(i&&i.t==='member'&&i.id===u.id), slug:hit.slug,
     // Whispering used to hide behind the little figures in the tavern room.
     // Those now lead here, so the door has to be on this page instead.
@@ -360,7 +399,34 @@ app.get('/members',au,(req,res)=>{
   })();
   const bunksLeft=NIGHTS.length*BUNKS.length-db.bunks.length;
   const items=db.items.map(it=>{const cl=db.claims.filter(c=>c.itemId===it.id);const claimed=cl.reduce((s,c)=>s+c.qty,0);return{...it,claimed,remaining:Math.max(0,it.need-claimed),claims:cl.map(c=>({qty:c.qty,who:db.users.find(y=>y.id===c.userId)})),mine:cl.find(c=>c.userId===u.id)};});
-  res.render('hall',{u,rank:rank(u),classes:CLASSES,bunkBoard,bunksLeft,items,bringers,leader:u.role==='leader',users:u.role==='leader'?db.users.map(function(m){return{name:m.name,class:m.class,faires:m.faires,rank:rank(m),pledge:!!m.pledge,leader:m.role==='leader',title:m.title||'',avatar:m.avatar,id:m.id,contactEmail:m.contactEmail||'',phone:m.phone||'',bunks:db.bunks.filter(function(b){return b.userId===m.id}).map(function(b){return b.night+' \u00b7 Bunk '+b.bunk;})};}):[],announcements:db.announcements,outreach:{emails:db.users.filter(function(x){return x.contactEmail;}).map(function(x){return x.contactEmail;}),phones:db.users.filter(function(x){return x.phone;}).map(function(x){return x.phone;})},invite:INVITE,err:req.query.e||"",q:req.query});
+  res.render('hall',{u,page:pageOf(u),mySlug:slugById()[u.id]||'',backdrops:BACKDROPS,layouts:LAYOUTS,rank:rank(u),classes:CLASSES,bunkBoard,bunksLeft,items,bringers,leader:u.role==='leader',users:u.role==='leader'?db.users.map(function(m){return{name:m.name,class:m.class,faires:m.faires,rank:rank(m),pledge:!!m.pledge,leader:m.role==='leader',title:m.title||'',avatar:m.avatar,id:m.id,contactEmail:m.contactEmail||'',phone:m.phone||'',bunks:db.bunks.filter(function(b){return b.userId===m.id}).map(function(b){return b.night+' \u00b7 Bunk '+b.bunk;})};}):[],announcements:db.announcements,outreach:{emails:db.users.filter(function(x){return x.contactEmail;}).map(function(x){return x.contactEmail;}),phones:db.users.filter(function(x){return x.phone;}).map(function(x){return x.phone;})},invite:INVITE,err:req.query.e||"",q:req.query});
+});
+// How your page looks. Separate from the details form above because these are
+// about presentation and those are about the guild — and because this one
+// carries a banner upload, which needs its own handler.
+app.post('/members/page',au,up.single('banner'),shrinkBanner,(req,res)=>{
+  const u=cur(req);if(!u)return res.redirect('/members/login');
+  u.motto=String(req.body.motto||'').trim().slice(0,90);
+  u.about=String(req.body.about||'').trim().slice(0,700);
+  u.cAccent=pickHex(req.body.accent,'#6e1a1a');
+  u.cSeal=pickHex(req.body.seal,'#8b2a2a');
+  u.cTint=pickHex(req.body.tint,'#f4ead2');
+  u.backdrop=pickOne(req.body.backdrop,BACKDROPS,'plain');
+  u.layout=pickOne(req.body.layout,LAYOUTS,'sheet');
+  u.sparkle=!!req.body.sparkle;
+  if(req.body.dropBanner&&u.banner&&u.banner.startsWith('/uploads/')){
+    try{ fs.unlinkSync(path.join(__dirname,u.banner.replace('/uploads/','uploads/'))); }catch(e){}
+    u.banner='';
+  }
+  if(req.file){
+    // same trap as avatars: replacing one used to strand the old file forever
+    if(u.banner&&u.banner.startsWith('/uploads/')){
+      try{ fs.unlinkSync(path.join(__dirname,u.banner.replace('/uploads/','uploads/'))); }catch(e){}
+    }
+    u.banner='/uploads/'+req.file.filename;
+  }
+  save();
+  res.redirect('/guild/'+(slugById()[u.id]||''));
 });
 app.post('/members/profile',au,up.single('avatar'),shrinkAvatar,(req,res)=>{const u=cur(req);if(!u)return res.redirect('/members/login');
   if(String(req.body.name||'').trim())u.name=String(req.body.name).trim();

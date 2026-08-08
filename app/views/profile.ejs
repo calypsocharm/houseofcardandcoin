@@ -1,8 +1,18 @@
 <%- include('_top',{title:who.name,active:'guild',desc:who.name+' of the House of Card and Coin — rank, faires camped, hand and doings before the Age of Chivalry Renaissance Festival.',image:'/assets/img/og/index.jpg',url:'https://houseofcardandcoin.com/guild/'+slug}) %>
 <link rel="stylesheet" href="/assets/css/profile.css?v=<%= typeof assetv!=='undefined'?assetv:'1' %>">
 
-<div class="pro">
-  <div class="pro-banner" aria-hidden="true"><span class="pro-banner__art"></span><span class="pro-banner__fade"></span></div>
+<%
+  /* Their three colours ride in as custom properties. Each has already been
+     matched against a six-digit hex on the way into the record, and the
+     backdrop and arrangement against fixed lists, so nothing here can become a
+     style rule of somebody's own devising. */
+%>
+<div class="pro" data-backdrop="<%= page.backdrop %>" data-layout="<%= page.layout %>"
+     style="--u-accent:<%= page.accent %>;--u-seal:<%= page.seal %>;--u-tint:<%= page.tint %>">
+  <div class="pro-banner" aria-hidden="true"<%= page.banner?' style="background-image:url('+"'"+page.banner+"'"+')"':'' %>>
+    <% if(!page.banner){ %><span class="pro-banner__art"></span><% } %>
+    <span class="pro-banner__fade"></span>
+  </div>
 
   <div class="container">
     <div class="pro-ident">
@@ -20,6 +30,7 @@
             <% if(who.cls){ %><span class="pro-pill pro-pill--quiet"><%= who.cls %></span><% } %>
             <% if(who.rsvp){ %><span class="pro-pill pro-pill--quiet">✓ Coming in 2026</span><% } %>
           </div>
+          <% if(page.motto){ %><p class="pro-motto">“<%= page.motto %>”</p><% } %>
           <% if(who.pledge){ %>
             <p class="pro-note">A pledge of the House — awaiting the Guild Leader’s word.</p>
           <% } %>
@@ -28,7 +39,7 @@
       <% if(canWhisper){ %>
         <p class="pro-acts"><a class="btn btn--wine" href="<%= whisperTo %>">Whisper to <%= who.name %></a></p>
       <% } %>
-      <p class="pro-back"><a href="/guild.html">← Back to the roster</a><% if(isMe){ %> · <a href="/members">Edit your details in the Guild Hall</a><% } %></p>
+      <p class="pro-back"><a href="/guild.html">← Back to the roster</a><% if(isMe){ %> · <a href="/members#page">Change how this page looks</a> · <a href="/members#profile">Your details</a><% } %></p>
     </div>
 
     <div class="pro-cols">
@@ -60,6 +71,18 @@
       </div>
 
       <div class="pro-main">
+        <% if(page.about){ %>
+          <div class="pro-card">
+            <h2>Of <%= isMe?'Yourself':'Them' %></h2>
+            <p class="pro-about"><%= page.about %></p>
+          </div>
+        <% } else if(isMe){ %>
+          <div class="pro-card">
+            <h2>Of Yourself</h2>
+            <p class="pro-empty">Nothing written yet. <a href="/members#page">Say a few words</a> and they sit here.</p>
+          </div>
+        <% } %>
+
         <div class="pro-card">
           <h2>The Hand<% if(handRank){ %> — <b class="pro-rank"><%= handRank.name %></b><% } %></h2>
           <% if(hand.length){ %>
@@ -94,4 +117,23 @@
   </div>
 </div>
 
+<% if(page.sparkle){ %>
+<script>
+/* Their sparkles, on their page only. Ours to draw, theirs to switch on —
+   which is the whole trick: all the fun of a decorated page, none of it
+   running anybody else's code. */
+(function(){
+  if(window.matchMedia('(prefers-reduced-motion:reduce)').matches)return;
+  var last=0;
+  addEventListener('pointermove',function(e){
+    var now=Date.now(); if(now-last<45)return; last=now;
+    var s=document.createElement('div');
+    s.className='pro-sparkle';
+    s.style.left=(e.clientX-4)+'px'; s.style.top=(e.clientY-4)+'px';
+    document.body.appendChild(s);
+    setTimeout(function(){ s.remove(); },900);
+  },{passive:true});
+})();
+</script>
+<% } %>
 <%- include('_bot') %>
