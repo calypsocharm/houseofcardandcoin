@@ -2821,9 +2821,16 @@ body.tavern-page .note__open{color:#5a4226}
 /* ═══ The Tavern — a room, not a notice board ══════════════════════════════
    Committed to night on purpose: this section is dark even though the rest of
    the site is parchment. The stage stays pinned while the talk scrolls past. */
+/* The room is a direct child of <main>, which already spans the page, so the
+   usual full-bleed pull was never needed — and it was doing harm. 50vw counts
+   the scrollbar and 50% does not, so the difference (the scrollbar's width)
+   pushed the room past the right edge and gave the Tavern a sideways scrollbar
+   nothing could be reached with. Percentages throughout: the padding now
+   resolves against the same box the width does, so the column lands on exactly
+   1000px instead of 1000-minus-a-scrollbar. */
 .tav{--tav-scrap:#f2e6c8;--tav-smoke:#bfa980;
-  background:#120c07;color:#efe0be;margin:0 calc(50% - 50vw);
-  padding:0 max(18px,calc(50vw - 500px));min-height:100vh}
+  background:#120c07;color:#efe0be;margin:0;
+  padding:0 max(18px,calc(50% - 500px));min-height:100vh}
 .tav *{box-sizing:border-box}
 
 .tav-stage{position:sticky;top:78px;z-index:20;padding-top:14px;
