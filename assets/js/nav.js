@@ -29,6 +29,7 @@
     ['The Guild',           '/guild.html'],
     ['Sellsword',           '/sellsword.html'],
     ['Scroll of Events',    '/events.html'],
+    ['The Weekend',         '/weekend'],
     ['Ren Faire Camp',      '/camp.html'],
     ['The Tavern',          '/board'],
     ['The Roll of Hands',   '/board/roll'],

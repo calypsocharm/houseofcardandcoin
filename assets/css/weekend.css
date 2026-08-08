@@ -1,0 +1,96 @@
+/* The weekend in one place. Its own file, loaded only on /weekend, rather
+   than more weight on style.css. */
+
+.wk-clock{margin-top:18px}
+
+.wk-stats{display:flex;gap:14px;flex-wrap:wrap;justify-content:center;margin-bottom:40px}
+.wk-stat{
+  flex:1;min-width:130px;text-align:center;padding:16px 12px;
+  background:var(--ivory);border:1px solid var(--line);border-radius:3px;
+  box-shadow:0 12px 30px -26px rgba(60,40,15,.9);
+}
+.wk-stat b{display:block;font-family:var(--display);font-size:2rem;color:var(--wine);line-height:1}
+.wk-stat span{display:block;margin-top:5px;font-size:.7rem;letter-spacing:.18em;
+  text-transform:uppercase;color:var(--muted)}
+.wk-stat.is-want{border-color:var(--gold-d);background:#fdf6e4}
+.wk-stat.is-want b{color:var(--gold-d)}
+
+.wk-block{margin-bottom:44px}
+.wk-block h2{
+  font-size:.68rem;letter-spacing:.24em;text-transform:uppercase;color:var(--wine);
+  padding-bottom:9px;margin-bottom:16px;border-bottom:1px solid var(--line);
+}
+.wk-lead{color:var(--ink2);margin-bottom:14px}
+.wk-lead a,.wk-note a,.wk-band a{color:var(--wine);font-weight:600}
+.wk-lead a:hover,.wk-note a:hover{text-decoration:underline}
+.wk-done{color:var(--forest);font-weight:600}
+.wk-note{margin-top:14px;font-size:.86rem;color:var(--muted);line-height:1.6}
+
+/* still wanted */
+.wk-wanted{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.wk-wanted li{
+  display:flex;align-items:center;gap:12px;
+  background:var(--ivory);border:1px solid var(--line);border-left:3px solid var(--gold);
+  border-radius:3px;padding:10px 14px;
+}
+.wk-wanted__n{
+  min-width:34px;text-align:center;font-family:var(--display);font-size:1.15rem;
+  color:var(--gold-d);flex-shrink:0;
+}
+.wk-wanted__w{flex:1;min-width:0;font-size:1rem;color:var(--ink)}
+.wk-wanted small{color:var(--muted);font-size:.8rem;white-space:nowrap}
+
+/* coming */
+.wk-folk{display:flex;gap:12px;flex-wrap:wrap}
+.wk-person{
+  display:flex;align-items:center;gap:9px;
+  background:var(--ivory);border:1px solid var(--line);border-radius:999px;
+  padding:6px 15px 6px 7px;
+}
+.wk-person .postpic,.wk-person .postpic--init{
+  width:32px;height:32px;border-radius:50%;object-fit:cover;flex-shrink:0;
+  border:1px solid var(--line2);
+}
+.wk-person span{display:flex;flex-direction:column;line-height:1.25}
+.wk-person b{font-family:var(--display);font-size:.84rem;color:var(--ink)}
+.wk-person b a{color:inherit}
+.wk-person b a:hover{text-decoration:underline}
+.wk-person small{font-size:.68rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+
+/* nights */
+.wk-nights{display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(230px,1fr))}
+.wk-night{background:var(--ivory);border:1px solid var(--line);border-radius:3px;overflow:hidden}
+.wk-night__h{
+  background:var(--parchment2);padding:9px 14px;font-family:var(--display);
+  font-size:.76rem;letter-spacing:.06em;color:var(--ink);border-bottom:1px solid var(--line);
+}
+.wk-bunk{display:flex;align-items:center;justify-content:space-between;gap:10px;
+  padding:9px 14px;border-bottom:1px dotted var(--line)}
+.wk-bunk:last-child{border-bottom:0}
+.wk-bunk__n{font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;
+  font-family:var(--display);color:var(--muted)}
+.wk-bunk__who{display:flex;align-items:center;gap:7px;font-size:.9rem;color:var(--ink)}
+.wk-bunk__who .postpic,.wk-bunk__who .postpic--init{
+  width:24px;height:24px;border-radius:50%;object-fit:cover;border:1px solid var(--line2);
+}
+.wk-bunk__who a{color:var(--wine);font-weight:600}
+.wk-bunk__who a:hover{text-decoration:underline}
+.wk-bunk__open{font-size:.82rem;color:var(--forest);font-weight:600}
+.wk-bunk.is-taken{background:#fbf5e6}
+
+/* gates */
+.wk-gates{list-style:none;margin:0 0 14px;padding:0;display:grid;gap:7px;max-width:440px}
+.wk-gates li{display:flex;justify-content:space-between;gap:14px;padding:9px 0;
+  border-bottom:1px dotted var(--line)}
+.wk-gates li:last-child{border-bottom:0}
+.wk-gates b{font-family:var(--display);font-size:.88rem}
+.wk-band{
+  background:#fdf6e4;border:1px solid var(--gold-d);border-radius:3px;
+  padding:13px 15px;color:var(--ink2);line-height:1.6;
+}
+
+@media(max-width:560px){
+  .wk-stat b{font-size:1.6rem}
+  .wk-wanted li{flex-wrap:wrap}
+  .wk-wanted small{width:100%;margin-left:46px}
+}

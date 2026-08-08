@@ -1,0 +1,102 @@
+<%- include('_top',{title:'The Weekend',active:'weekend',desc:'Everything about the House of Card and Coin at the Age of Chivalry — who is coming, who sleeps where, what is still wanted, and when the gates open.',image:'/assets/img/og/camp.jpg',url:'https://houseofcardandcoin.com/weekend'}) %>
+<link rel="stylesheet" href="/assets/css/weekend.css?v=<%= typeof assetv!=='undefined'?assetv:'1' %>">
+
+<section class="pagehero"><div class="pagehero__bg" style="background-image:url('/assets/img/020.jpg')"></div>
+<div class="container pagehero__inner"><span class="eyebrow">⚜ October 9 – 11, 2026 ⚜</span>
+<h1>The Weekend</h1>
+<p>Who is coming, who sleeps where, what is still wanted, and when the gates open. Everything in one place.</p>
+<p class="wk-clock"><span class="chip chip--count" id="gatesCountdown" hidden></span></p>
+</div></section>
+
+<section class="section"><div class="container" style="max-width:960px">
+
+  <!-- ── the three numbers worth knowing at a glance ───────────────────── -->
+  <div class="wk-stats">
+    <div class="wk-stat"><b><%= coming.length %></b><span>coming</span></div>
+    <div class="wk-stat"><b><%= bunksLeft %></b><span>bunk<%= bunksLeft===1?'':'s' %> open</span></div>
+    <div class="wk-stat<%= wanted.length?' is-want':'' %>"><b><%= wanted.length %></b><span>still wanted</span></div>
+  </div>
+
+  <!-- ── still wanted, which the bring-list never led with ─────────────── -->
+  <div class="wk-block">
+    <h2>Still wanted</h2>
+    <% if(wanted.length){ %>
+      <p class="wk-lead">Nobody is counting, but these are the gaps. Claim one under
+        <a href="/members#bring">Profile</a>.</p>
+      <ul class="wk-wanted">
+        <% wanted.forEach(function(w){ %>
+          <li><span class="wk-wanted__n"><%= w.remaining %></span>
+              <span class="wk-wanted__w"><%= w.name %></span>
+              <% if(w.claimed){ %><small><%= w.claimed %> of <%= w.need %> spoken for</small><% } %></li>
+        <% }) %>
+      </ul>
+    <% } else { %>
+      <p class="wk-lead wk-done">Every last thing on the list is spoken for. <%= items %> of <%= items %>.</p>
+    <% } %>
+  </div>
+
+  <!-- ── who is coming ─────────────────────────────────────────────────── -->
+  <div class="wk-block">
+    <h2>Coming</h2>
+    <% if(coming.length){ %>
+      <div class="wk-folk">
+        <% coming.forEach(function(c){ %>
+          <div class="wk-person">
+            <%- include('_avatar',{name:c.name,avatar:c.avatar,slug:c.slug}) %>
+            <span><b><% if(c.slug){ %><a href="/guild/<%= c.slug %>"><%= c.name %></a><% } else { %><%= c.name %><% } %></b><small><%= c.rank %></small></span>
+          </div>
+        <% }) %>
+      </div>
+    <% } else { %>
+      <p class="wk-lead">Nobody has said yet. Mark yourself under <a href="/members#rsvp">Profile</a>.</p>
+    <% } %>
+  </div>
+
+  <!-- ── who sleeps where ──────────────────────────────────────────────── -->
+  <div class="wk-block">
+    <h2>Who sleeps where</h2>
+    <% if(berths.length){ %>
+      <p class="wk-lead">Two berths are spoken for all weekend — <%= berths.map(function(b){return b.who;}).join(' and ') %>.
+        The three below are open each night.</p>
+    <% } %>
+    <div class="wk-nights">
+      <% board.forEach(function(d){ %>
+        <div class="wk-night">
+          <p class="wk-night__h"><%= d.night %></p>
+          <% d.bunks.forEach(function(b){ %>
+            <div class="wk-bunk<%= b.taken?' is-taken':'' %>">
+              <span class="wk-bunk__n">Bunk <%= b.bunk %></span>
+              <% if(b.taken && b.who){ %>
+                <span class="wk-bunk__who">
+                  <%- include('_avatar',{name:b.who.name,avatar:b.who.avatar,slug:b.who.slug}) %>
+                  <% if(b.who.slug){ %><a href="/guild/<%= b.who.slug %>"><%= b.who.name %></a><% } else { %><%= b.who.name %><% } %>
+                </span>
+              <% } else { %>
+                <span class="wk-bunk__open">Open</span>
+              <% } %>
+            </div>
+          <% }) %>
+        </div>
+      <% }) %>
+    </div>
+    <p class="wk-note">Bunks are for guildmates who have already camped a faire, one bed per person per night,
+      first come first served. Claim yours under <a href="/members#bunks">Profile</a>.</p>
+  </div>
+
+  <!-- ── the gates ─────────────────────────────────────────────────────── -->
+  <div class="wk-block">
+    <h2>Gates</h2>
+    <ul class="wk-gates">
+      <li><b>Friday, Oct 9</b><span>10 a.m. – 10 p.m.</span></li>
+      <li><b>Saturday, Oct 10</b><span>10 a.m. – 10 p.m.</span></li>
+      <li><b>Sunday, Oct 11</b><span>10 a.m. – <b>5 p.m.</b></span></li>
+    </ul>
+    <p class="wk-band"><b>If you hold a bunk you have a wristband, and the wristband is your way in
+      from the camping area.</b> Do not buy a ticket you already have.</p>
+    <p class="wk-note">Box office, gate procedures and what the faire will not let in are on the
+      <a href="/camp.html#faire">Ren Faire Camp</a> page.</p>
+  </div>
+
+</div></section>
+
+<%- include('_bot') %>

@@ -122,7 +122,7 @@ app.use((req,res,next)=>BLOCKED.test(req.path)?res.status(404).send('Not found')
 // had not been bumped by hand — most recently leaving a signed-in member unable
 // to reach their own profile. So the stamp is rewritten here at serve time from
 // the real file mtimes, and never has to be remembered again.
-const ASSET_FILES=['assets/css/style.css','assets/css/tavern.css','assets/css/profile.css','assets/css/gallery.css',
+const ASSET_FILES=['assets/css/style.css','assets/css/tavern.css','assets/css/profile.css','assets/css/gallery.css','assets/css/weekend.css',
   'assets/js/nav.js','assets/js/countdown.js','assets/js/hero-video.js','assets/js/avatar-crop.js','assets/js/dress.js'];
 function assetVersion(){
   let newest=0;
@@ -359,6 +359,39 @@ app.get('/api/me',(req,res)=>{
   res.set('Cache-Control','no-store');
   res.json(res.locals.me);
 });
+// ── The weekend, in one place ───────────────────────────────────────────────
+// Who is coming, who sleeps where, what is still wanted and when the gates
+// open were spread across three pages. Sixty days out this is the page people
+// actually want, so it gathers them rather than adding anything new.
+function bringList(){
+  return db.items.map(function(it){
+    var claimed=(db.claims||[]).filter(function(c){return c.itemId===it.id;})
+      .reduce(function(s,c){return s+c.qty;},0);
+    return {id:it.id,name:it.name,need:it.need,claimed:claimed,
+            remaining:Math.max(0,it.need-claimed)};
+  });
+}
+app.get('/weekend',(req,res)=>{
+  const i=ident(req);
+  const coming=db.users.filter(function(u){return u.rsvp;})
+    .map(function(u){return {name:u.name,avatar:u.avatar||'',slug:slugById()[u.id]||'',rank:rank(u)};});
+  const board=NIGHTS.map(function(n){
+    return {night:n,bunks:BUNKS.map(function(b){
+      const o=db.bunks.find(function(x){return x.night===n&&x.bunk===b;});
+      const who=o?db.users.find(function(y){return y.id===o.userId;}):null;
+      return {bunk:b,taken:!!o,
+              who:who?{name:who.name,avatar:who.avatar||'',slug:slugById()[who.id]||''}:null};
+    })};
+  });
+  const list=bringList();
+  res.render('weekend',{
+    i:i, gates:countdown(), coming:coming, board:board, berths:heldBerths(),
+    wanted:list.filter(function(x){return x.remaining>0;}).sort(function(a,b){return b.remaining-a.remaining;}),
+    covered:list.filter(function(x){return x.remaining===0;}).length,
+    items:list.length, bunksLeft:board.reduce(function(s,d){return s+d.bunks.filter(function(b){return !b.taken;}).length;},0)
+  });
+});
+
 // ── The gallery ─────────────────────────────────────────────────────────────
 // Faire pictures, put up by whoever took them. Two copies are kept: a full one
 // no larger than 1600px for looking at, and a square thumb for the grid, so a
