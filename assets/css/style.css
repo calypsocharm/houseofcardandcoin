@@ -3277,3 +3277,22 @@ main:focus{outline:none}
   letter-spacing:.1em;font-size:.55rem;vertical-align:1px;
 }
 @media (max-width:560px){ .pledgewelcome{padding:26px 20px 22px} }
+
+/* ── FAQ ──────────────────────────────────────────────────────────────────
+   Questions people actually ask, grouped so the page can be scanned rather
+   than read. Answers stay open — nothing is worth a click to reveal. */
+.faq-group{margin-bottom:38px}
+.faq-group > h2{
+  font-family:var(--display);font-size:1.15rem;letter-spacing:.03em;
+  color:var(--wine);margin:0 0 4px;padding-bottom:9px;
+  border-bottom:2px solid var(--line2);
+}
+.faq{padding:17px 0;border-bottom:1px solid var(--line)}
+.faq:last-child{border-bottom:0}
+.faq h3{
+  font-family:var(--display);font-size:1rem;letter-spacing:.02em;
+  color:var(--ink);margin:0 0 7px;
+}
+.faq p{margin:0 0 8px;color:var(--ink2);line-height:1.7}
+.faq p:last-child{margin-bottom:0}
+.faq a{color:var(--wine);font-weight:600}

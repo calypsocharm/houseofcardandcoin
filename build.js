@@ -3,7 +3,7 @@ const ROOT="C:/Users/Calyp/OneDrive/Documents/New project/houseofcardandcoin-sit
 const I="/assets/img/";
 const esc=s=>String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
 const SITE={name:"House of Card and Coin",motto:"Where Fortunes Shift, Destinies Unfurl, and Every Bargain Has Its Price.",tag:"Whispers, Wagers, and Well-Kept Secrets",faire:"31st Annual Age of Chivalry Renaissance Festival",dates:"October 9 � 11, 2026",email:"houseofcardandcoin@gmail.com",loc:"Sunset Park � 2601 E Sunset Rd � Las Vegas, NV 89120"};
-const NAV=[["Home","/index.html"],["Guild","/guild.html"],["Sellsword","/sellsword.html"],["Ranks","/ranks.html"],["Scroll of Events","/events.html"],["Ren Faire Camp","/camp.html"],["Tavern","/board"],["Carrier Pigeon","/pigeon.html"]];
+const NAV=[["Home","/index.html"],["Guild","/guild.html"],["Sellsword","/sellsword.html"],["Ranks","/ranks.html"],["Scroll of Events","/events.html"],["Ren Faire Camp","/camp.html"],["Tavern","/board"],["FAQ","/faq"],["Carrier Pigeon","/pigeon.html"]];
 const head=(active)=>`<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>${esc(SITE.name)} � ${esc(SITE.tag)} | Age of Chivalry Renaissance Festival</title>
 <meta name="description" content="The House of Card and Coin � a Renaissance Faire guild of skilled traders, dealers, readers, brokers and sellswords. Join us at the 31st Annual Age of Chivalry Renaissance Festival, ${SITE.dates}, Sunset Park, Las Vegas.">

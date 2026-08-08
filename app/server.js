@@ -198,6 +198,7 @@ app.get('/api/me',(req,res)=>{
   if(p&&!p.banned)return res.json({signedIn:true,kind:'patron',name:p.name,unread:unread('patron',p.id)});
   res.json({signedIn:false});
 });
+app.get('/faq',(req,res)=>res.render('faq'));
 app.get('/members/login',(req,res)=>res.render('login',{err:req.query.e||'',code:req.query.code||'',needCode:INVITE_REQUIRED}));
 // /join is the share link. If an invite code is required, ?code=XXXX pre-fills it.
 app.get('/join',(req,res)=>res.render('login',{err:req.query.e||'',code:req.query.code||'',needCode:INVITE_REQUIRED}));
