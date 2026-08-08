@@ -32,12 +32,14 @@ const home=`${head("/index.html")}
 <div class="hero__cta"><a class="btn btn--gold" href="/guild.html">Enter the Guild</a><a class="btn btn--ghost" href="/events.html">Scroll of Events</a></div>
 <div class="hero__meta"><span class="chip chip--count" id="gatesCountdown" hidden></span><span class="chip"><b>${SITE.dates}</b></span><span class="chip">Gates 10AM�10PM</span><span class="chip">Sunset Park, Las Vegas</span></div></div></section>
 
-<section class="section"><div class="container"><div class="bannerhead"><span class="eyebrow">The Specialists of the House</span><h2>Dealers � Readers � Brokers</h2><div class="rule"></div></div>
+<section class="section"><div class="container"><div class="bannerhead"><span class="eyebrow">Before the Gates Open</span><h2>Three Ways In</h2><div class="rule"></div></div>
 <div class="grid grid--3">
-<div class="rolecard"><img class="rolecard__img" src="${I}024.jpg" alt="The Dealer of Dares & Delights"><div class="rolecard__body"><h3>?? Dealers</h3><p>The Dealer of Dares &amp; Delights � step up to the table of our resident card maestro. Games of chance, tests of strategy, and merry diversions. The house doesn't always win, but it certainly enjoys the attempt.</p></div></div>
-<div class="rolecard"><img class="rolecard__img" src="${I}013.jpg" alt="The Interpreter of Inner Trails"><div class="rolecard__body"><h3>?? Readers</h3><p>The Interpreter of Inner Trails � our gifted tarot reader illuminates your path, explores your questions, and offers fresh perspectives. Let the ancient wisdom of the cards spark inspiration.</p></div></div>
-<div class="rolecard"><img class="rolecard__img" src="${I}005.jpg" alt="The Broker of Balanced Bargains"><div class="rolecard__body"><h3>?? Brokers</h3><p>The Broker of Balanced Bargains � our astute accountant and broker navigates the nuances of exchange, facilitates discreet transactions, and keeps all ledgers � visible and invisible � meticulously kept.</p></div></div>
-</div></div></section>
+<a class="rolecard rolecard--link" href="/board"><img class="rolecard__img" loading="lazy" decoding="async" src="/assets/img/024.jpg" alt="Talk by the fire in the Tavern"><div class="rolecard__body"><h3>🍺 Say hello in the Tavern</h3><p>The fire is lit and the talk is already going. Anyone may read it — claim a seat and put your oar in.</p><span class="rolecard__go">Step inside &rarr;</span></div></a>
+<a class="rolecard rolecard--link" href="/members/login"><img class="rolecard__img" loading="lazy" decoding="async" src="/assets/img/013.jpg" alt="Join the House of Card and Coin"><div class="rolecard__body"><h3>✦ Take your place</h3><p>Make an account and the pre-faire fun is yours: a card a night toward your hand, the bring-list, and the camp board.</p><span class="rolecard__go">Join the House &rarr;</span></div></a>
+<a class="rolecard rolecard--link" href="/faq"><img class="rolecard__img" loading="lazy" decoding="async" src="/assets/img/005.jpg" alt="Camp questions answered"><div class="rolecard__body"><h3>📜 Camp questions?</h3><p>Bunks, bathrooms, firewood, wristbands and what to bring — asked and answered in one place.</p><span class="rolecard__go">Read the FAQ &rarr;</span></div></a>
+</div>
+<p class="lead center" style="margin-top:30px">See you there — <b>October 9 &ndash; 11</b> at Sunset Park.</p>
+</div></section>
 
 <section class="section section--parch2"><div class="container"><div class="grid grid--2" style="align-items:center">
 <div>${fig("002.jpg","43","Parchment &amp; the Rogue's Watermark","A guild secret, sealed")}</div>

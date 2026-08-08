@@ -3326,3 +3326,25 @@ main:focus{outline:none}
   .nav-links{flex-wrap:wrap;justify-content:flex-end}
   .nav-links .signal{white-space:nowrap}
 }
+
+/* ── Landing cards that actually go somewhere ─────────────────────────────
+   The three specialist cards read as flavour and clicked to nothing — and the
+   same words already sit on the Guild page. These are the three things a
+   visitor can usefully do before the gates open, so they look pressable. */
+.rolecard--link{
+  display:block;text-decoration:none;color:inherit;
+  transition:transform .18s var(--ease), box-shadow .18s var(--ease), border-color .18s var(--ease);
+}
+.rolecard--link:hover{
+  transform:translateY(-3px);
+  border-color:var(--gold);
+  box-shadow:0 20px 38px -26px rgba(60,40,15,.85);
+}
+.rolecard--link:focus-visible{outline:2px solid var(--gold);outline-offset:3px}
+.rolecard__go{
+  display:inline-block;margin-top:12px;
+  font-family:var(--display);text-transform:uppercase;letter-spacing:.13em;
+  font-size:.6rem;color:var(--wine);
+  border-bottom:1px solid currentColor;padding-bottom:2px;
+}
+.rolecard--link:hover .rolecard__go{color:var(--gold-d)}
