@@ -102,6 +102,40 @@ app.post('/pigeon',async(req,res)=>{const{Name,Email,Reason,Message}=req.body||{
 // publicly downloadable. Block them before static gets a chance to serve them.
 const BLOCKED=/^\/(app|content)(\/|$)|^\/(build|serve)\.js$|^\/\./i;
 app.use((req,res,next)=>BLOCKED.test(req.path)?res.status(404).send('Not found'):next());
+// The generated pages carry a hand-written ?v= stamp on their stylesheet and
+// scripts. Twice now a CSS change shipped and nobody saw it, because the stamp
+// had not been bumped by hand — most recently leaving a signed-in member unable
+// to reach their own profile. So the stamp is rewritten here at serve time from
+// the real file mtimes, and never has to be remembered again.
+const ASSET_FILES=['assets/css/style.css','assets/css/tavern.css',
+  'assets/js/auth-signal.js','assets/js/countdown.js','assets/js/hero-video.js','assets/js/avatar-crop.js'];
+function assetVersion(){
+  let newest=0;
+  ASSET_FILES.forEach(function(f){
+    try{ const m=fs.statSync(path.join(__dirname,'..',f)).mtimeMs; if(m>newest)newest=m; }catch(e){}
+  });
+  return String(Math.floor(newest));
+}
+const htmlCache=new Map();
+app.use(function(req,res,next){
+  if(req.method!=='GET')return next();
+  let rel=req.path==='/'?'index.html':req.path.replace(/^\//,'');
+  if(!/^[a-z0-9_-]+\.html$/i.test(rel))return next();
+  const file=path.join(__dirname,'..',rel);
+  let st; try{ st=fs.statSync(file); }catch(e){ return next(); }
+  const v=assetVersion();
+  const key=rel+':'+st.mtimeMs+':'+v;
+  let body=htmlCache.get(key);
+  if(body===undefined){
+    try{ body=fs.readFileSync(file,'utf8'); }catch(e){ return next(); }
+    body=body.replace(/(\/assets\/(?:css|js)\/[a-z0-9._-]+)(\?v=[^"']*)?/gi,'$1?v='+v);
+    htmlCache.clear();               // one page's change means the stamp moved for all
+    htmlCache.set(key,body);
+  }
+  res.set('Content-Type','text/html; charset=utf-8');
+  res.set('Cache-Control','public, max-age=0');
+  res.send(body);
+});
 app.use(express.static(path.join(__dirname,'..'))); // marketing site (index.html etc.)
 const sharp=require('sharp');
 // Only images, and only ones we can actually process. Without a filter any file

@@ -3296,3 +3296,33 @@ main:focus{outline:none}
 .faq p{margin:0 0 8px;color:var(--ink2);line-height:1.7}
 .faq p:last-child{margin-bottom:0}
 .faq a{color:var(--wine);font-weight:600}
+
+/* ── The nav needs more room than it used to ──────────────────────────────
+   Collapsing at 980px was right when the bar held seven links. It now holds
+   eight, plus a "Signed in — <name>" pill, the Guild Hall link and Sign out,
+   which runs several hundred pixels past the edge on a ~1000px window —
+   taking Guild Hall and Sign out off-screen with it, so a signed-in member
+   could not reach their own profile.
+
+   The hamburger now takes over below 1200px, where the row genuinely stops
+   fitting. Only the nav moves; the grid and footer rules stay on 980px. */
+@media(min-width:981px) and (max-width:1200px){
+  .nav-links{
+    display:none;position:fixed;top:78px;left:0;right:0;
+    flex-direction:column;gap:0;background:var(--dark);
+    padding:12px 28px 26px;border-bottom:1px solid var(--gold-d);
+  }
+  .nav-links.open{display:flex}
+  .nav-links a{padding:14px 0;border-bottom:1px solid #2e2316;font-size:.8rem}
+  .nav-links a.active::after{display:none}
+  .nav-links .signal{align-self:flex-start;margin:12px 0 4px}
+  .nav-links .newsbell{align-self:flex-start;margin:4px 0 8px}
+  .nav-links .nav-login{align-self:center;margin:16px 0 8px;padding:11px 26px;border-bottom:none;width:auto}
+  .nav-logout{border-bottom:none}
+  .menu-toggle{display:flex}
+}
+/* Above 1200px the row fits, but only just — keep it from ever spilling. */
+@media(min-width:1201px){
+  .nav-links{flex-wrap:wrap;justify-content:flex-end}
+  .nav-links .signal{white-space:nowrap}
+}
