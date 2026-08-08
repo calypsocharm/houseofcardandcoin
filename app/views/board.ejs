@@ -131,7 +131,7 @@
     %>
     <% threads.forEach(function(t){ %>
       <% var run=[{who:t.authorName,av:t.authorAvatar,ty:t.authorType,uid:t.authorId,body:t.body,ts:t.ts,edited:t.edited,kind:'thread',rid:t.id}]
-             .concat((t.replies||[]).map(function(r){return {who:r.authorName,av:r.authorAvatar,ty:r.authorType,uid:r.authorId,body:r.body,ts:r.ts,kind:'reply',rid:r.id};})); %>
+             .concat((t.replies||[]).map(function(r){return {who:r.authorName,av:r.authorAvatar,ty:r.authorType,uid:r.authorId,body:r.body,ts:r.ts,edited:r.edited,kind:'reply',rid:r.id};})); %>
       <div class="tav-run">
         <% run.forEach(function(m,n){
              var mine = i && m.ty===i.t && m.uid===i.id;
@@ -151,17 +151,29 @@
               <% } %>
               <div class="tav-scrap"><p><%= m.body %></p><% if(m.edited){ %><span class="tav-edited">edited</span><% } %></div>
               <% if(mine){ %>
+                <%
+                  /* A week to put your own words right — replies included, which
+                     could never be edited at all before. After that the line is
+                     part of the record and the controls give way to a quiet note
+                     saying so, rather than buttons that would only be refused. */
+                  var base = m.kind==='thread' ? '/board/thread/' : '/board/reply/';
+                  var open = (Date.now() - m.ts) < editMs;
+                %>
                 <div class="tav-own">
-                  <% if(m.kind==='thread'){ %>
+                  <% if(open){ %>
                     <details class="tav-editbox"><summary>Edit</summary>
-                      <form method="post" action="/board/thread/<%= m.rid %>/edit">
+                      <form method="post" action="<%= base %><%= m.rid %>/edit">
                         <input name="body" value="<%= m.body %>" aria-label="Edit your message" required>
                         <button type="submit">Save</button>
                       </form>
                     </details>
-                    <form method="post" action="/board/thread/<%= m.rid %>/mine/delete" onsubmit="return confirm('Remove this and its replies?')"><button class="tav-mine-del" type="submit">Remove</button></form>
+                    <% if(m.kind==='thread'){ %>
+                      <form method="post" action="/board/thread/<%= m.rid %>/mine/delete" onsubmit="return confirm('Remove this and its replies?')"><button class="tav-mine-del" type="submit">Remove</button></form>
+                    <% } else { %>
+                      <form method="post" action="/board/reply/<%= m.rid %>/mine/delete" onsubmit="return confirm('Remove your reply?')"><button class="tav-mine-del" type="submit">Remove</button></form>
+                    <% } %>
                   <% } else { %>
-                    <form method="post" action="/board/reply/<%= m.rid %>/mine/delete" onsubmit="return confirm('Remove your reply?')"><button class="tav-mine-del" type="submit">Remove</button></form>
+                    <span class="tav-kept" title="Words older than <%= editDays %> days stand as they were said">Kept as said</span>
                   <% } %>
                 </div>
               <% } %>

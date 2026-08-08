@@ -507,7 +507,7 @@ app.get('/board',(req,res)=>{
   };
   const threads=db.threads.slice().sort(function(a,b){return lastTouch(b)-lastTouch(a);}).map(freshenPost);
   const polls=db.polls.slice().sort((a,b)=>b.ts-a.ts).map(freshenPost).map(function(p){const total=p.options.reduce((s,o)=>s+o.votes.length,0);const voted=i?!!p.options.find(o=>o.votes.find(v=>v.t===i.t&&v.id===i.id)):false;return Object.assign({},p,{total:total,voted:voted});});
-  res.render('board',{i:i,threads:threads,polls:polls,cats:BOARDCATS,q:req.query,leader:!!(i&&i.leader),ration:{canDraw:!!(i&&i.lastRation!==today),card:i?i.lastCard:null},hand:i?(i.hand||[]).map(cardInfo):[],pending:i&&i.pending?cardInfo(i.pending):null,handRank:i?handRank(i.hand||[]):null,handPrizes:HAND_PRIZES,tableHands:allHands(),cardPrice:CARD_PRICE,special:SPECIALS[dayOfYear()%SPECIALS.length],gates:countdown(),notices:i?(db.notices||[]).filter(function(n){return n.toT===i.t&&n.toId===i.id&&!n.read;}).length:0,folk:pres.folk,quietHrs:quietHrs});
+  res.render('board',{i:i,threads:threads,polls:polls,cats:BOARDCATS,q:req.query,leader:!!(i&&i.leader),ration:{canDraw:!!(i&&i.lastRation!==today),card:i?i.lastCard:null},hand:i?(i.hand||[]).map(cardInfo):[],pending:i&&i.pending?cardInfo(i.pending):null,handRank:i?handRank(i.hand||[]):null,handPrizes:HAND_PRIZES,tableHands:allHands(),cardPrice:CARD_PRICE,special:SPECIALS[dayOfYear()%SPECIALS.length],gates:countdown(),notices:i?(db.notices||[]).filter(function(n){return n.toT===i.t&&n.toId===i.id&&!n.read;}).length:0,folk:pres.folk,quietHrs:quietHrs,editMs:EDIT_WINDOW,editDays:EDIT_DAYS});
 });
 app.post('/board/thread',canPost,(req,res)=>{
   const i=ident(req);const body=(req.body.body||'').trim();let category=(req.body.category||'General').trim();
@@ -549,14 +549,50 @@ app.post('/board/poll/:id/vote',canPost,(req,res)=>{
 // Your own words are yours. Only the leader could strike anything, so a typo
 // was permanent unless you asked her. Edits keep a mark so nothing is silently
 // rewritten under a reply.
+// A typo should not be permanent, and a conversation should not stay rewritable
+// for ever. You get a week to put your own words right; after that the line is
+// part of the House's record and stands as it was said. The Guild Leader is not
+// bound by the clock — she can mend or strike anything, whenever.
+const EDIT_DAYS=7;
+const EDIT_WINDOW=EDIT_DAYS*24*60*60*1000;
+function stillOpen(post){ return !!post && (Date.now()-post.ts)<EDIT_WINDOW; }
+const LOCKED='Said more than '+EDIT_DAYS+' days ago — that one is part of the House’s record now, and stands as it was said.';
+function findReply(id){
+  var hit=null;
+  db.threads.forEach(function(t){
+    (t.replies||[]).forEach(function(r){ if(r.id==id) hit={t:t,r:r}; });
+  });
+  return hit;
+}
+// Author or leader, and inside the week unless you are the leader.
+function mayAmend(post,i){
+  if(!post||!i)return false;
+  if(i.leader)return true;
+  if(!(post.authorType===i.t&&post.authorId===i.id))return false;
+  return stillOpen(post);
+}
 app.post('/board/thread/:id/edit',canPost,(req,res)=>{
   const i=ident(req);
   const t=db.threads.find(x=>x.id==req.params.id);
   if(!t)return res.redirect('/board');
   if(!(t.authorType===i.t&&t.authorId===i.id)&&!i.leader)return res.status(403).send('Not yours to change');
+  if(!mayAmend(t,i))return res.redirect('/board?e='+encodeURIComponent(LOCKED));
   const body=(req.body.body||'').trim();
   if(!body)return res.redirect('/board');
   t.body=body; t.edited=Date.now();
+  save();res.redirect('/board');
+});
+// Replies could never be edited at all — only deleted — so a typo in one meant
+// removing the line and saying it again, which orphans anything said after it.
+app.post('/board/reply/:id/edit',canPost,(req,res)=>{
+  const i=ident(req);
+  const f=findReply(req.params.id);
+  if(!f)return res.redirect('/board');
+  if(!(f.r.authorType===i.t&&f.r.authorId===i.id)&&!i.leader)return res.status(403).send('Not yours to change');
+  if(!mayAmend(f.r,i))return res.redirect('/board?e='+encodeURIComponent(LOCKED));
+  const body=(req.body.body||'').trim();
+  if(!body)return res.redirect('/board');
+  f.r.body=body; f.r.edited=Date.now();
   save();res.redirect('/board');
 });
 app.post('/board/thread/:id/mine/delete',canPost,(req,res)=>{
@@ -564,17 +600,17 @@ app.post('/board/thread/:id/mine/delete',canPost,(req,res)=>{
   const t=db.threads.find(x=>x.id==req.params.id);
   if(!t)return res.redirect('/board');
   if(!(t.authorType===i.t&&t.authorId===i.id))return res.status(403).send('Not yours to remove');
+  // Locked means locked: a line you can still delete is not part of any record.
+  if(!mayAmend(t,i))return res.redirect('/board?e='+encodeURIComponent(LOCKED));
   db.threads=db.threads.filter(x=>x.id!=req.params.id);
   save();res.redirect('/board');
 });
 app.post('/board/reply/:id/mine/delete',canPost,(req,res)=>{
   const i=ident(req);
-  let found=null;
-  db.threads.forEach(function(t){
-    (t.replies||[]).forEach(function(r){ if(r.id==req.params.id) found={t:t,r:r}; });
-  });
+  const found=findReply(req.params.id);
   if(!found)return res.redirect('/board');
   if(!(found.r.authorType===i.t&&found.r.authorId===i.id))return res.status(403).send('Not yours to remove');
+  if(!mayAmend(found.r,i))return res.redirect('/board?e='+encodeURIComponent(LOCKED));
   found.t.replies=found.t.replies.filter(function(r){return r.id!=req.params.id;});
   save();res.redirect('/board');
 });

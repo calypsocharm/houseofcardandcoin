@@ -586,3 +586,11 @@
 /* Never for anyone who asked for stillness — the head script already checks,
    this is the second lock on the same door. */
 @media(prefers-reduced-motion:reduce){ .tav-enter .tavdoor{display:none} }
+
+/* Past the week, the buttons give way to this — quieter than a control,
+   so a line that has settled into the record looks settled rather than
+   broken. Matches the controls' type, minus the border and the cursor. */
+.tav-kept{
+  font-family:var(--display);text-transform:uppercase;letter-spacing:.1em;
+  font-size:.5rem;color:rgba(195,173,131,.5);padding:4px 2px;cursor:default;
+}
