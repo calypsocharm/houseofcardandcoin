@@ -370,11 +370,49 @@ app.get('/api/me',(req,res)=>{
 // Who is coming, who sleeps where, what is still wanted and when the gates
 // open were spread across three pages. Sixty days out this is the page people
 // actually want, so it gathers them rather than adding anything new.
+// A face for each thing on the bring list. Matched on words rather than kept
+// against item ids, so anything the Guild Leader adds later gets one too
+// without a code change. First match wins, so the specific entries sit above
+// the general ones — firewood before fire, breakfast before meat.
+const BRING_ICONS=[
+  [/beer|ale|cider|wine|drink|booze/,'\u{1F37A}'],
+  [/water|gallon/,'\u{1F4A7}'],
+  [/coffee|tea|cocoa/,'☕'],
+  [/breakfast|egg|bacon|pancake/,'\u{1F373}'],
+  [/dessert|desert|cake|pie|sweet|cookie/,'\u{1F370}'],
+  [/marshmallow|s.?more|chocolate/,'\u{1F36B}'],
+  [/dish|potluck|share|casserole|chili/,'\u{1F958}'],
+  [/bbq|grill|charcoal|barbec/,'\u{1F356}'],
+  [/meat|steak|burger|sausage/,'\u{1F969}'],
+  [/snack|chip|popcorn|pretzel/,'\u{1F37F}'],
+  [/fruit|veg|salad/,'\u{1F34E}'],
+  [/cooler|ice\b|icebox/,'\u{1F9CA}'],
+  [/firewood|\bwood\b|\blogs?\b|kindling/,'\u{1FAB5}'],
+  [/propane|gas\b|fuel|tank/,'\u{1F6E2}️'],
+  [/fire|flame/,'\u{1F525}'],
+  [/light|lantern|lamp|torch|candle/,'\u{1F3EE}'],
+  [/decor|banner|flag|bunting|pennant/,'\u{1F56F}️'],
+  [/trash|rubbish|garbage|bin/,'\u{1F5D1}️'],
+  [/paper|utensil|plate|napkin|cup|cutlery|fork/,'\u{1F37D}️'],
+  [/tent|canopy|shade|awning|tarp/,'⛺'],
+  [/chair|seat|stool|bench/,'\u{1FA91}'],
+  [/table/,'\u{1F9FA}'],
+  [/blanket|bedding|pillow|sleeping|cot/,'\u{1F6CF}️'],
+  [/rope|stake|hammer|mallet|tool/,'\u{1F528}'],
+  [/first aid|bandage|medicine|sunscreen|bug spray/,'\u{1FA79}'],
+  [/costume|garb|hat|cloak/,'\u{1F3AD}'],
+  [/card|game|dice/,'\u{1F0CF}']
+];
+function bringIcon(name){
+  var s=String(name||'').toLowerCase();
+  for(var i=0;i<BRING_ICONS.length;i++) if(BRING_ICONS[i][0].test(s)) return BRING_ICONS[i][1];
+  return '\u{1F4E6}';
+}
 function bringList(){
   return db.items.map(function(it){
     var claimed=(db.claims||[]).filter(function(c){return c.itemId===it.id;})
       .reduce(function(s,c){return s+c.qty;},0);
-    return {id:it.id,name:it.name,need:it.need,claimed:claimed,
+    return {id:it.id,name:it.name,need:it.need,claimed:claimed,icon:bringIcon(it.name),
             remaining:Math.max(0,it.need-claimed)};
   });
 }

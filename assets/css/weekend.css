@@ -2,24 +2,39 @@
    than more weight on style.css. */
 
 .wk-clock{margin-top:18px}
+/* .chip is display:inline-flex, which outranks the browser's [hidden]{display:none}
+   — so the empty gates note was drawn as a bare gold box until it had text. */
+.wk-clock .chip[hidden]{display:none}
+
+/* Each block carries its own colour, set once here and inherited by the heading
+   rule, the icon and anything tinted inside it, so a block's identity is one
+   declaration rather than four. */
+.wk-block--want{--wk:var(--gold-d)}
+.wk-block--folk{--wk:var(--forest)}
+.wk-block--bunk{--wk:var(--wine)}
 
 .wk-stats{display:flex;gap:14px;flex-wrap:wrap;justify-content:center;margin-bottom:40px}
 .wk-stat{
-  flex:1;min-width:130px;text-align:center;padding:16px 12px;
-  background:var(--ivory);border:1px solid var(--line);border-radius:3px;
-  box-shadow:0 12px 30px -26px rgba(60,40,15,.9);
+  flex:1;min-width:130px;text-align:center;padding:14px 12px 16px;
+  background:var(--ivory);border:1px solid var(--line);border-top:3px solid var(--wk,var(--line2));
+  border-radius:3px;box-shadow:0 12px 30px -26px rgba(60,40,15,.9);
 }
-.wk-stat b{display:block;font-family:var(--display);font-size:2rem;color:var(--wine);line-height:1}
+.wk-stat i{display:block;font-style:normal;font-size:1.15rem;line-height:1;margin-bottom:6px;opacity:.9}
+.wk-stat b{display:block;font-family:var(--display);font-size:2rem;color:var(--wk,var(--wine));line-height:1}
 .wk-stat span{display:block;margin-top:5px;font-size:.7rem;letter-spacing:.18em;
   text-transform:uppercase;color:var(--muted)}
-.wk-stat.is-want{border-color:var(--gold-d);background:#fdf6e4}
-.wk-stat.is-want b{color:var(--gold-d)}
+.wk-stat--folk{--wk:var(--forest)}
+.wk-stat--bunk{--wk:var(--wine)}
+.wk-stat--want{--wk:var(--gold-d);background:#fdf6e4;border-color:var(--gold);border-top-color:var(--gold-d)}
+.wk-stat--want.is-done{--wk:var(--forest);background:#f2f7f2;border-color:#bcd2c0}
 
 .wk-block{margin-bottom:44px}
 .wk-block h2{
-  font-size:.68rem;letter-spacing:.24em;text-transform:uppercase;color:var(--wine);
+  display:flex;align-items:center;gap:8px;
+  font-size:.68rem;letter-spacing:.24em;text-transform:uppercase;color:var(--wk,var(--wine));
   padding-bottom:9px;margin-bottom:16px;border-bottom:1px solid var(--line);
 }
+.wk-block h2 i{font-style:normal;font-size:1.05rem;letter-spacing:0;line-height:1}
 .wk-lead{color:var(--ink2);margin-bottom:14px}
 .wk-lead a,.wk-note a,.wk-band a{color:var(--wine);font-weight:600}
 .wk-lead a:hover,.wk-note a:hover{text-decoration:underline}
@@ -27,18 +42,26 @@
 .wk-note{margin-top:14px;font-size:.86rem;color:var(--muted);line-height:1.6}
 
 /* still wanted */
+.wk-covered{display:inline-block;margin-left:6px;color:var(--forest);font-weight:600}
 .wk-wanted{list-style:none;margin:0;padding:0;display:grid;gap:8px}
 .wk-wanted li{
   display:flex;align-items:center;gap:12px;
   background:var(--ivory);border:1px solid var(--line);border-left:3px solid var(--gold);
   border-radius:3px;padding:10px 14px;
 }
+/* Anything part-claimed is already moving, so it leans green rather than gold. */
+.wk-wanted li.is-part{border-left-color:var(--forest);background:#fbf8ec}
+.wk-wanted__i{font-size:1.2rem;line-height:1;flex-shrink:0;width:1.5em;text-align:center}
 .wk-wanted__n{
   min-width:34px;text-align:center;font-family:var(--display);font-size:1.15rem;
   color:var(--gold-d);flex-shrink:0;
 }
+.wk-wanted li.is-part .wk-wanted__n{color:var(--forest)}
 .wk-wanted__w{flex:1;min-width:0;font-size:1rem;color:var(--ink)}
 .wk-wanted small{color:var(--muted);font-size:.8rem;white-space:nowrap}
+.wk-bar{display:block;height:3px;margin-top:6px;max-width:260px;
+  background:var(--parchment2);border-radius:2px;overflow:hidden}
+.wk-bar__f{display:block;height:100%;background:var(--forest);border-radius:2px}
 
 /* coming */
 .wk-folk{display:flex;gap:12px;flex-wrap:wrap}
@@ -62,8 +85,10 @@
 .wk-night{background:var(--ivory);border:1px solid var(--line);border-radius:3px;overflow:hidden}
 .wk-night__h{
   background:var(--parchment2);padding:9px 14px;font-family:var(--display);
-  font-size:.76rem;letter-spacing:.06em;color:var(--ink);border-bottom:1px solid var(--line);
+  font-size:.76rem;letter-spacing:.06em;color:var(--ink);
+  border-bottom:1px solid var(--line);border-top:3px solid var(--wine);
 }
+.wk-night__h i{font-style:normal;font-size:.9rem}
 .wk-bunk{display:flex;align-items:center;justify-content:space-between;gap:10px;
   padding:9px 14px;border-bottom:1px dotted var(--line)}
 .wk-bunk:last-child{border-bottom:0}
@@ -78,12 +103,30 @@
 .wk-bunk__open{font-size:.82rem;color:var(--forest);font-weight:600}
 .wk-bunk.is-taken{background:#fbf5e6}
 
+/* the map across to the camp page */
+.wk-map{display:flex;gap:16px;align-items:flex-start;margin-top:14px}
+.wk-map .wk-note{margin-top:0;flex:1;min-width:0}
+.wk-map__pic{
+  flex-shrink:0;width:180px;display:block;border:1px solid var(--line2);border-radius:3px;
+  overflow:hidden;background:var(--ivory);box-shadow:0 10px 26px -20px rgba(60,40,15,.9);
+  transition:transform .2s var(--ease),box-shadow .2s var(--ease);
+}
+.wk-map__pic:hover,.wk-map__pic:focus-visible{transform:translateY(-2px);
+  box-shadow:0 14px 30px -18px rgba(60,40,15,.9)}
+.wk-map__pic img{display:block;width:100%;height:auto}
+.wk-map__pic span{display:block;padding:6px 8px;background:var(--parchment2);
+  font-family:var(--display);font-size:.68rem;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--ink);text-align:center;border-top:1px solid var(--line)}
+
 /* gates */
-.wk-gates{list-style:none;margin:0 0 14px;padding:0;display:grid;gap:7px;max-width:440px}
+.wk-gates{list-style:none;margin:0 0 14px;padding:0;display:grid;gap:7px;max-width:460px}
 .wk-gates li{display:flex;justify-content:space-between;gap:14px;padding:9px 0;
   border-bottom:1px dotted var(--line)}
 .wk-gates li:last-child{border-bottom:0}
 .wk-gates b{font-family:var(--display);font-size:.88rem}
+.wk-gates b i{font-style:normal;margin-right:5px}
+/* Sunday shuts five hours earlier than the other two — worth catching the eye. */
+.wk-gates li.is-short span{color:var(--wine)}
 .wk-band{
   background:#fdf6e4;border:1px solid var(--gold-d);border-radius:3px;
   padding:13px 15px;color:var(--ink2);line-height:1.6;
@@ -93,4 +136,6 @@
   .wk-stat b{font-size:1.6rem}
   .wk-wanted li{flex-wrap:wrap}
   .wk-wanted small{width:100%;margin-left:46px}
+  .wk-map{flex-direction:column}
+  .wk-map__pic{width:100%;max-width:280px;align-self:center}
 }
