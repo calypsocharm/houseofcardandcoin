@@ -405,3 +405,43 @@
 }
 .pro-marks li.is-gold b{color:var(--gold-d)}
 .pro-marks span{font-size:calc(.86rem * var(--u-scale,1));color:var(--muted)}
+
+/* ── nudges ─────────────────────────────────────────────────────────────
+   Little bubbles on your own page, saying what is still missing from it.
+   Only the owner is ever sent them, and each goes for good once the thing
+   is done. The tail on the left points back at your own portrait — it is
+   the page talking to you, not a notice pinned to it. */
+.pro-nudges{display:flex;flex-wrap:wrap;gap:12px;margin-top:20px}
+.nudge{
+  position:relative;flex:1 1 240px;max-width:340px;
+  background:var(--ivory);border:1px solid var(--line);
+  border-radius:12px 12px 12px 3px;
+  padding:13px 15px;
+  box-shadow:0 10px 26px -22px rgba(60,40,15,.9);
+}
+/* the little tail */
+.nudge::before{
+  content:"";position:absolute;left:-1px;bottom:-9px;width:12px;height:10px;
+  background:var(--ivory);
+  border-left:1px solid var(--line);border-bottom:1px solid var(--line);
+  border-radius:0 0 0 3px;
+  transform:skewX(-18deg);
+}
+.nudge__say{
+  font-size:calc(.95rem * var(--u-scale,1));color:var(--ink2);line-height:1.5;
+}
+.nudge__acts{display:flex;align-items:center;gap:12px;margin-top:10px;flex-wrap:wrap}
+.nudge__go{
+  font-family:var(--display);font-size:.6rem;letter-spacing:.14em;text-transform:uppercase;
+  padding:7px 14px;border-radius:3px;cursor:pointer;white-space:nowrap;
+  border:1px solid var(--gold-d);
+  background:linear-gradient(180deg,var(--gold-l),var(--gold));color:#2a1d0c;
+}
+.nudge__go:hover{background:var(--gold-l)}
+.nudge__not{
+  font-family:var(--serif);font-size:.82rem;color:var(--muted);
+  background:none;border:0;padding:0;cursor:pointer;text-decoration:underline;
+}
+.nudge__not:hover{color:var(--ink2)}
+.nudge.is-going{opacity:0;transform:translateY(-6px);transition:opacity .25s,transform .25s}
+@media(prefers-reduced-motion:reduce){.nudge.is-going{transition:none}}

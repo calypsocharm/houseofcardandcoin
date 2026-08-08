@@ -231,4 +231,41 @@
   }
 
   draw();
+
+  /* ── the nudges ─────────────────────────────────────────────────────
+     "Not now" quiets one for a week, kept in this browser — somebody who
+     does not want to say whether they are coming should not be asked
+     every single visit. The nudge itself is gone for good the moment the
+     thing is actually done, because the server stops sending it. */
+  (function () {
+    var box = document.getElementById("proNudges");
+    if (!box) return;
+    var KEY = "hocc-nudge-";
+    var WEEK = 7 * 24 * 60 * 60 * 1000;
+
+    Array.prototype.forEach.call(box.querySelectorAll(".nudge"), function (n) {
+      var k = n.getAttribute("data-nudge");
+      var until = 0;
+      try { until = parseInt(localStorage.getItem(KEY + k) || "0", 10) || 0; } catch (e) {}
+      if (Date.now() < until) { n.remove(); return; }
+
+      var no = n.querySelector(".nudge__not");
+      if (no) no.addEventListener("click", function () {
+        try { localStorage.setItem(KEY + k, String(Date.now() + WEEK)); } catch (e) {}
+        n.classList.add("is-going");
+        setTimeout(function () { n.remove(); if (!box.children.length) box.remove(); }, 260);
+      });
+
+      // The one that wants the dressing panel opens it and puts the cursor
+      // where the words go, rather than leaving you to find the field.
+      var go = n.querySelector("[data-dress]");
+      if (go) go.addEventListener("click", function () {
+        setOpen(true);
+        var f = document.getElementById(go.getAttribute("data-dress"));
+        if (f) { f.scrollIntoView({ block: "center" }); f.focus(); }
+      });
+    });
+
+    if (!box.children.length) box.remove();
+  })();
 })();

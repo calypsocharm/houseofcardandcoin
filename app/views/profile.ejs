@@ -68,6 +68,30 @@
         <p class="pro-acts"><a class="btn btn--wine" href="<%= whisperTo %>">Whisper to <%= who.name %></a></p>
       <% } %>
       <p class="pro-back"><a href="/guild.html">← Back to the roster</a><% if(isMe){ %> · <a href="/members#profile">Your name, face and rank</a><% } %></p>
+
+      <%
+        /* Nudges, on your own page and nobody else's. Each one goes when the
+           thing is done, so they empty themselves rather than needing to be
+           cleared. "Not now" quiets one for a week — someone who does not want
+           to say whether they are coming should not be asked every visit. */
+      %>
+      <% if(nudges.length){ %>
+        <div class="pro-nudges" id="proNudges">
+          <% nudges.forEach(function(n){ %>
+            <div class="nudge" data-nudge="<%= n.k %>">
+              <p class="nudge__say"><%= n.say %></p>
+              <p class="nudge__acts">
+                <% if(n.dress){ %>
+                  <button type="button" class="nudge__go" data-dress="<%= n.dress %>"><%= n.act %></button>
+                <% } else { %>
+                  <a class="nudge__go" href="<%= n.go %>"><%= n.act %></a>
+                <% } %>
+                <button type="button" class="nudge__not">Not now</button>
+              </p>
+            </div>
+          <% }) %>
+        </div>
+      <% } %>
     </div>
 
     <div class="pro-cols">

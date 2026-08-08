@@ -461,6 +461,28 @@ app.post('/gallery/:id/remove',canPost,(req,res)=>{
   save();res.redirect('/gallery?removed=1');
 });
 
+// What your own page is still missing. Only you ever see these, only while the
+// thing is missing, and never more than three at once — the point is a nudge,
+// not a list of everything you have failed to do. Ordered by what actually
+// makes a page look like a person: a face first, then whether you are coming,
+// then your own words.
+function nudgesFor(u){
+  var all=[
+    { k:'face',   when:!u.avatar,
+      say:'Your circle is empty. Put a face to the name.',
+      act:'Add a face', go:'/members#profile' },
+    { k:'coming', when:!u.rsvp,
+      say:'Are you coming in October? The House would like to know.',
+      act:'Say yes', go:'/members#rsvp' },
+    { k:'word',   when:!u.motto&&!u.about,
+      say:'Nothing here says who you are yet. A line will do it.',
+      act:'Write one', dress:'pgMotto' },
+    { k:'card',   when:!(u.hand||[]).length,
+      say:'The House deals a card a night and you are holding none.',
+      act:'Take tonight’s', go:'/board' }
+  ];
+  return all.filter(function(n){return n.when;}).slice(0,3);
+}
 // Marks on a page: what somebody has actually done, counted from what the site
 // already holds rather than by anybody awarding anything. Only earned marks are
 // shown — a page full of zeroes says nothing, and a new pledge should not open
@@ -536,7 +558,7 @@ app.get('/guild/:slug',(req,res)=>{
          coins:u.coins||0,streak:u.streak||0},
     bunks:bunks, bringing:bringing, talk:talk.slice(0,5),
     hand:(u.hand||[]).map(cardInfo), handRank:handRank(u.hand||[]),
-    page:pageOf(u), marks:marksFor(u), charmSvg:charmSvg, charmKeys:CHARM_KEYS, charmMax:CHARM_MAX,
+    page:pageOf(u), marks:marksFor(u), nudges:(i&&i.t==='member'&&i.id===u.id)?nudgesFor(u):[], charmSvg:charmSvg, charmKeys:CHARM_KEYS, charmMax:CHARM_MAX,
     fonts:FONTS, fontKeys:FONT_KEYS, sizeKeys:SIZE_KEYS, sizes:SIZES,
     backdrops:BACKDROPS, layouts:LAYOUTS,
     wall:wallFor(u.id), canSign:!!i, i:i, leader:!!(i&&i.leader), q:req.query,
