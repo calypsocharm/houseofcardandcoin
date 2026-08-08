@@ -7,9 +7,16 @@
      backdrop and arrangement against fixed lists, so nothing here can become a
      style rule of somebody's own devising. */
 %>
+<%
+  /* The banner rides in as a custom property beside the colours rather than as
+     a style attribute built in the template. Building the attribute itself out
+     of a tag meant the whole thing came back escaped — style=&#34;…&#34; — and
+     the browser saw text where a style should have been. Only values go through
+     a tag here; the quoting around them is the template's own. */
+%>
 <div class="pro" data-backdrop="<%= page.backdrop %>" data-layout="<%= page.layout %>"
-     style="--u-accent:<%= page.accent %>;--u-seal:<%= page.seal %>;--u-tint:<%= page.tint %>">
-  <div class="pro-banner" aria-hidden="true"<%= page.banner?' style="background-image:url('+"'"+page.banner+"'"+')"':'' %>>
+     style="--u-accent:<%= page.accent %>;--u-seal:<%= page.seal %>;--u-tint:<%= page.tint %><% if(page.banner){ %>;--u-banner:url('<%= page.banner %>')<% } %>">
+  <div class="pro-banner<%= page.banner?' pro-banner--own':'' %>" aria-hidden="true">
     <% if(!page.banner){ %><span class="pro-banner__art"></span><% } %>
     <span class="pro-banner__fade"></span>
   </div>

@@ -114,7 +114,7 @@ app.use((req,res,next)=>BLOCKED.test(req.path)?res.status(404).send('Not found')
 // to reach their own profile. So the stamp is rewritten here at serve time from
 // the real file mtimes, and never has to be remembered again.
 const ASSET_FILES=['assets/css/style.css','assets/css/tavern.css','assets/css/profile.css',
-  'assets/js/nav.js','assets/js/countdown.js','assets/js/hero-video.js','assets/js/avatar-crop.js'];
+  'assets/js/nav.js','assets/js/countdown.js','assets/js/hero-video.js','assets/js/avatar-crop.js','assets/js/page-preview.js'];
 function assetVersion(){
   let newest=0;
   ASSET_FILES.forEach(function(f){

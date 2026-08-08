@@ -3468,7 +3468,7 @@ main:focus{outline:none}
 /* ── "Make it yours" in the Guild Hall ──────────────────────────────────
    The controls for your own page. Plain form furniture; the page itself is
    styled by profile.css. */
-.pagekit{max-width:640px;margin:0 auto}
+.pagekit{min-width:0}
 .pagekit__row{display:flex;gap:16px;flex-wrap:wrap;align-items:flex-end}
 .pagekit__row .field{flex:1;min-width:150px}
 .pagekit input[type=color]{
@@ -3493,3 +3493,29 @@ main:focus{outline:none}
   font-size:.95rem;color:var(--ink2);cursor:pointer;
 }
 .pagekit__check input{width:auto;margin:0}
+
+/* The controls and the page they dress, side by side. Choosing a colour used
+   to mean saving, walking over to look, and coming back — so the real page
+   sits in a frame next to the form and takes every change as it is made. */
+.pagekit__wrap{display:grid;grid-template-columns:1fr 1fr;gap:26px;align-items:start}
+.pagekit__preview{position:sticky;top:96px}
+.pagekit__lbl{
+  font-family:var(--display);font-size:.6rem;letter-spacing:.2em;text-transform:uppercase;
+  color:var(--muted);margin-bottom:9px;
+}
+.pagekit__frame{
+  border:1px solid var(--line2);border-radius:4px;overflow:hidden;background:var(--ivory);
+  box-shadow:0 14px 34px -28px rgba(60,40,15,.9);
+  height:460px;
+}
+/* Shown at two-thirds so a whole page fits the box, and pointer-blind so a
+   stray click inside the frame cannot wander off to another page. */
+.pagekit__frame iframe{
+  width:150%;height:690px;border:0;display:block;
+  transform:scale(.6667);transform-origin:0 0;pointer-events:none;
+}
+@media(max-width:900px){
+  .pagekit__wrap{grid-template-columns:1fr}
+  .pagekit__preview{position:static;order:2}
+  .pagekit .btn{width:100%}
+}

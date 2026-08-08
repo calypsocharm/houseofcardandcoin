@@ -153,8 +153,11 @@
   background-size:220px 220px;
 }
 
-/* an uploaded banner covers the gradient */
+/* An uploaded banner covers the gradient. The url arrives as --u-banner, set
+   only when there is one, so this class and that property always travel
+   together and var() can never fall back to nothing. */
 .pro-banner{background-size:cover;background-position:center}
+.pro-banner--own{background-image:var(--u-banner);background-color:#160f08}
 
 .pro[data-layout="scroll"] .pro-cols{grid-template-columns:1fr;max-width:700px;margin-inline:auto}
 .pro[data-layout="poster"] .pro-cols{grid-template-columns:1fr 300px}
