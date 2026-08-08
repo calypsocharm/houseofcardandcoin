@@ -1,6 +1,19 @@
 <%- include('_top',{title:'The Tavern',active:'board',desc:'The Tavern of the House of Card and Coin — notices, wagers and talk by the fire before the Age of Chivalry Renaissance Festival.',image:'/assets/img/og/index.jpg',url:'https://houseofcardandcoin.com/board'}) %>
 <link rel="stylesheet" href="/assets/css/tavern.css?v=<%= typeof cssv!=='undefined'?cssv:'1' %>">
 
+<!-- ── The way in ────────────────────────────────────────────────────────────
+     Barred doors with a peep slot: the House looks you over, decides it knows
+     you, and lets you through. Purely decorative — it is hidden unless the
+     script in the head has put .tav-enter on <html>, so a browser with
+     scripting off, or anyone who asked for less motion, never meets it. -->
+<div class="tavdoor" aria-hidden="true">
+  <span class="tavdoor__glow"></span>
+  <div class="tavdoor__leaf tavdoor__leaf--l"></div>
+  <div class="tavdoor__leaf tavdoor__leaf--r"></div>
+  <span class="tavdoor__slot"><i class="tavdoor__peek"></i><i class="tavdoor__shutter"></i></span>
+  <p class="tavdoor__word">Whispers, wagers, and well-kept secrets</p>
+</div>
+
 <div class="tav">
 
   <!-- ── the stage: the room, pinned while the talk scrolls past ───────── -->
@@ -375,6 +388,23 @@
   clearDock();
   window.addEventListener('resize',clearDock);
   if(window.ResizeObserver && dock) new ResizeObserver(clearDock).observe(dock);
+})();
+</script>
+
+<script>
+/* The doors bow out on their own — the animation ends hidden whatever happens
+   here. This takes the node out of the page afterwards so nothing decorative
+   is left lying over the Tavern, and lets an impatient hand cut it short. The
+   timeout is the real safety net: if the animation never runs at all, the way
+   in still clears. */
+(function(){
+  var door=document.querySelector('.tavdoor');
+  if(!door||!document.documentElement.classList.contains('tav-enter'))return;
+  function open(){ if(door&&door.parentNode){door.parentNode.removeChild(door);door=null;} }
+  setTimeout(open,2400);
+  ['click','keydown','touchstart','wheel'].forEach(function(ev){
+    document.addEventListener(ev,open,{once:true,passive:true});
+  });
 })();
 </script>
 

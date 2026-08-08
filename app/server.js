@@ -33,11 +33,7 @@ function rank(u){if(u.pledge)return 'Pledge';if(u.title)return u.title;const n=u
 // they are full guildmates, not pledges. Runs once; new users set it explicitly.
 (function(){let changed=false;db.users.forEach(u=>{if(u.pledge===undefined){u.pledge=false;changed=true;}});if(changed)save();})();
 app.set('view engine','ejs');app.set('views',path.join(__dirname,'views'));
-// Cache-buster for the stylesheet. Assets are cached for a day now, so without
-// this a CSS change does not reach anyone who has already visited — the page
-// renders with stale rules and unstyled images blow up to full size.
-try{ app.locals.cssv = String(Math.floor(fs.statSync(path.join(__dirname,'..','assets','css','style.css')).mtimeMs)); }
-catch(e){ app.locals.cssv = String(Date.now()); }
+// cssv is set further down, from assetVersion(), once ASSET_FILES exists.
 app.use(express.urlencoded({extended:true}));app.use(express.json());
 // Sessions were held in memory, so every pm2 restart signed everyone out — and
 // the watchdog restarts this app on its own. They live on disk now and survive
@@ -126,9 +122,17 @@ function assetVersion(){
   });
   return String(Math.floor(newest));
 }
-// The EJS pages stamp their own script tags with this. Read once at boot, which
-// is enough — a deploy restarts the app, so the stamp moves when the files do.
-app.locals.assetv=assetVersion();
+// The EJS pages stamp their stylesheets and scripts with this. Read once at
+// boot, which is enough — a deploy restarts the app, so the stamp moves when
+// the files do.
+//
+// cssv used to be read from style.css alone, which meant a change to
+// tavern.css shipped with an unchanged stamp and never reached anyone who had
+// visited before: the file was correct on the server and stale in the browser.
+// Both names now come from the newest mtime across every asset, so touching
+// any one of them busts the lot. They are kept as two names only because the
+// templates already say cssv in one place and assetv in another.
+app.locals.assetv=app.locals.cssv=assetVersion();
 const htmlCache=new Map();
 app.use(function(req,res,next){
   if(req.method!=='GET')return next();

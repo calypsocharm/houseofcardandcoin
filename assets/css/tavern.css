@@ -469,3 +469,120 @@
 }
 .tav-buybtn:hover{background:linear-gradient(#f7e9c2,#e6cf93)}
 .tav-buynote{flex:1;min-width:190px;font-size:.84rem;color:#6d5a34;line-height:1.5}
+
+/* ══ The way in ═══════════════════════════════════════════════════════════
+   You do not walk into a place like this, you are let into it. Barred doors,
+   a peep slot, somebody deciding they know your face — then the light and the
+   noise. About a second and three quarters, once a session, and a click at any
+   point cuts it short.
+
+   Hidden unless <html> carries .tav-enter, which only the head script adds, so
+   scripting off means no doors rather than doors that never open. */
+.tavdoor{display:none}
+
+.tav-enter .tavdoor{
+  display:block;position:fixed;inset:0;z-index:300;
+  background:#080502;overflow:hidden;
+  perspective:1200px;perspective-origin:50% 44%;
+  animation:tavdoor-gone .01s linear 1.78s forwards;
+}
+/* Belt and braces: the doors end hidden on their own, the script removes the
+   node, and either alone is enough. A stuck overlay would take the Tavern
+   with it. */
+@keyframes tavdoor-gone{to{visibility:hidden;pointer-events:none}}
+
+/* the firelight waiting on the other side */
+.tavdoor__glow{
+  position:absolute;inset:0;
+  background:radial-gradient(58% 44% at 50% 42%,
+    rgba(224,145,58,.55), rgba(224,145,58,.13) 46%, transparent 72%);
+  animation:tavdoor-glow 1.05s ease .82s both;
+}
+@keyframes tavdoor-glow{0%{opacity:0}38%{opacity:1}100%{opacity:0}}
+
+.tavdoor__leaf{
+  position:absolute;top:-2%;bottom:-2%;width:50.4%;
+  background:
+    linear-gradient(180deg,rgba(0,0,0,.6),transparent 20%,transparent 68%,rgba(0,0,0,.66)),
+    repeating-linear-gradient(90deg,#2b1e11 0 44px,#1d1308 44px 47px,#33230f 47px 91px,#1d1308 91px 94px),
+    #241909;
+  box-shadow:inset 0 0 130px 34px rgba(0,0,0,.72);
+}
+/* two iron bands, riveted */
+.tavdoor__leaf::before,.tavdoor__leaf::after{
+  content:"";position:absolute;left:0;right:0;height:21px;
+  background-image:
+    radial-gradient(circle,#6f5a3a 0 2.6px,transparent 3.3px),
+    linear-gradient(180deg,#42362a,#1b1209 56%,#0c0805);
+  background-size:58px 100%,100% 100%;
+  background-position:16px center,0 0;
+  background-repeat:repeat-x,no-repeat;
+  border-top:1px solid #5d4c34;border-bottom:1px solid #000;
+}
+.tavdoor__leaf::before{top:23%}
+.tavdoor__leaf::after{bottom:23%}
+
+.tavdoor__leaf--l{left:0;transform-origin:left center;border-right:2px solid #090502}
+.tavdoor__leaf--r{right:0;transform-origin:right center;border-left:2px solid #090502}
+.tav-enter .tavdoor__leaf--l{animation:tavdoor-swing-l .76s cubic-bezier(.55,0,.3,1) 1.02s both}
+.tav-enter .tavdoor__leaf--r{animation:tavdoor-swing-r .76s cubic-bezier(.55,0,.3,1) 1.02s both}
+/* Hinged on the outer edge and swung toward you, so they sweep past the eye
+   instead of shrinking politely into the distance. */
+@keyframes tavdoor-swing-l{
+  0%{transform:rotateY(0);opacity:1}
+  62%{opacity:1}
+  100%{transform:rotateY(-96deg);opacity:0}
+}
+@keyframes tavdoor-swing-r{
+  0%{transform:rotateY(0);opacity:1}
+  62%{opacity:1}
+  100%{transform:rotateY(96deg);opacity:0}
+}
+
+/* the slot they look you over through */
+.tavdoor__slot{
+  position:absolute;left:50%;top:41%;transform:translate(-50%,-50%);
+  width:min(134px,34vw);height:34px;z-index:3;overflow:hidden;border-radius:2px;
+  background:#0a0603;border:2px solid #17100a;
+  box-shadow:0 0 0 3px #120c07,0 12px 30px -12px #000;
+  animation:tavdoor-slotgo .26s ease 1.0s forwards;
+}
+@keyframes tavdoor-slotgo{to{opacity:0}}
+.tavdoor__peek{
+  position:absolute;inset:0;
+  background:radial-gradient(circle at 50% 62%,rgba(224,145,58,.5),transparent 72%),#2b1708;
+}
+/* a pair of eyes, sizing you up */
+.tavdoor__peek::after{
+  content:"";position:absolute;left:50%;top:52%;transform:translate(-50%,-50%);
+  width:58px;height:10px;
+  background:
+    radial-gradient(circle at 13px 50%,#f7e6ba 0 3px,transparent 3.7px),
+    radial-gradient(circle at 45px 50%,#f7e6ba 0 3px,transparent 3.7px);
+  animation:tavdoor-eyes .52s ease .5s both;
+}
+@keyframes tavdoor-eyes{0%{opacity:0}26%{opacity:1}72%{opacity:1}100%{opacity:0}}
+.tavdoor__shutter{
+  position:absolute;inset:0;
+  background:linear-gradient(180deg,#33240f,#1c1308);
+  border-bottom:2px solid #0a0603;
+  animation:tavdoor-shutter .9s cubic-bezier(.6,0,.3,1) .2s both;
+}
+@keyframes tavdoor-shutter{
+  0%{transform:translateY(0)}
+  30%{transform:translateY(-100%)}
+  70%{transform:translateY(-100%)}
+  100%{transform:translateY(0)}
+}
+
+.tavdoor__word{
+  position:absolute;left:0;right:0;bottom:25%;z-index:3;margin:0;padding:0 26px;
+  text-align:center;font-family:var(--display);text-transform:uppercase;
+  font-size:clamp(.66rem,2.3vw,.9rem);letter-spacing:.3em;color:#bf9f4d;
+  animation:tavdoor-word 1.24s ease .08s both;
+}
+@keyframes tavdoor-word{0%{opacity:0}24%{opacity:.9}60%{opacity:.9}100%{opacity:0}}
+
+/* Never for anyone who asked for stillness — the head script already checks,
+   this is the second lock on the same door. */
+@media(prefers-reduced-motion:reduce){ .tav-enter .tavdoor{display:none} }

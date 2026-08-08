@@ -34,6 +34,20 @@
      closing this script tag early. */
 %>
 <script>document.documentElement.className+=" js-nav";window.__ME__=<%- JSON.stringify(locals.me||{signedIn:false}).replace(/</g,'\\u003c') %>;</script>
+<% if(locals.active==='board'){ %>
+<%
+  /* Decided here rather than in a deferred script so the doors are up before
+     the first paint — otherwise you would see the Tavern for a frame and then
+     have a door shut in your face. Once a session: a fine trick the first time,
+     a toll gate by the fifth. ?enter=1 replays it on demand. */
+%>
+<script>(function(){try{
+  if(window.matchMedia('(prefers-reduced-motion:reduce)').matches)return;
+  if(!/[?&]enter=1/.test(location.search)&&sessionStorage.getItem('hocc-tavern'))return;
+  sessionStorage.setItem('hocc-tavern','1');
+  document.documentElement.className+=' tav-enter';
+}catch(e){}})();</script>
+<% } %>
 </head><body<%- locals.bodyClass?(' class="'+bodyClass+'"'):'' %>>
 <a class="skip-link" href="#main">Skip to content</a>
 <header><div class="nav"><a class="brand" href="/index.html"><img class="crest" src="/assets/img/019.png" alt="House of Card and Coin crest"><span>House of Card and Coin<small>Whispers, Wagers, and Well-Kept Secrets</small></span></a>
