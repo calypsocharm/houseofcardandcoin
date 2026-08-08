@@ -1,1 +1,7 @@
-<% if(avatar){ %><img class="postpic" src="<%= avatar %>" alt=""><% } else { %><span class="postpic postpic--init"><%= (name||"?").slice(0,2).toUpperCase() %></span><% } %>
+<%
+  /* A face is a door. Pass a slug and the circle becomes a link to that
+     person's page; leave it out — for a tavern seat, who has no page — and it
+     stays a plain picture. Kept in the partial so every caller gets the same
+     behaviour instead of each one remembering to wrap it. */
+  var _slug = (typeof slug !== 'undefined' && slug) ? slug : '';
+%><% if(_slug){ %><a href="/guild/<%= _slug %>" class="facelink" title="<%= name %>’s page"><% } %><% if(avatar){ %><img class="postpic" src="<%= avatar %>" alt=""><% } else { %><span class="postpic postpic--init"><%= (name||"?").slice(0,2).toUpperCase() %></span><% } %><% if(_slug){ %></a><% } %>

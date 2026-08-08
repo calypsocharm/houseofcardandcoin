@@ -3468,3 +3468,10 @@ main:focus{outline:none}
 /* The dressing controls that used to live here moved onto the profile page
    itself, so their styling went with them into profile.css. A shrunken copy
    of a page beside a form could disagree with the real thing, and did. */
+
+/* Any face that leads somewhere. Quiet on purpose — a small lift, no
+   underline — so a page of people does not read as a page of buttons. */
+.facelink{display:inline-flex;border-radius:50%;transition:transform .16s var(--ease)}
+.facelink:hover,.facelink:focus-visible{transform:translateY(-2px)}
+a.navdrawer__who{text-decoration:none;transition:background .18s}
+a.navdrawer__who:hover,a.navdrawer__who:focus-visible{background:rgba(226,199,127,.08)}

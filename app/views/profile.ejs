@@ -146,10 +146,13 @@
           <% if(wall.length){ %>
             <% wall.forEach(function(w){ %>
               <div class="pro-scrap">
-                <p class="pro-scrap__w">
-                  <% if(w.slug){ %><a href="/guild/<%= w.slug %>"><%= w.who %></a><% } else { %><%= w.who %><% } %>
-                  <span class="pro-scrap__when"><%= new Date(w.ts).toLocaleDateString(undefined,{month:'short',day:'numeric'}) %></span>
-                </p>
+                <div class="pro-scrap__head">
+                  <%- include('_avatar',{name:w.who,avatar:w.avatar,slug:w.slug}) %>
+                  <p class="pro-scrap__w">
+                    <% if(w.slug){ %><a href="/guild/<%= w.slug %>"><%= w.who %></a><% } else { %><%= w.who %><% } %>
+                    <span class="pro-scrap__when"><%= new Date(w.ts).toLocaleDateString(undefined,{month:'short',day:'numeric'}) %></span>
+                  </p>
+                </div>
                 <p class="pro-scrap__b"><%= w.body %></p>
                 <% if(canSign && (isMe || (i && i.t===w.fromT && i.id===w.fromId) || leader)){ %>
                   <form method="post" action="/guild/wall/<%= w.id %>/remove" class="pro-scrap__x"

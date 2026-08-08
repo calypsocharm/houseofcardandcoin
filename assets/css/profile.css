@@ -378,3 +378,12 @@
   .dress__tab{writing-mode:horizontal-tb;border-radius:4px 4px 0 0;border-right:1px solid var(--gold-d);padding:11px}
   .dress__body{width:auto;max-height:62vh;border-radius:0}
 }
+
+/* A signature wears the signer's face, and the face is a door like every
+   other. The wall was computing an avatar and then never drawing it. */
+.pro-scrap__head{display:flex;align-items:center;gap:10px;margin-bottom:2px}
+.pro-scrap__head .postpic,.pro-scrap__head .postpic--init{
+  width:32px;height:32px;flex-shrink:0;border-radius:50%;object-fit:cover;
+  border:1px solid var(--line2);
+}
+.pro-scrap__head .pro-scrap__w{flex:1;min-width:0;margin:0}

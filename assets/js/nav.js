@@ -71,7 +71,12 @@
     var patron = inside && me.kind === 'patron';
 
     if (inside) {
-      var who = el('div', 'navdrawer__who');
+      // Your own face is a door to your own page, the same as everybody
+      // else's. Without this the only way to your page was via the roster.
+      var who = me.slug
+        ? (function () { var a = el('a', 'navdrawer__who'); a.href = '/guild/' + me.slug;
+                         a.title = 'Your page'; return a; })()
+        : el('div', 'navdrawer__who');
       if (me.avatar) {
         var face = el('img', 'navdrawer__face');
         face.src = me.avatar;
