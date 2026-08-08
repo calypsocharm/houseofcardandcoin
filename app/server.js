@@ -437,12 +437,34 @@ app.post('/tavern/logout',(req,res)=>{delete req.session.pid;res.redirect('/boar
 // shows presence over time rather than pretending to be a live chat — with a
 // guild this size it would usually be empty, and an empty "live" room reads
 // worse than a quiet one.
+// Every post remembers the face its author wore when they wrote it. That goes
+// wrong the moment anyone changes their picture: uploading a new avatar deletes
+// the old file, so each post they had already made pointed at an image that no
+// longer existed and their circles in the Tavern came up empty.
+//
+// A post should remember who spoke, not what they looked like. It already keeps
+// authorType and authorId, so the face is looked up now and the stored copy is
+// used only for people who have since left the House and cannot be looked up.
+function faceNow(t,id,avatar,name){
+  var who = t==='member' ? db.users.find(function(x){return x.id===id;})
+          : t==='patron' ? db.patrons.find(function(x){return x.id===id;})
+          : null;
+  return who ? {name:who.name,avatar:who.avatar||''} : {name:name||'',avatar:avatar||''};
+}
+function freshenPost(p){
+  var f=faceNow(p.authorType,p.authorId,p.authorAvatar,p.authorName);
+  var out=Object.assign({},p,{authorName:f.name,authorAvatar:f.avatar});
+  if(p.replies)out.replies=p.replies.map(freshenPost);
+  return out;
+}
 function tavernFolk(){
   var acts=[];
   db.threads.forEach(function(t){
-    acts.push({t:t.authorType,id:t.authorId,name:t.authorName,avatar:t.authorAvatar,ts:t.ts});
+    var tf=faceNow(t.authorType,t.authorId,t.authorAvatar,t.authorName);
+    acts.push({t:t.authorType,id:t.authorId,name:tf.name,avatar:tf.avatar,ts:t.ts});
     (t.replies||[]).forEach(function(r){
-      acts.push({t:r.authorType,id:r.authorId,name:r.authorName,avatar:r.authorAvatar,ts:r.ts});
+      var rf=faceNow(r.authorType,r.authorId,r.authorAvatar,r.authorName);
+      acts.push({t:r.authorType,id:r.authorId,name:rf.name,avatar:rf.avatar,ts:r.ts});
     });
   });
   acts.sort(function(a,b){return b.ts-a.ts;});
@@ -483,8 +505,8 @@ app.get('/board',(req,res)=>{
   const lastTouch=function(t){
     return (t.replies&&t.replies.length)?Math.max(t.ts,t.replies[t.replies.length-1].ts):t.ts;
   };
-  const threads=db.threads.slice().sort(function(a,b){return lastTouch(b)-lastTouch(a);});
-  const polls=db.polls.slice().sort((a,b)=>b.ts-a.ts).map(function(p){const total=p.options.reduce((s,o)=>s+o.votes.length,0);const voted=i?!!p.options.find(o=>o.votes.find(v=>v.t===i.t&&v.id===i.id)):false;return Object.assign({},p,{total:total,voted:voted});});
+  const threads=db.threads.slice().sort(function(a,b){return lastTouch(b)-lastTouch(a);}).map(freshenPost);
+  const polls=db.polls.slice().sort((a,b)=>b.ts-a.ts).map(freshenPost).map(function(p){const total=p.options.reduce((s,o)=>s+o.votes.length,0);const voted=i?!!p.options.find(o=>o.votes.find(v=>v.t===i.t&&v.id===i.id)):false;return Object.assign({},p,{total:total,voted:voted});});
   res.render('board',{i:i,threads:threads,polls:polls,cats:BOARDCATS,q:req.query,leader:!!(i&&i.leader),ration:{canDraw:!!(i&&i.lastRation!==today),card:i?i.lastCard:null},hand:i?(i.hand||[]).map(cardInfo):[],pending:i&&i.pending?cardInfo(i.pending):null,handRank:i?handRank(i.hand||[]):null,handPrizes:HAND_PRIZES,tableHands:allHands(),cardPrice:CARD_PRICE,special:SPECIALS[dayOfYear()%SPECIALS.length],gates:countdown(),notices:i?(db.notices||[]).filter(function(n){return n.toT===i.t&&n.toId===i.id&&!n.read;}).length:0,folk:pres.folk,quietHrs:quietHrs});
 });
 app.post('/board/thread',canPost,(req,res)=>{
@@ -501,7 +523,7 @@ app.post('/board/thread',canPost,(req,res)=>{
 });
 app.get('/board/thread/:id',(req,res)=>{
   const t=db.threads.find(x=>x.id==req.params.id);if(!t)return res.redirect('/board');
-  const i=ident(req);res.render('thread',{t:t,i:i,q:req.query,leader:!!(i&&i.leader)});
+  const i=ident(req);res.render('thread',{t:freshenPost(t),i:i,q:req.query,leader:!!(i&&i.leader)});
 });
 app.post('/board/thread/:id/reply',canPost,(req,res)=>{
   const t=db.threads.find(x=>x.id==req.params.id);if(!t)return res.redirect('/board');

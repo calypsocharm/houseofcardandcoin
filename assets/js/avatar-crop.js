@@ -146,12 +146,14 @@
     var k = OUT / SIZE;
     var w = img.naturalWidth * base * zoomVal * k;
     var h = img.naturalHeight * base * zoomVal * k;
-    octx.save();
-    octx.beginPath();
-    octx.arc(OUT / 2, OUT / 2, OUT / 2, 0, Math.PI * 2);
-    octx.clip();
+    // The round mask belongs to the preview, not to the file. Clipping here cut
+    // a circle into a JPEG, which has no transparency, so everything outside it
+    // was flattened to black and the saved picture was a circle sitting on a
+    // black square. Round corners are the stylesheet's business, everywhere the
+    // picture is shown. Store the square.
+    octx.fillStyle = '#241a12';   // only ever seen if the framing leaves a gap
+    octx.fillRect(0, 0, OUT, OUT);
     octx.drawImage(img, (OUT - w) / 2 + ox * k, (OUT - h) / 2 + oy * k, w, h);
-    octx.restore();
 
     out.toBlob(function (blob) {
       if (blob) {
