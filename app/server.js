@@ -461,7 +461,7 @@ app.post('/guild/wall/:id/remove',canPost,(req,res)=>{
   const owner=db.users.find(function(u){return u.id===w.toId;});
   res.redirect('/guild/'+(owner?slugById()[owner.id]:'')+'#wall');
 });
-app.get('/board/roll',(req,res)=>{const i=ident(req);res.render('roll',{i:i,rounds:roll(),table:allHands(),slugs:slugById(),q:req.query,leader:!!(i&&i.leader),gates:countdown()});});
+app.get('/board/roll',(req,res)=>{const i=ident(req);res.render('roll',{i:i,rounds:roll(),champions:champions(),table:allHands(),slugs:slugById(),q:req.query,leader:!!(i&&i.leader),gates:countdown()});});
 app.get('/faq',(req,res)=>res.render('faq'));
 app.get('/members/login',(req,res)=>res.render('login',{err:req.query.e||'',code:req.query.code||'',needCode:INVITE_REQUIRED}));
 // /join is the share link. If an invite code is required, ?code=XXXX pre-fills it.
@@ -736,11 +736,7 @@ function allHands(){
     if(p.banned)return;
     if(p.hand&&p.hand.length)rows.push({name:p.name,avatar:p.avatar,kind:'patron',cards:p.hand.map(cardInfo),rank:handRank(p.hand)});
   });
-  rows.sort(function(a,b){
-    var at=a.rank?a.rank.tier:0, bt=b.rank?b.rank.tier:0;
-    if(at!==bt)return bt-at;
-    return b.cards.length-a.cards.length;
-  });
+  rows.sort(function(a,b){ return cmpHand(a.rank,b.rank); });
   return rows;
 }
 // ── Rounds ──────────────────────────────────────────────────────────────────
@@ -758,10 +754,10 @@ function closeRound(){
     n:(db.rounds.length+1),
     ended:Date.now(),
     hands:table.map(function(h){
-      return {name:h.name,avatar:h.avatar||'',kind:h.kind,
+      return {id:h.id!=null?h.id:null,name:h.name,avatar:h.avatar||'',kind:h.kind,
               slug:h.kind==='member'&&h.id?(slugById()[h.id]||''):'',
               cards:h.cards.map(function(c){return c.code;}),
-              rank:h.rank?{name:h.rank.name,tier:h.rank.tier,cards:h.rank.cards}:null};
+              rank:h.rank?{name:h.rank.name,tier:h.rank.tier,cards:h.rank.cards,key:h.rank.key}:null};
     })
   };
   db.rounds.push(round);
@@ -773,13 +769,41 @@ function closeRound(){
   save();
   return round;
 }
+// Who has taken the most rounds. This is what makes a run of rounds a contest
+// rather than a series of unrelated evenings.
+//
+// A round is credited to everyone level with the top hand: with a small guild
+// and short hands a genuine dead heat happens, and handing it to whoever sorted
+// first would be a lie. Counted by id where a round recorded one, falling back
+// to the name for rounds closed before ids were stored — a rename loses a
+// little history rather than the whole tally.
+function champions(){
+  var by={};
+  (db.rounds||[]).forEach(function(r){
+    var hands=r.hands||[];
+    if(!hands.length)return;
+    var top=hands[0];
+    hands.forEach(function(h){
+      var k=(h.kind||'member')+':'+(h.id!=null?h.id:h.name);
+      if(!by[k])by[k]={name:h.name,avatar:h.avatar||'',slug:h.slug||'',kind:h.kind||'member',taken:0,played:0,best:null};
+      var e=by[k];
+      e.played++;
+      e.name=h.name; e.avatar=h.avatar||e.avatar; e.slug=h.slug||e.slug;
+      if(cmpHand(h.rank,top.rank)===0)e.taken++;
+      if(!e.best||cmpHand(h.rank,e.best)<0)e.best=h.rank;
+    });
+  });
+  return Object.keys(by).map(function(k){return by[k];})
+    .sort(function(a,b){ return b.taken-a.taken || b.played-a.played || a.name.localeCompare(b.name); });
+}
 // Newest first, and each round's winner is simply the top of its own table,
 // which was already sorted when the round was closed.
 function roll(){
   return (db.rounds||[]).slice().sort(function(a,b){return b.ended-a.ended;})
     .map(function(r){
+      var top=(r.hands||[])[0];
       return {n:r.n,ended:r.ended,hands:r.hands.map(function(h){
-        return {name:h.name,avatar:h.avatar,slug:h.slug,rank:h.rank,
+        return {name:h.name,avatar:h.avatar,slug:h.slug,rank:h.rank,won:cmpHand(h.rank,top&&top.rank)===0,
                 cards:(h.cards||[]).map(cardInfo)};
       })};
     });
@@ -959,7 +983,31 @@ function handRank(codes){
   else if(groups[0]===2&&groups[1]===2){tier=3;name='Two Pair';}
   else if(groups[0]===2){tier=2;name='A Pair';}
   else {var hc=cs.find(function(c){return c.v===vs[0];});tier=1;name='High Card, '+(hc?hc.label:'');}
-  return {tier:tier,name:name,cards:n,short:n<5};
+  // A key to settle two hands of the same kind, since "A Pair" against "A Pair"
+  // used to be a tie broken by whoever happened to sort first — which is no way
+  // to decide who took a round. Tier first, then the cards in the order a card
+  // player would read them: the paired ranks before the loose ones, each from
+  // the top. A straight is decided by its high card alone, so the wheel (where
+  // the ace counts low) does not beat a six-high.
+  var key;
+  if(straight){ key=[tier,high]; }
+  else {
+    key=[tier];
+    Object.keys(counts).map(Number)
+      .sort(function(a,b){ return counts[b]-counts[a] || b-a; })
+      .forEach(function(v){ for(var k=0;k<counts[v];k++) key.push(v); });
+  }
+  return {tier:tier,name:name,cards:n,short:n<5,key:key};
+}
+// Bigger key wins. A shorter hand runs out first and loses the tie, which is
+// the point of turning up all five nights.
+function cmpHand(a,b){
+  var ka=(a&&a.key)||[a&&a.tier||0], kb=(b&&b.key)||[b&&b.tier||0];
+  for(var i=0;i<Math.max(ka.length,kb.length);i++){
+    var x=ka[i]||0, y=kb[i]||0;
+    if(x!==y)return y-x;
+  }
+  return 0;
 }
 // What the House pays out at the faire. She has not settled on the prize yet,
 // and a guild whose tagline is "Well-Kept Secrets" can happily keep it that

@@ -56,6 +56,30 @@
       <% } %>
     </section>
 
+    <!-- ── the standing tally ──────────────────────────────────────────── -->
+    <% if(champions.length){ %>
+      <section class="roll__tally">
+        <h2>Rounds taken</h2>
+        <ol class="tally">
+          <% champions.forEach(function(c,n){ %>
+            <li class="tally__row<%= n===0&&c.taken?' is-first':'' %>">
+              <span class="tally__pos"><%= n+1 %></span>
+              <%- include('_avatar',{name:c.name,avatar:c.avatar,slug:c.slug}) %>
+              <span class="tally__name">
+                <% if(c.slug){ %><a href="/guild/<%= c.slug %>"><%= c.name %></a><% } else { %><%= c.name %><% } %>
+                <% if(c.best){ %><small>best: <%= c.best.name %></small><% } %>
+              </span>
+              <span class="tally__score">
+                <b><%= c.taken %></b>
+                <small>of <%= c.played %> played</small>
+              </span>
+            </li>
+          <% }) %>
+        </ol>
+        <p class="roll__note">A round is shared when two hands finish level.</p>
+      </section>
+    <% } %>
+
     <!-- ── rounds already played ───────────────────────────────────────── -->
     <% if(rounds.length){ %>
       <section class="roll__past">
@@ -67,9 +91,9 @@
               <span><%= new Date(r.ended).toLocaleDateString(undefined,{month:'long',day:'numeric'}) %></span>
             </p>
             <% r.hands.forEach(function(h,n){ %>
-              <div class="roll__line<%= n===0?' is-win':'' %>">
+              <div class="roll__line<%= h.won?' is-win':'' %>">
                 <span class="roll__lname">
-                  <% if(n===0){ %><span class="roll__crown" title="Took the round">✦</span><% } %>
+                  <% if(h.won){ %><span class="roll__crown" title="Took the round">✦</span><% } %>
                   <% if(h.slug){ %><a href="/guild/<%= h.slug %>"><%= h.name %></a><% } else { %><%= h.name %><% } %>
                 </span>
                 <span class="roll__lcards">
