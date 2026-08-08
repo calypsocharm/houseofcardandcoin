@@ -15,6 +15,9 @@ app/uploads/
 # version lives in assets/img/)
 20260531_144549.jpg
 
+# scratch output from the retired build.js — never the real pages
+build-output/
+
 # logs
 *.log
 

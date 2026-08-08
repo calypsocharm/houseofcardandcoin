@@ -1,5 +1,56 @@
+/* ─────────────────────────────────────────────────────────────────────────
+   RETIRED. This built the site once; the pages have moved on without it.
+
+   The .html files in this folder are now the source of truth. Every one of the
+   nine has been hand-edited since this script last ran, and running it would
+   not update them — it would overwrite them with an older site. What that
+   costs, page by page, as measured on 2026-08-07:
+
+     index.html    loses the "Our spot is secured" hero and the Cardsharp's
+                   Hand section
+     camp.html     loses Facilities & Bathrooms, Food & Drink, and Wristbands
+                   & the RV Gate — the last of which is the section telling
+                   guildmates not to buy a ticket they already have
+     ranks.html    stops being a redirect to /guild.html#ranks and comes back
+     cryer.html    as a full page, undoing a deliberate merge and putting
+                   duplicate content back in the search index
+     guild, sellsword, events, pigeon, treaty — all lose later edits
+
+   It also used to write to a copy of the site in OneDrive rather than to this
+   folder, so running it appeared to do nothing while quietly rewriting a
+   different checkout.
+
+   It is kept because it still records how the pages were originally composed,
+   and because the header and footer in it are a useful reference. It is not a
+   build step. To change something on a page, edit the .html file.
+
+   If you genuinely want to see what it would produce, this will write to
+   build-output/ — never over the real pages — and you can diff from there:
+
+       HOCC_BUILD=1 node build.js
+
+   ───────────────────────────────────────────────────────────────────────── */
 const fs=require("fs");const path=require("path");
-const ROOT="C:/Users/Calyp/OneDrive/Documents/New project/houseofcardandcoin-site";
+if(!process.env.HOCC_BUILD){
+  console.error([
+    "",
+    "  build.js is retired and will not run.",
+    "",
+    "  The .html files in this folder are the source of truth — every page has",
+    "  been edited by hand since this script last ran, and running it would",
+    "  replace them with an older version of the site.",
+    "",
+    "  To change a page, edit its .html file. See deploy.md.",
+    "",
+    "  To inspect what it would generate, without touching anything:",
+    "      HOCC_BUILD=1 node build.js      (writes to build-output/)",
+    ""
+  ].join("\n"));
+  process.exit(1);
+}
+// Never the live pages, and never that OneDrive copy. Somewhere you can diff.
+const ROOT=process.env.HOCC_OUT||path.join(__dirname,"build-output");
+fs.mkdirSync(ROOT,{recursive:true});
 const I="/assets/img/";
 const esc=s=>String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
 const SITE={name:"House of Card and Coin",motto:"Where Fortunes Shift, Destinies Unfurl, and Every Bargain Has Its Price.",tag:"Whispers, Wagers, and Well-Kept Secrets",faire:"31st Annual Age of Chivalry Renaissance Festival",dates:"October 9 � 11, 2026",email:"houseofcardandcoin@gmail.com",loc:"Sunset Park � 2601 E Sunset Rd � Las Vegas, NV 89120"};

@@ -115,24 +115,43 @@ ssh -o PreferredAuthentications=password -o PubkeyAuthentication=no root@187.124
 - **nginx** terminates HTTPS on 443 and proxies everything to `127.0.0.1:3000`;
   port 80 returns 301 to HTTPS. `client_max_body_size 30M` (avatar uploads)
 
-### Build model
+### Build model — there isn't one any more
 
-`build.js` generates the static pages (`index.html`, `guild.html`, …) from the
-fragments in `content/`. **Edit `content/` and `build.js`, not the generated HTML** —
-a rebuild overwrites the root `.html` files.
+**The root `.html` files are the source of truth. Edit them directly.**
 
-> ⚠️ **Do not run `build.js` without checking first.** `camp.html` has three
-> sections the generator does not know about — Facilities & Bathrooms, Food &
-> Drink, and Wristbands & the RV Gate — added to the HTML directly at some
-> point. A rebuild would delete all three. Fold them into `build.js` before
-> ever regenerating, or keep editing the HTML directly and accept that
-> `build.js` is now stale for this page.
->
-> `build.js` line 2 hardcodes an absolute Windows path:
-> `const ROOT="C:/Users/Calyp/OneDrive/Documents/New project/houseofcardandcoin-site"`.
-> It still writes to the **old OneDrive folder**. Change it to `__dirname` (or to the
-> Downloads path) before running a build from this repo, or your output lands in
-> the wrong place.
+`build.js` used to generate them from fragments in `content/`. It is retired.
+All nine pages have been hand-edited since it last ran, so running it would not
+have updated them — it would have replaced them with an older site. It also
+wrote to a *different checkout* (a copy under OneDrive), so it appeared to do
+nothing while quietly rewriting that one.
+
+It now refuses to run, and even when forced it writes to `build-output/`
+(gitignored) rather than over the pages:
+
+```bash
+HOCC_BUILD=1 node build.js
+```
+
+Measured on 2026-08-07, a rebuild would have cost: the homepage's "Our spot is
+secured" hero and the whole Cardsharp's Hand section; `camp.html`'s Facilities
+& Bathrooms, Food & Drink, and Wristbands & the RV Gate — the last being the
+section that tells guildmates not to buy a ticket they already have; and
+`ranks.html` and `cryer.html` would have stopped being redirect stubs and come
+back as full duplicate pages. The file is kept only as a record of how the
+pages were first composed.
+
+#### Changing the header or footer on every page
+
+This is the one job the generator was good for, and the reason it is missed:
+the nav markup is repeated in all nine `.html` files. Do it in one pass rather
+than by hand — this is how the always-hamburger nav was rolled out:
+
+```bash
+node -e 'const fs=require("fs");["camp.html","cryer.html","events.html","guild.html","index.html","pigeon.html","ranks.html","sellsword.html","treaty.html"].forEach(f=>{let s=fs.readFileSync(f,"utf8");const before=s;s=s.replace(/OLD/g,"NEW");if(s!==before){fs.writeFileSync(f,s);console.log("updated",f);}else{console.log("no match",f);}});'
+```
+
+Always print which files changed, and check none say `no match` unexpectedly —
+that is the signal a page has drifted from the others.
 
 `serve.js` is a tiny local static server (port 4200) for previewing built pages
 without the members app.
@@ -325,8 +344,9 @@ The security-relevant ones:
    hashes were exposed for an unknown period.
 2. **`SESSION_SECRET` and `GUILD_INVITE_CODE` are both properly set** in
    production (see §4) — an earlier note here claimed otherwise and was wrong.
-   Remaining nit: `express-session` uses the default `MemoryStore`, which drops
-   every session on restart and leaks memory. A file/SQLite store would fix it.
+   ✅ The session store note that used to sit here is out of date: sessions are
+   no longer in the default `MemoryStore`. `server.js` uses `session-file-store`
+   (`app/sessions/`), so a deploy restart no longer signs everybody out.
 3. **`app/seed.js` no longer hardcodes a password** — it reads `SEED_PASSWORD`
    from the environment and refuses to run without it. Seed with:
    `SEED_PASSWORD='...' node seed.js`
