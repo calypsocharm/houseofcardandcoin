@@ -27,7 +27,6 @@
   var HOUSE = [
     ['Home',                '/index.html'],
     ['The Guild',           '/guild.html'],
-    ['Sellsword',           '/sellsword.html'],
     ['Scroll of Events',    '/events.html'],
     ['The Weekend',         '/weekend'],
     ['Ren Faire Camp',      '/camp.html'],

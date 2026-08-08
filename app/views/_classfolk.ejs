@@ -1,0 +1,13 @@
+<%
+  /* Who actually stands in this class. Shown under each specialist so the cast
+     on the page is the guild rather than a description of one — and so an
+     empty class reads as an opening rather than an oversight. */
+%>
+<% if(folk && folk.length){ %>
+  <p class="classfolk">
+    <% folk.forEach(function(f,n){ %><%- include('_avatar',{name:f.name,avatar:f.avatar,slug:f.slug}) %><% }) %>
+    <span><% folk.forEach(function(f,n){ %><% if(n){ %>, <% } %><% if(f.slug){ %><a href="/guild/<%= f.slug %>"><%= f.name %></a><% } else { %><%= f.name %><% } %><% }) %></span>
+  </p>
+<% } else { %>
+  <p class="classfolk classfolk--none">Nobody has taken this up yet.</p>
+<% } %>

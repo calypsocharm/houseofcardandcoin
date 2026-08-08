@@ -961,3 +961,17 @@ footer :where(a,button):focus-visible{
   outline:2px solid var(--gold-l);
   outline-offset:1px;
 }
+
+/* Who stands in each specialism, under its card on the Guild page. */
+.classfolk{
+  display:flex;align-items:center;gap:8px;flex-wrap:wrap;
+  margin-top:14px;padding-top:12px;border-top:1px dotted var(--line);
+  font-size:.88rem;color:var(--ink2);
+}
+.classfolk .postpic,.classfolk .postpic--init{
+  width:26px;height:26px;border-radius:50%;object-fit:cover;flex-shrink:0;
+  border:1px solid var(--line2);
+}
+.classfolk a{color:var(--wine);font-weight:600}
+.classfolk a:hover{text-decoration:underline}
+.classfolk--none{color:var(--muted);font-style:italic}
