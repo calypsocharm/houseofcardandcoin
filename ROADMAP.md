@@ -1,9 +1,50 @@
-# Roadmap — closed
+# Roadmap
 
-Closed 2026-08-07, 63 days before the gates open.
+Last true as of **2026-08-08**, 62 days before the gates open.
 
-Nothing is outstanding. What follows is a record of what was decided, so a
-future session does not reopen questions that were already settled.
+This file was closed on 2026-08-07 as "nothing outstanding". A second round of
+work followed the same day, so it had gone stale — it still listed the
+`style.css` duplication as *deliberately not doing* when that had been done.
+It is rewritten here to say what is actually true.
+
+---
+
+## Open
+
+Two things, both from the 15-item brainstorm of 2026-08-07. Neither is broken;
+neither has been started.
+
+**Guild tales.** A page for the stories — the year it rained sideways, who did
+what. The roster says who people *are*; nothing on the site says what they have
+*done*. This is the last genuinely-missing piece of content, and unlike most of
+the list it cannot be built alone: it needs her to write, or to ask the guild
+to.
+
+**The camp page surviving no signal.** Sunset Park's reception is poor and that
+page carries the gate times, the wristband rule and the map. A service worker
+that keeps it readable once visited is a real on-the-day win, and is worth
+doing in September rather than now — the page is still changing.
+
+### Raised but not asked for
+
+The four specialist cards on the Guild page still carry the original marketing
+copy ("Our gifted tarot reader offers consultations…"). Now that real names sit
+underneath them, that reads like an advertisement for people who are standing
+right there. Offered, not yet taken up.
+
+---
+
+## Done since the file was last closed
+
+Reactions wired to a button · the Scroll of Events' link to itself removed ·
+champion tally on the Roll of Hands · marks on the character sheet · the photo
+wall · the Tavern warming as October nears · countdown milestones · the
+`/weekend` page · "still wanted" instead of "who claimed what" · new-since-you-
+last-looked in the Tavern · Tavern search · `style.css` deduped 484 KB → 72 KB ·
+an accessibility pass · MySpace-style profile pages with an on-page customiser ·
+the tavern entry animation · post editing for seven days · nudge bubbles ·
+pledge vouching · the sellsword folded into the four classes · colour, icons and
+the map on the weekend page.
 
 ---
 
@@ -22,8 +63,7 @@ Las Vegas who know each other and have camped before.
 **The dinner show time and the tavern artwork.** Both raised, both declined.
 Do not raise them again unasked.
 
-**`style.css` is 93% duplicate text** — 459 KB raw, 17 KB over the wire once
-gzip has it. A tidiness matter, invisible to anyone using the site.
+**Nothing on the site about kids or smoking.** Her call, standing.
 
 ---
 
@@ -35,9 +75,16 @@ Changing these changes the guild, not just the code.
   switches the invite requirement off. Put a value back to turn it on again.
 - **Signing up makes you a Pledge**, not a guildmate. The Guild Leader accepts
   by hand from Administration.
+- **Vouching is one-way.** A guildmate can vouch for a Pledge's character; the
+  Pledge sees only that they were vouched for and by whom, never what was
+  written. That was her explicit call — "I don't think it should be shared 3
+  ways."
 - **Bunks need a faire already camped.** Nine beds across three nights, one bed
   per person per night, first come first served. Acceptance alone does not
   earn one.
+- **The four classes are the cast** — Dealer, Reader, Broker, Sellsword. They
+  are the specialist cards on the Guild page and the class you pick in your
+  tabard; they are the same list in both places, from `CLASSES` in `server.js`.
 - **Five-card stud.** One card a night, no trading, and 15 coins buys the next
   one early — capped at four purchases because a hand is five cards.
 - **Hands are public** and the deal uses crypto randomness, because people can
@@ -45,9 +92,9 @@ Changing these changes the guild, not just the code.
 
 ---
 
-## Verified at close
+## Verified 2026-08-08
 
-25 pages and assets return 200. Member data, source, and build scripts all
-404. Cross-site POSTs are refused. The 404 is a real page. Four security
-headers present. Hero videos load on laptops and never on phones — the
-homepage went 4.2 MB to 475 KB, the Scroll of Events 5.3 MB to 2 KB.
+Crawled every reachable page and asset from the homepage — 50 URLs, no broken
+links, nothing missing. `pm2` shows the app online with no unstable restarts;
+the error log's last entry is from 2026-08-07 and predates the current build.
+Member data, source and build scripts still 404.
