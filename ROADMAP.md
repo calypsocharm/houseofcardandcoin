@@ -11,26 +11,8 @@ It is rewritten here to say what is actually true.
 
 ## Open
 
-Two things, both from the 15-item brainstorm of 2026-08-07. Neither is broken;
-neither has been started.
-
-**Guild tales.** A page for the stories — the year it rained sideways, who did
-what. The roster says who people *are*; nothing on the site says what they have
-*done*. This is the last genuinely-missing piece of content, and unlike most of
-the list it cannot be built alone: it needs her to write, or to ask the guild
-to.
-
-**The camp page surviving no signal.** Sunset Park's reception is poor and that
-page carries the gate times, the wristband rule and the map. A service worker
-that keeps it readable once visited is a real on-the-day win, and is worth
-doing in September rather than now — the page is still changing.
-
-### Raised but not asked for
-
-The four specialist cards on the Guild page still carry the original marketing
-copy ("Our gifted tarot reader offers consultations…"). Now that real names sit
-underneath them, that reads like an advertisement for people who are standing
-right there. Offered, not yet taken up.
+Nothing. The 15-item brainstorm of 2026-08-07 is closed — thirteen built, two
+struck by her on 2026-08-08 (below).
 
 ---
 
@@ -64,6 +46,16 @@ Las Vegas who know each other and have camped before.
 Do not raise them again unasked.
 
 **Nothing on the site about kids or smoking.** Her call, standing.
+
+**Guild tales.** A page for the stories — the year it rained sideways, who did
+what. Struck 2026-08-08. It was the one item that needed her to write rather
+than me to build, and she does not want it.
+
+**The camp page surviving no signal.** A service worker keeping the gate times
+and map readable without reception at Sunset Park. Struck 2026-08-08.
+
+**Rewriting the four specialist cards.** Their copy is the original marketing
+voice, now sitting above real names. Raised twice, declined. Leave it.
 
 ---
 
