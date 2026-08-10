@@ -1127,3 +1127,53 @@ footer :where(a,button):focus-visible{
   box-shadow:0 3px 7px -4px rgba(60,40,15,.6);
 }
 .mine__card.is-red{color:#a32020}
+
+/* ── the tavern song, controlled from the header ──────────────────────────── */
+/* Sits beside the menu button on every page, so the music can be turned down
+   or off from wherever you are rather than only from the Tavern. */
+.player{display:flex;align-items:center;gap:8px;margin-left:auto;margin-right:14px}
+.player__btn{
+  width:34px;height:34px;flex-shrink:0;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  border:1px solid rgba(226,199,127,.42);border-radius:50%;
+  background:rgba(36,26,16,.6);color:var(--gold-l);
+  font-size:1rem;line-height:1;
+  transition:background .18s var(--ease),color .18s var(--ease),border-color .18s var(--ease);
+}
+.player__btn:hover,.player__btn:focus-visible{background:var(--gold-d);color:#1a120b}
+.player.is-playing .player__btn{background:var(--wine);border-color:var(--wine-l);color:#f8edd1}
+/* The slider is styled by hand because the default is a grey plastic thing
+   that belongs to no century at all. */
+.player__vol{
+  -webkit-appearance:none;appearance:none;
+  width:72px;height:4px;border-radius:2px;cursor:pointer;
+  background:linear-gradient(90deg,var(--gold-d),rgba(226,199,127,.25));
+}
+.player__vol::-webkit-slider-thumb{
+  -webkit-appearance:none;appearance:none;
+  width:13px;height:13px;border-radius:50%;
+  background:var(--gold-l);border:1px solid #6b4f2a;cursor:pointer;
+}
+.player__vol::-moz-range-thumb{
+  width:13px;height:13px;border-radius:50%;
+  background:var(--gold-l);border:1px solid #6b4f2a;cursor:pointer;
+}
+.player__vol:focus-visible{outline:2px solid var(--gold-l);outline-offset:3px}
+/* On a narrow screen the header is tight; keep the button, drop the slider —
+   the device's own volume keys are right there. */
+@media(max-width:560px){
+  .player{margin-right:10px;gap:0}
+  .player__vol{display:none}
+}
+/* Letting the song out of the Tavern — offered in the Tavern, and nowhere
+   else, because that is the only room where the question makes sense. */
+.player__scope{
+  cursor:pointer;white-space:nowrap;
+  border:1px solid rgba(226,199,127,.32);border-radius:3px;
+  padding:4px 9px;background:transparent;color:#c9ab7f;
+  font-family:var(--display);font-size:.54rem;letter-spacing:.1em;text-transform:uppercase;
+  transition:background .18s var(--ease),color .18s var(--ease),border-color .18s var(--ease);
+}
+.player__scope:hover,.player__scope:focus-visible{border-color:var(--gold-l);color:var(--gold-l)}
+.player__scope.is-on{background:rgba(226,199,127,.16);border-color:var(--gold);color:var(--gold-l)}
+@media(max-width:720px){.player__scope{display:none}}

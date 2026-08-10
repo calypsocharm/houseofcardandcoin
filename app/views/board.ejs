@@ -73,12 +73,10 @@
         <a class="tav-purse" href="/board/rogues"><span class="tav-coin">✦</span> <%= i.coins||0 %> coins</a>
       <% } %>
       <%
-        /* Mama Bear's own recording. preload="none" so the browser fetches
-           nothing at all until somebody presses the button, and there is no
-           autoplay attribute anywhere near it. */
+        /* The song used to have its own button here. It lives in the header
+           now, on every page, so there is one control rather than two
+           disagreeing about whether music is playing. */
       %>
-      <button type="button" class="tav-song" id="songBtn" aria-pressed="false">♪ Play the tavern song</button>
-      <audio id="tavernSong" preload="none" loop src="/assets/audio/tavern.mp3"></audio>
     </div>
 
     <nav class="tav-doors">
@@ -525,5 +523,4 @@
 })();
 </script>
 
-<script defer src="/assets/js/tavern-song.js?v=<%= typeof assetv!=='undefined'?assetv:'1' %>"></script>
 <%- include('_bot') %>
