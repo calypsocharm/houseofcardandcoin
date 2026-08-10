@@ -58,7 +58,13 @@ header::before{content:"";position:absolute;left:0;right:0;bottom:0;height:2px;b
 .day__hd{background:linear-gradient(180deg,var(--dark2),var(--dark));color:var(--gold-l);padding:20px 26px;font-family:var(--display);display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;border-bottom:2px solid var(--gold)}.day__hd .d{font-size:1.3rem;letter-spacing:.06em}.day__hd .h{font-size:.86rem;letter-spacing:.12em;color:#e6d4a8}
 .day__bd{padding:26px}.event{display:flex;gap:14px;padding:14px 0;border-bottom:1px dashed var(--line2)}.event:last-child{border-bottom:0}.event .t{font-family:var(--display);color:var(--wine);font-weight:700;min-width:96px;font-size:.92rem;letter-spacing:.04em}.event .b{color:var(--ink2);font-size:1.05rem}.event .b b{color:var(--ink);font-family:var(--display);font-size:1rem}
 .callout{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}.fact{background:var(--ivory);border:1px solid var(--line2);border-radius:4px;padding:24px;text-align:center;box-shadow:0 14px 30px -24px rgba(60,40,15,.5)}.fact .ic{font-size:1.6rem;color:var(--gold-d)}.fact h2,.fact h3{font-family:var(--display);font-size:.78rem;letter-spacing:.16em;text-transform:uppercase;color:var(--wine);margin:8px 0 4px}.fact p{color:var(--ink2);font-size:1.02rem}
-.camp-list{list-style:none;display:flex;flex-direction:column;gap:12px}.camp-list li{display:flex;gap:12px;align-items:flex-start;color:var(--ink2);font-size:1.05rem}.camp-list li::before{content:"\2666";color:var(--gold-d);font-size:.9rem;margin-top:2px}
+.camp-list{list-style:none;display:flex;flex-direction:column;gap:12px}
+/* The diamond used to be a flex sibling of the text, which made a <b> at the
+   start of a line its own flex item — so a long bold label got squeezed into
+   a narrow column with the rest of the sentence beside it. Positioned instead,
+   so each line is one run of text with a hanging bullet. */
+.camp-list li{position:relative;padding-left:24px;color:var(--ink2);font-size:1.05rem}
+.camp-list li::before{content:"\2666";position:absolute;left:0;top:0;color:var(--gold-d);font-size:.9rem}
 .task{background:var(--ivory);border:1px solid var(--line2);border-radius:4px;padding:22px}.task h3,.task h4{font-family:var(--display);color:var(--wine);margin-bottom:6px}.task p{color:var(--ink2)}
 .rank{background:var(--ivory);border:1px solid var(--line2);border-left:4px solid var(--gold);border-radius:4px;padding:24px;box-shadow:0 14px 30px -26px rgba(60,40,15,.5)}.rank h3{font-family:var(--display);color:var(--wine);margin-bottom:6px}.rank p{color:var(--ink2)}
 .poster{background:#1f160e;border:2px solid var(--gold);border-radius:6px;padding:40px;color:#f5e9c8;position:relative;box-shadow:0 30px 60px -30px rgba(0,0,0,.7)}.poster h2,.poster h3{font-family:var(--display);color:var(--gold-l);font-size:2.2rem;letter-spacing:.06em;text-align:center}.poster .stamp{position:absolute;top:18px;right:18px;border:3px solid var(--wine-l);color:var(--wine-l);padding:6px 14px;border-radius:4px;font-family:var(--display);font-size:.78rem;letter-spacing:.16em;transform:rotate(8deg)}
@@ -975,3 +981,13 @@ footer :where(a,button):focus-visible{
 .classfolk a{color:var(--wine);font-weight:600}
 .classfolk a:hover{text-decoration:underline}
 .classfolk--none{color:var(--muted);font-style:italic}
+
+/* The Sunset Park parking map. It is a tall SVG, so it is capped by height
+   rather than width — at full width on a laptop it would run past the fold
+   and read as a wall rather than a map. */
+.parkmap{margin:0;text-align:center}
+.parkmap a{display:inline-block;max-width:100%}
+.parkmap img{display:block;width:auto;max-width:100%;max-height:78vh;margin:0 auto;
+  border:1px solid var(--line2);border-radius:4px;background:var(--ivory);
+  box-shadow:0 22px 44px -28px rgba(60,40,15,.5)}
+.parkmap figcaption{margin-top:12px;font-size:.84rem;color:var(--muted);line-height:1.6}
