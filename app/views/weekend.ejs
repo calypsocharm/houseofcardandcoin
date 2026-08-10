@@ -21,10 +21,12 @@
       <span class="wk-ring__i" aria-hidden="true">📞</span>
       <div class="wk-ring__t">
         <b>Lost, late or stuck on the day?</b>
-        <a class="wk-ring__n" href="tel:<%= day.tel %>"><%= day.phone %></a>
         <span class="wk-ring__how"><a href="/board/whispers">Whisper</a> or
-          <a href="/pigeon.html">email</a> first &mdash; <%= day.name %> would rather read it than
-          take a call. <b>Ring the number if it is urgent.</b></span>
+          <a href="/pigeon.html">email</a> first &mdash; that is what <%= day.name %> will actually
+          read.</span>
+        <a class="wk-ring__n" href="sms:<%= day.tel %>"><%= day.phone %></a>
+        <span class="wk-ring__how"><b>Text it, do not ring it.</b> She will not be answering the
+          phone during the faire. A call is a last resort, for an emergency.</span>
         <span class="wk-ring__keep">Guildmates only. Keep it in the House.</span>
       </div>
     </div>

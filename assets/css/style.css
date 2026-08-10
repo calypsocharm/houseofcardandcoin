@@ -996,3 +996,20 @@ footer :where(a,button):focus-visible{
    that nobody claims it thinking it is a bed in the rig. */
 .bunknote{display:inline-block;margin-left:6px;font-family:var(--serif);font-size:.68rem;
   letter-spacing:.02em;text-transform:none;color:var(--muted);font-style:italic}
+
+/* Which page you are on, in the menu. The only mark used to be gold-ish text
+   against near-gold text, which on a dark drawer is no mark at all — you had
+   to hunt for it. Now the row carries a gold bar, a tint and brighter type, so
+   it reads at a glance. The bar is an inset shadow rather than a border so
+   nothing shifts sideways when a row becomes current. */
+.navdrawer a.active{
+  color:var(--gold-l);
+  background:linear-gradient(90deg,rgba(226,199,127,.16),rgba(226,199,127,.03));
+  box-shadow:inset 4px 0 0 var(--gold);
+  font-weight:700;
+}
+.navdrawer a.active:hover{background:linear-gradient(90deg,rgba(226,199,127,.22),rgba(226,199,127,.05))}
+/* A small mark on the right as well, so the current row is not carried by
+   colour alone — colour-blind readers and anyone in bright sun get it too. */
+.navdrawer a.active::before{content:"\25C6";margin-left:auto;padding-left:10px;
+  font-size:.62rem;color:var(--gold);opacity:.9}
