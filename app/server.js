@@ -1004,6 +1004,9 @@ function dayContact(i){
   return {name:L.name, sworn:sworn, mine:i.id===L.id,
           phone:sworn?(L.phone||''):'', tel:sworn?(L.phone||'').replace(/[^0-9+]/g,''):''};
 }
+function mayPin(u){
+  return !!u && (u.role==="leader" || u.title==="Guild Leader" || u.title==="Guild Elder");
+}
 function ident(req){
   if(req.session.uid){const u=db.users.find(x=>x.id===req.session.uid);if(u)return{t:'member',id:u.id,name:u.name,avatar:u.avatar,leader:u.role==='leader'};}
   if(req.session.pid){const p=db.patrons.find(x=>x.id===req.session.pid);if(p&&!p.banned)return{t:'patron',id:p.id,name:p.name,avatar:p.avatar,leader:false};}
@@ -1188,14 +1191,19 @@ app.get('/board',(req,res)=>{
     return String(p.body||'').toLowerCase().indexOf(needle)>=0
         || String(p.authorName||'').toLowerCase().indexOf(needle)>=0;
   }
-  let threads=db.threads.slice().sort(function(a,b){return lastTouch(b)-lastTouch(a);}).map(freshenPost);
+  let threads=db.threads.slice().sort(function(a,b){
+    // A pinned note stays at the top however old it gets; below that the
+    // board reads newest-touched first, as it always has.
+    if(!!a.pinned!==!!b.pinned) return a.pinned?-1:1;
+    return lastTouch(b)-lastTouch(a);
+  }).map(freshenPost);
   if(needle){
     threads=threads.filter(function(t){
       return hits(t)||(t.replies||[]).some(hits);
     });
   }
   const polls=db.polls.slice().sort((a,b)=>b.ts-a.ts).map(freshenPost).map(function(p){const total=p.options.reduce((s,o)=>s+o.votes.length,0);const voted=i?!!p.options.find(o=>o.votes.find(v=>v.t===i.t&&v.id===i.id)):false;return Object.assign({},p,{total:total,voted:voted});});
-  res.render('board',{i:i,threads:threads,polls:polls,cats:BOARDCATS,q:req.query,leader:!!(i&&i.leader),ration:{canDraw:!!(i&&i.lastRation!==today),card:i?i.lastCard:null},hand:i?(i.hand||[]).map(cardInfo):[],pending:i&&i.pending?cardInfo(i.pending):null,handRank:i?handRank(i.hand||[]):null,handPrizes:HAND_PRIZES,tableHands:allHands(),cardPrice:CARD_PRICE,special:SPECIALS[dayOfYear()%SPECIALS.length],gates:countdown(),near:nearness(countdown()),notices:i?(db.notices||[]).filter(function(n){return n.toT===i.t&&n.toId===i.id&&!n.read;}).length:0,folk:pres.folk,quietHrs:quietHrs,editMs:EDIT_WINDOW,editDays:EDIT_DAYS,slugs:slugById(),reacts:REACTS,seenBefore:seenBefore,find:find,found:threads.length});
+  res.render('board',{i:i,threads:threads,canPin:mayPin(cur(req)),polls:polls,cats:BOARDCATS,q:req.query,leader:!!(i&&i.leader),ration:{canDraw:!!(i&&i.lastRation!==today),card:i?i.lastCard:null},hand:i?(i.hand||[]).map(cardInfo):[],pending:i&&i.pending?cardInfo(i.pending):null,handRank:i?handRank(i.hand||[]):null,handPrizes:HAND_PRIZES,tableHands:allHands(),cardPrice:CARD_PRICE,special:SPECIALS[dayOfYear()%SPECIALS.length],gates:countdown(),near:nearness(countdown()),notices:i?(db.notices||[]).filter(function(n){return n.toT===i.t&&n.toId===i.id&&!n.read;}).length:0,folk:pres.folk,quietHrs:quietHrs,editMs:EDIT_WINDOW,editDays:EDIT_DAYS,slugs:slugById(),reacts:REACTS,seenBefore:seenBefore,find:find,found:threads.length});
 });
 app.post('/board/thread',canPost,(req,res)=>{
   const i=ident(req);const body=(req.body.body||'').trim();let category=(req.body.category||'General').trim();
@@ -1332,6 +1340,19 @@ app.post('/board/reply/:id/mine/delete',canPost,(req,res)=>{
   if(!mayAmend(found.r,i))return res.redirect('/board?e='+encodeURIComponent(LOCKED));
   found.t.replies=found.t.replies.filter(function(r){return r.id!=req.params.id;});
   save();res.redirect('/board');
+});
+/* Nail a note to the top, or take it down again. Guild Leader and Guild Elder
+   only — the two who run the House. Any number can be up at once; they hold
+   their own order among themselves by when they were last touched. */
+app.post("/board/thread/:id/pin",canPost,(req,res)=>{
+  const u=cur(req);
+  if(!mayPin(u)) return res.status(403).send("Only the Guild Leader and the Guild Elder may pin a note");
+  const t=db.threads.find(function(x){return x.id==req.params.id;});
+  if(!t) return res.redirect("/board");
+  t.pinned=!t.pinned;
+  t.pinnedBy=t.pinned?u.name:"";
+  save();
+  res.redirect((req.get("Referrer")||"/board").split("#")[0]+"#m"+t.id);
 });
 app.post('/board/thread/:id/delete',leaderOnly,(req,res)=>{db.threads=db.threads.filter(x=>x.id!=req.params.id);save();res.redirect('/board');});
 app.post('/board/reply/:id/delete',leaderOnly,(req,res)=>{db.threads.forEach(t=>{t.replies=t.replies.filter(r=>r.id!=req.params.id);});save();res.redirect('/board');});

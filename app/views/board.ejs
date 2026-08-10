@@ -180,13 +180,22 @@
       %>
       <% var run=[{who:t.authorName,av:t.authorAvatar,ty:t.authorType,uid:t.authorId,body:t.body,ts:t.ts,edited:t.edited,kind:'thread',rid:t.id,tid:t.id,reacts:t.reacts}]
              .concat((t.replies||[]).map(function(r){return {who:r.authorName,av:r.authorAvatar,ty:r.authorType,uid:r.authorId,body:r.body,ts:r.ts,edited:r.edited,kind:'reply',rid:r.id,tid:t.id,reacts:r.reacts};})); %>
-      <div class="tav-run">
+      <div class="tav-run<%= t.pinned ? ' is-pinned' : '' %>">
+        <% if(t.pinned){ %>
+          <p class="tav-pinned"><span aria-hidden="true">📌</span> Pinned by
+            <b><%= t.pinnedBy || 'the House' %></b></p>
+        <% } %>
         <% run.forEach(function(m,n){
              var mine = i && m.ty===i.t && m.uid===i.id;
              var prev = n>0 ? run[n-1] : null;
              var same = prev && prev.ty===m.ty && prev.uid===m.uid;
              var fresh = seenBefore && m.ts > seenBefore && !mine; %>
           <div class="tav-said<%= mine?' is-me':'' %><%= same?' is-cont':'' %><%= fresh?' is-new':'' %>" id="m<%= m.rid %>">
+            <% if(canPin && m.kind==='thread'){ %>
+              <form class="tav-pin" method="post" action="/board/thread/<%= t.id %>/pin">
+                <button type="submit" title="<%= t.pinned ? 'Take this down from the top' : 'Nail this to the top of the board' %>"><%= t.pinned ? 'Unpin' : 'Pin to top' %></button>
+              </form>
+            <% } %>
             <% var page = (m.ty==='member' && slugs[m.uid]) ? '/guild/'+slugs[m.uid] : null; %>
             <% if(same){ %>
               <span class="tav-face tav-face--ghost" aria-hidden="true"></span>

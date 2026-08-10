@@ -826,3 +826,31 @@
 .prize__hint{font-family:var(--serif);font-style:italic;font-size:.9rem;color:#a8916b}
 .prize__what{font-family:var(--display);font-size:1.05rem;color:#f5e9c8;line-height:1.4}
 .prize__note{margin-top:14px;font-size:.9rem;color:#c9ab7f;line-height:1.7;text-align:center}
+
+/* ── pinned to the top of the board ───────────────────────────────────────── */
+/* A pinned note keeps its place however old it gets, so it has to say why it
+   is up there — otherwise it reads as the board being out of order. */
+.tav-run.is-pinned{
+  position:relative;
+  border:1px solid rgba(226,199,127,.42);border-radius:6px;
+  background:linear-gradient(180deg,rgba(226,199,127,.08),rgba(226,199,127,.02));
+  padding:12px 14px 6px;margin-bottom:18px;
+  box-shadow:0 12px 30px -24px #000;
+}
+.tav-pinned{
+  display:flex;align-items:center;gap:7px;margin:0 0 8px;
+  font-family:var(--display);font-size:.64rem;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--gold-l);
+}
+.tav-pinned b{color:#f5e9c8;letter-spacing:.08em}
+.tav-said{position:relative}
+.tav-pin{position:absolute;top:2px;right:0;opacity:0;transition:opacity .16s var(--ease)}
+.tav-said:hover .tav-pin,.tav-pin:focus-within{opacity:1}
+.tav-pin button{
+  border:1px solid rgba(226,199,127,.4);border-radius:3px;cursor:pointer;padding:3px 9px;
+  background:rgba(36,26,16,.9);color:#e4c77f;
+  font-family:var(--display);font-size:.56rem;letter-spacing:.1em;text-transform:uppercase;
+}
+.tav-pin button:hover{background:var(--gold-d);color:#1a120b}
+/* No hover on a touch screen, so the control simply stays put. */
+@media(hover:none){.tav-pin{opacity:1;position:static;margin-bottom:6px}}
