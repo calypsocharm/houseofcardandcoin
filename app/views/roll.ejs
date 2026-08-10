@@ -56,6 +56,44 @@
       <% } %>
     </section>
 
+    <!-- ── what is in it for the winners ───────────────────────────────── -->
+    <%
+      /* Sealed unless the Guild Leader has said to show them. Not knowing is
+         half the point, so the sealed state is the interesting one and gets
+         the care: a wax seal, not a greyed-out box saying "hidden". */
+    %>
+    <section class="roll__prizes">
+      <h2>What the House is giving</h2>
+      <div class="prizes">
+        <div class="prize prize--first">
+          <span class="prize__rank">First hand of the faire</span>
+          <% if(prizes.shown && prizes.first){ %>
+            <span class="prize__what">🎁 <%= prizes.first %></span>
+          <% } else { %>
+            <span class="prize__sealed" aria-label="Sealed until the faire">🎁</span>
+            <span class="prize__hint">Sealed until the faire</span>
+          <% } %>
+        </div>
+        <div class="prize prize--second">
+          <span class="prize__rank">Runner-up</span>
+          <% if(prizes.shown && prizes.second){ %>
+            <span class="prize__what">🎁 <%= prizes.second %></span>
+          <% } else { %>
+            <span class="prize__sealed" aria-label="Sealed until the faire">🎁</span>
+            <span class="prize__hint">Sealed until the faire</span>
+          <% } %>
+        </div>
+      </div>
+      <p class="prize__note">
+        <% if(prizes.shown && (prizes.first||prizes.second)){ %>
+          Bring your hand to our table at the faire and show it.
+        <% } else { %>
+          Neither is being told before the gates open. Bring your hand to our table
+          and show it &mdash; the best of the weekend takes the first, the next takes the runner-up.
+        <% } %>
+      </p>
+    </section>
+
     <!-- ── the standing tally ──────────────────────────────────────────── -->
     <% if(champions.length){ %>
       <section class="roll__tally">

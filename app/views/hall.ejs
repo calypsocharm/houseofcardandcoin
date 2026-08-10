@@ -162,6 +162,25 @@
     </ul>
   <% } %>
 </div>
+<div class="bringers" id="prizes" style="margin-bottom:18px">
+  <h3>What the House is giving</h3>
+  <p class="bringers__none" style="margin-bottom:12px">Two prizes on the
+    <a href="/board/roll" style="color:var(--gold-l)">Roll of Hands</a> &mdash; the best hand of the
+    weekend and the runner-up. They stay sealed behind a wax seal until you tick the box, so you can
+    write them down now and reveal them at the faire without anyone touching the site.</p>
+  <form method="post" action="/members/admin/prizes">
+    <div class="field"><label>First prize</label>
+      <input name="first" value="<%= (prizes&&prizes.first)||'' %>" maxlength="140" placeholder="Kept between you and the winner"></div>
+    <div class="field"><label>Runner-up</label>
+      <input name="second" value="<%= (prizes&&prizes.second)||'' %>" maxlength="140" placeholder="Second best hand of the weekend"></div>
+    <label style="display:flex;align-items:center;gap:9px;margin:4px 0 12px;color:#e4d3ab;font-size:.92rem">
+      <input type="checkbox" name="shown" value="1" <%= (prizes&&prizes.shown)?'checked':'' %> style="width:auto">
+      Break the seal &mdash; show them to everyone
+    </label>
+    <button class="btn btn--gold" style="padding:8px 18px;font-size:.62rem">Save the prizes</button>
+  </form>
+  <% if(typeof q!=="undefined" && q.prizes){ %><p class="bringers__none" style="color:var(--gold-l);margin-top:10px">Saved.</p><% } %>
+</div>
 <div class="bringers" id="safekeeping" style="margin-bottom:18px">
   <h3>Keep a copy safe</h3>
   <p class="bringers__none" style="margin-bottom:12px">The nightly backup lives on the same server it protects — if that server is
