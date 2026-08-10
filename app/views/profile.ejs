@@ -159,16 +159,40 @@
               <% photos.forEach(function(ph){ %>
                 <li><a href="<%= ph.file %>" target="_blank" rel="noopener">
                   <img src="<%= ph.thumb %>" alt="<%= ph.caption||(who.name+'’s photo') %>" loading="lazy">
-                </a><% if(ph.caption){ %><span><%= ph.caption %></span><% } %></li>
+                </a><% if(ph.caption){ %><span><%= ph.caption %></span><% } %>
+                <% if(isMe || leader){ %>
+                  <form method="post" action="/members/page/picture/<%= ph.id %>/remove" class="pro-pics__x"
+                        onsubmit="return confirm('Take this picture down? It goes from the wall too.')">
+                    <button type="submit" aria-label="Take this picture down">Take it down</button>
+                  </form>
+                <% } %></li>
               <% }) %>
             </ul>
-            <% if(isMe){ %><p class="pro-pics__add"><a href="/gallery">Add another to the wall</a> &mdash; anything you post there shows up here.</p><% } %>
+            <% if(isMe){ %>
+              <form class="pro-pics__add-form" method="post" action="/members/page/picture" enctype="multipart/form-data">
+                <label for="picUp">Add a picture</label>
+                <input id="picUp" type="file" name="photo" accept="image/*" required>
+                <input type="text" name="caption" maxlength="140" placeholder="A word about it, if you like…" aria-label="Caption">
+                <button class="btn btn--gold" type="submit">Add it</button>
+                <small>It also goes on the <a href="/gallery">photo wall</a>, where the whole House can see it.</small>
+              </form>
+            <% } %>
+
           </div>
         <% } else if(isMe){ %>
           <div class="pro-card" id="pics">
             <h2>Pictures</h2>
-            <p class="pro-empty">No pictures yet. Anything you put on the
-              <a href="/gallery">photo wall</a> appears here on your own page too.</p>
+            <p class="pro-empty">No pictures yet &mdash; put one up.</p>
+            <% if(isMe){ %>
+              <form class="pro-pics__add-form" method="post" action="/members/page/picture" enctype="multipart/form-data">
+                <label for="picUp">Add a picture</label>
+                <input id="picUp" type="file" name="photo" accept="image/*" required>
+                <input type="text" name="caption" maxlength="140" placeholder="A word about it, if you like…" aria-label="Caption">
+                <button class="btn btn--gold" type="submit">Add it</button>
+                <small>It also goes on the <a href="/gallery">photo wall</a>, where the whole House can see it.</small>
+              </form>
+            <% } %>
+
           </div>
         <% } %>
 
@@ -406,6 +430,7 @@
       <span class="dress__state" id="dressState">Nothing changed yet</span>
     </div>
   </form>
+
 </div>
 <% } %>
 

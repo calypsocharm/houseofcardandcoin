@@ -493,3 +493,28 @@
 .pro-vouchform .btn{margin-top:10px}
 .pro-vouchform small{display:block;margin-top:8px;font-size:.8rem;color:var(--muted);line-height:1.5}
 .pro-vouchmine{margin-top:14px;color:var(--forest);font-weight:600;font-size:.92rem}
+
+/* Adding a picture from the dressing panel, and taking one down again. */
+.pro-pics li{position:relative}
+.pro-pics__x{position:absolute;top:5px;right:5px;opacity:0;transition:opacity .16s var(--ease)}
+.pro-pics li:hover .pro-pics__x,.pro-pics__x:focus-within{opacity:1}
+.pro-pics__x button{
+  border:0;border-radius:3px;cursor:pointer;padding:4px 8px;
+  background:rgba(36,26,16,.88);color:#f5e9c8;
+  font-family:var(--display);font-size:.58rem;letter-spacing:.08em;text-transform:uppercase;
+}
+.pro-pics__x button:hover{background:var(--wine)}
+/* A touch screen has no hover, so the control is simply always there. */
+@media(hover:none){.pro-pics__x{opacity:1}}
+
+/* Putting a picture up, from your own page. */
+.pro-pics__add-form{
+  grid-column:1/-1;display:flex;flex-direction:column;gap:8px;
+  margin-top:14px;padding-top:14px;border-top:1px solid var(--line);
+}
+.pro-pics__add-form label{font-family:var(--display);font-size:.7rem;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--u-accent,var(--wine))}
+.pro-pics__add-form input[type=text]{width:100%}
+.pro-pics__add-form .btn{align-self:flex-start;padding:7px 16px;font-size:.6rem}
+.pro-pics__add-form small{font-size:.78rem;color:var(--muted);line-height:1.5}
+.pro-pics__add-form small a{color:var(--u-accent,var(--wine));font-weight:600}

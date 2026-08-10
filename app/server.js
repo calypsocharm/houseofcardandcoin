@@ -495,6 +495,31 @@ app.post('/gallery/add',canPost,up.single('photo'),shrinkPhoto,(req,res)=>{
     caption:String(req.body.caption||'').trim().slice(0,140), ts:Date.now()});
   save();res.redirect('/gallery?added=1');
 });
+/* Add a picture from your own page rather than trekking to the photo wall.
+   Same store and the same path through shrinkPhoto, so it is shrunk and has
+   its EXIF stripped exactly as a wall upload is — one pipeline, not two. It
+   lands on the wall as well, which the panel says out loud so nobody posts a
+   picture expecting it to be private. */
+app.post("/members/page/picture",au,up.single("photo"),shrinkPhoto,(req,res)=>{
+  const u=cur(req); if(!u) return res.redirect("/members/login");
+  const back="/guild/"+(slugById()[u.id]||"")+"#pics";
+  if(req.photoBad||!req.file) return res.redirect(back);
+  if((db.photos||[]).length>=PHOTO_MAX) return res.redirect(back);
+  db.photos.push({id:nid(),byT:"member",byId:u.id,byName:u.name,byAvatar:u.avatar||"",
+    file:"/uploads/"+req.file.filename, thumb:"/uploads/"+(req.thumbName||req.file.filename),
+    caption:String(req.body.caption||"").trim().slice(0,140), ts:Date.now()});
+  save();res.redirect(back);
+});
+/* Take one down again, from your own page. */
+app.post("/members/page/picture/:id/remove",au,(req,res)=>{
+  const u=cur(req); if(!u) return res.redirect("/members/login");
+  const ph=(db.photos||[]).find(function(x){return x.id==req.params.id;});
+  const back="/guild/"+(slugById()[u.id]||"")+"#pics";
+  if(!ph) return res.redirect(back);
+  if(!(ph.byT==="member"&&ph.byId===u.id) && u.role!=="leader") return res.status(403).send("Not yours");
+  db.photos=db.photos.filter(function(x){return x.id!==ph.id;});
+  save();res.redirect(back);
+});
 app.post('/gallery/:id/remove',canPost,(req,res)=>{
   const i=ident(req);
   const ph=(db.photos||[]).find(function(x){return x.id==req.params.id;});
