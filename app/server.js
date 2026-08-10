@@ -434,7 +434,7 @@ app.get('/weekend',(req,res)=>{
   });
   const list=bringList();
   res.render('weekend',{
-    i:i, gates:countdown(), coming:coming, board:board, berths:heldBerths(),
+    i:i, gates:countdown(), coming:coming, board:board, berths:heldBerths(), day:dayContact(i),
     wanted:list.filter(function(x){return x.remaining>0;}).sort(function(a,b){return b.remaining-a.remaining;}),
     covered:list.filter(function(x){return x.remaining===0;}).length,
     items:list.length, bunksLeft:board.reduce(function(s,d){return s+d.bunks.filter(function(b){return !b.taken;}).length;},0)
@@ -916,6 +916,26 @@ app.post('/members/admin/bunk/release',al,(req,res)=>{
 });
 app.post('/members/admin/fares',al,(req,res)=>{const id=parseInt(req.body.id);const u=db.users.find(x=>x.id===id);if(!u)return res.redirect('/members#admin');u.faires=Math.max(0,parseInt(req.body.faires||0));save();res.redirect('/members#admin');});app.post('/members/admin/round/close',al,(req,res)=>{const r=closeRound();return res.redirect('/board/roll'+(r?'?closed='+r.n:'?e=empty'));});app.post('/members/admin/berth',al,(req,res)=>{const u=db.users.find(x=>x.id===parseInt(req.body.id));if(!u)return res.redirect('/members#admin');u.berth=(req.body.berth||'').trim().slice(0,40);save();res.redirect('/members#admin');});app.post('/members/admin/title',al,(req,res)=>{const id=parseInt(req.body.id);const u=db.users.find(x=>x.id===id);if(!u)return res.redirect('/members#admin');u.title=(req.body.title||'').trim();save();res.redirect('/members#admin');});app.post('/members/admin/resetpw',al,(req,res)=>{const id=parseInt(req.body.id);const u=db.users.find(x=>x.id===id);if(!u)return res.redirect('/members#admin');const np=(req.body.password||'').trim();if(np.length<4)return res.redirect('/members?e=pwshort#admin');u.passhash=bcrypt.hashSync(np,10);save();res.redirect('/members?pwreset=1#admin');});app.post('/members/admin/add',al,(req,res)=>{const{name,email,password,faires,title}=req.body;const e=(email||'').toLowerCase().trim();if(!name||!e||!(password||'').trim())return res.redirect('/members?e=addreq#admin');if(db.users.find(x=>x.email===e))return res.redirect('/members?e=dup#admin');db.users.push({id:nid(),name:name.trim(),email:e,passhash:bcrypt.hashSync(password,10),avatar:'',class:'',faires:Math.max(0,parseInt(faires||0)),role:'member',title:(title||'').trim(),contactEmail:'',phone:''});save();res.redirect('/members?added=1#admin');});app.post('/members/admin/remove',al,(req,res)=>{const id=parseInt(req.body.id);const me=db.users.find(x=>x.id===req.session.uid);if(me&&me.id===id)return res.redirect('/members?e=self#admin');const u=db.users.find(x=>x.id===id);if(!u||u.role==='leader')return res.redirect('/members?e=nodel#admin');db.users=db.users.filter(x=>x.id!==id);db.bunks=db.bunks.filter(b=>b.userId!==id);db.claims=db.claims.filter(c=>c.userId!==id);save();res.redirect('/members?removed=1#admin');});app.get('/api/announcements',(req,res)=>res.json((db.announcements||[]).slice().reverse()));app.post('/members/admin/announce',al,(req,res)=>{const t=(req.body.text||'').trim();if(!t)return res.redirect('/members?e=notext#admin');db.announcements.push({id:nid(),text:t,ts:Date.now()});save();res.redirect('/members?ann=1#admin');});app.post('/members/admin/announce/remove',al,(req,res)=>{const id=parseInt(req.body.id);db.announcements=db.announcements.filter(function(a){return a.id!==id;});save();res.redirect('/members#admin');});app.post('/members/rsvp',au,(req,res)=>{const u=cur(req);if(!u)return res.redirect('/members/login');u.rsvp=!u.rsvp;save();res.redirect('/members#rsvp');});// ===== The Tavern: public notice board + polls =====
 const BOARDCATS=['General','Rides & Lodging','Trade & Barter',"Reader's Circle",'Camp Talk'];
+/* The number to ring when you are stood in the car park on the Friday with a
+   boot full of gear. Every route to a person on this site was email, which is
+   no use at all on the day.
+
+   Read live off the Guild Leader's own tabard, so the number lives in one
+   place she controls and appears in no file in this repo. Signed-in members
+   only — tavern patrons are strangers off the internet and do not get it. */
+function dayContact(i){
+  if(!i||i.t!=='member') return null;
+  const me=db.users.find(function(x){return x.id===i.id;});
+  if(!me) return null;
+  const L=db.users.find(function(x){return x.role==='leader';});
+  if(!L) return null;
+  // Sworn guildmates get the number. Pledges are not turned away — they are
+  // pointed at the pigeon instead, which is her call: the number goes to
+  // people the House has taken in, not to anyone who made an account.
+  const sworn=!me.pledge;
+  return {name:L.name, sworn:sworn, mine:i.id===L.id,
+          phone:sworn?(L.phone||''):'', tel:sworn?(L.phone||'').replace(/[^0-9+]/g,''):''};
+}
 function ident(req){
   if(req.session.uid){const u=db.users.find(x=>x.id===req.session.uid);if(u)return{t:'member',id:u.id,name:u.name,avatar:u.avatar,leader:u.role==='leader'};}
   if(req.session.pid){const p=db.patrons.find(x=>x.id===req.session.pid);if(p&&!p.banned)return{t:'patron',id:p.id,name:p.name,avatar:p.avatar,leader:false};}

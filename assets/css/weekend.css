@@ -139,3 +139,26 @@
   .wk-map{flex-direction:column}
   .wk-map__pic{width:100%;max-width:280px;align-self:center}
 }
+
+/* Who to ring on the day. Sits above everything else on the page, because on
+   the Friday it is the only thing on it that cannot wait. */
+.wk-ring{
+  display:flex;align-items:flex-start;gap:14px;margin-bottom:26px;padding:14px 18px;
+  background:var(--wine);color:#f8edd1;border-radius:4px;text-decoration:none;
+  box-shadow:0 14px 34px -24px rgba(60,40,15,.9);
+}
+.wk-ring__i{font-size:1.5rem;line-height:1;flex-shrink:0}
+.wk-ring__t{display:flex;flex-direction:column;gap:3px;line-height:1.4}
+.wk-ring__n{font-family:var(--display);font-size:1.34rem;letter-spacing:.04em;color:#fff;
+  text-decoration:none;width:max-content}
+.wk-ring__n:hover,.wk-ring__n:focus-visible{text-decoration:underline}
+.wk-ring__how{font-size:.88rem;color:#e9d9b4}
+.wk-ring__how a{color:#f8edd1;font-weight:600}
+.wk-ring__how b{color:#fff}
+.wk-ring__keep{font-size:.74rem;letter-spacing:.1em;text-transform:uppercase;color:#c9ab7f;margin-top:3px}
+.wk-ring--empty{
+  display:block;background:#fdf6e4;color:var(--ink2);border:1px solid var(--gold-d);
+  box-shadow:none;line-height:1.6;
+}
+.wk-ring--empty a{color:var(--wine);font-weight:600}
+@media(max-width:560px){.wk-ring__n{font-size:1.1rem}}

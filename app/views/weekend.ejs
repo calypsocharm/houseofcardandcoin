@@ -11,6 +11,33 @@
 
 <section class="section"><div class="container" style="max-width:960px">
 
+  <!-- ── who to ring on the day ────────────────────────────────────────── -->
+  <%
+    /* Signed-in members only. `day` is null for everyone else, so a stranger
+       reading the weekend page never sees a phone number. */
+  %>
+  <% if(day && day.phone){ %>
+    <div class="wk-ring">
+      <span class="wk-ring__i" aria-hidden="true">📞</span>
+      <div class="wk-ring__t">
+        <b>Lost, late or stuck on the day?</b>
+        <a class="wk-ring__n" href="tel:<%= day.tel %>"><%= day.phone %></a>
+        <span class="wk-ring__how"><a href="/board/whispers">Whisper</a> or
+          <a href="/pigeon.html">email</a> first &mdash; <%= day.name %> would rather read it than
+          take a call. <b>Ring the number if it is urgent.</b></span>
+        <span class="wk-ring__keep">Guildmates only. Keep it in the House.</span>
+      </div>
+    </div>
+  <% } else if(day && !day.sworn){ %>
+    <p class="wk-ring wk-ring--empty">📞 <b>Need to reach the House?</b>
+      <a href="/board/whispers">Send a whisper</a> or <a href="/pigeon.html">a pigeon</a> and
+      <%= day.name %> will answer. Sworn guildmates also get a number for the day itself.</p>
+  <% } else if(day && day.mine){ %>
+    <p class="wk-ring wk-ring--empty">📞 <b>No number on file for the day.</b> Guildmates have no way to
+      reach you from the car park. Add one under <a href="/members#profile">your tabard</a> and it
+      appears here for sworn guildmates only.</p>
+  <% } %>
+
   <!-- ── the three numbers worth knowing at a glance ───────────────────── -->
   <div class="wk-stats">
     <div class="wk-stat wk-stat--folk"><i aria-hidden="true">🙋</i><b><%= coming.length %></b><span>coming</span></div>
