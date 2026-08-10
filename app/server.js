@@ -25,6 +25,10 @@ const NIGHTS=['Friday, Oct 9','Saturday, Oct 10','Sunday, Oct 11'];
 // the member record as `berth` and shown beside the board, so the page tells the
 // truth about where everyone sleeps without offering the pair to anybody else.
 const BUNKS=[1,2,3];
+// What you are actually claiming. Bunk 3 is likely to be a cot rather than a
+// bed in the rig — said where the bunk is claimed rather than buried on the
+// camp page, so nobody finds out on the Friday night.
+const BUNK_NOTES={3:"likely a cot"};
 function heldBerths(){
   return db.users.filter(function(u){return u.berth;})
     .map(function(u){return {who:u.name,berth:u.berth,avatar:u.avatar||'',slug:slugById()[u.id]||''};});
@@ -116,7 +120,7 @@ app.get('/guild.html',(req,res)=>{const slugs=slugById();
   CLASSES.forEach(function(c){ byClass[c]=[]; });
   db.users.forEach(function(m){
     if(m.class&&byClass[m.class]) byClass[m.class].push({name:m.name,slug:slugs[m.id]||'',avatar:m.avatar||''});
-  });const members=db.users.map(function(m){const bunks=db.bunks.filter(function(b){return b.userId===m.id;}).sort(function(a,b){return a.night<b.night?-1:1;}).map(function(b){return b.night+' \u00b7 Bunk '+b.bunk;});return{slug:slugs[m.id],name:m.name,avatar:m.avatar,class:m.class,rank:rank(m),pledge:!!m.pledge,faires:m.faires||0,title:m.title||'',role:m.role||'',rsvp:!!m.rsvp,bunks:bunks};}).sort(function(a,b){const k=function(x){if(x.title==='Guild Leader')return 0;if(x.role==='leader'||x.title==='Guild Elder')return 1;if(x.pledge)return 3;return 2;};const ka=k(a),kb=k(b);if(ka!==kb)return ka-kb;return (b.faires||0)-(a.faires||0);});const bunkBoard=NIGHTS.map(function(n){return{night:n,bunks:BUNKS.map(function(b){const o=db.bunks.find(function(x){return x.night===n&&x.bunk===b;});return{bunk:b,taken:!!o,who:o?db.users.find(function(y){return y.id===o.userId;}):null};})};});res.render('guild',{members:members,bunkBoard:bunkBoard,berths:heldBerths(),byClass:byClass,comingCount:db.users.filter(function(x){return x.rsvp;}).length});});
+  });const members=db.users.map(function(m){const bunks=db.bunks.filter(function(b){return b.userId===m.id;}).sort(function(a,b){return a.night<b.night?-1:1;}).map(function(b){return b.night+' \u00b7 Bunk '+b.bunk;});return{slug:slugs[m.id],name:m.name,avatar:m.avatar,class:m.class,rank:rank(m),pledge:!!m.pledge,faires:m.faires||0,title:m.title||'',role:m.role||'',rsvp:!!m.rsvp,bunks:bunks};}).sort(function(a,b){const k=function(x){if(x.title==='Guild Leader')return 0;if(x.role==='leader'||x.title==='Guild Elder')return 1;if(x.pledge)return 3;return 2;};const ka=k(a),kb=k(b);if(ka!==kb)return ka-kb;return (b.faires||0)-(a.faires||0);});const bunkBoard=NIGHTS.map(function(n){return{night:n,bunks:BUNKS.map(function(b){const o=db.bunks.find(function(x){return x.night===n&&x.bunk===b;});return{bunk:b,note:BUNK_NOTES[b]||"",taken:!!o,who:o?db.users.find(function(y){return y.id===o.userId;}):null};})};});res.render('guild',{members:members,bunkBoard:bunkBoard,berths:heldBerths(),byClass:byClass,comingCount:db.users.filter(function(x){return x.rsvp;}).length});});
 app.post('/pigeon',async(req,res)=>{const{Name,Email,Reason,Message}=req.body||{};const ep=process.env.FORMSPREE_ENDPOINT;if(!ep){console.log('FORMSPREE_ENDPOINT not set; pigeon dropped');return res.redirect('/pigeon.html?e=1');}try{const r=await fetch(ep,{method:'POST',headers:{'Content-Type':'application/json','Accept':'application/json'},body:JSON.stringify({Name:Name||'',Email:Email||'',Reason:Reason||'',Message:Message||'',_subject:'New pigeon — House of Card and Coin',_replyto:Email||''})});if(!r.ok)throw new Error('formspree '+r.status);res.redirect('/pigeon.html?sent=1');}catch(e){console.log('pigeon forward error',e.message);res.redirect('/pigeon.html?e=1');}});
 // The static mount below is rooted at /var/www/hocc, which also contains app/ and
 // content/. Without this guard, /app/data/guild.json (every member's record and
@@ -424,7 +428,7 @@ app.get('/weekend',(req,res)=>{
     return {night:n,bunks:BUNKS.map(function(b){
       const o=db.bunks.find(function(x){return x.night===n&&x.bunk===b;});
       const who=o?db.users.find(function(y){return y.id===o.userId;}):null;
-      return {bunk:b,taken:!!o,
+      return {bunk:b,note:BUNK_NOTES[b]||'',taken:!!o,
               who:who?{name:who.name,avatar:who.avatar||'',slug:slugById()[who.id]||''}:null};
     })};
   });
@@ -745,7 +749,7 @@ app.post('/members/logout',(req,res)=>{req.session.destroy(()=>res.redirect('/')
 app.get('/members',au,(req,res)=>{
   const u=cur(req);
   const bunkBoard=NIGHTS.map(n=>{
-    const bunks=BUNKS.map(b=>{const o=db.bunks.find(x=>x.night===n&&x.bunk===b);return{bunk:b,taken:!!o,who:o?db.users.find(y=>y.id===o.userId):null,mine:o&&o.userId===u.id};});
+    const bunks=BUNKS.map(b=>{const o=db.bunks.find(x=>x.night===n&&x.bunk===b);return{bunk:b,note:BUNK_NOTES[b]||"",taken:!!o,who:o?db.users.find(y=>y.id===o.userId):null,mine:o&&o.userId===u.id};});
     const queue=db.waitlist.filter(w=>w.night===n).sort((a,b)=>a.ts-b.ts);
     const myIdx=queue.findIndex(w=>w.userId===u.id);
     return{

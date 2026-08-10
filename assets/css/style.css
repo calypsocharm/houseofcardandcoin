@@ -991,3 +991,8 @@ footer :where(a,button):focus-visible{
   border:1px solid var(--line2);border-radius:4px;background:var(--ivory);
   box-shadow:0 22px 44px -28px rgba(60,40,15,.5)}
 .parkmap figcaption{margin-top:12px;font-size:.84rem;color:var(--muted);line-height:1.6}
+
+/* "likely a cot" beside Bunk 3 — quiet enough not to shout, plain enough
+   that nobody claims it thinking it is a bed in the rig. */
+.bunknote{display:inline-block;margin-left:6px;font-family:var(--serif);font-size:.68rem;
+  letter-spacing:.02em;text-transform:none;color:var(--muted);font-style:italic}

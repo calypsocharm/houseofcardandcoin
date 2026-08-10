@@ -73,7 +73,7 @@
           <p class="wk-night__h"><i aria-hidden="true">🌙</i> <%= d.night %></p>
           <% d.bunks.forEach(function(b){ %>
             <div class="wk-bunk<%= b.taken?' is-taken':'' %>">
-              <span class="wk-bunk__n">Bunk <%= b.bunk %></span>
+              <span class="wk-bunk__n">Bunk <%= b.bunk %><% if(b.note){ %> <small class="bunknote"><%= b.note %></small><% } %></span>
               <% if(b.taken && b.who){ %>
                 <span class="wk-bunk__who">
                   <%- include('_avatar',{name:b.who.name,avatar:b.who.avatar,slug:b.who.slug}) %>
