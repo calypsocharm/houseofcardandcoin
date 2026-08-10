@@ -963,6 +963,14 @@ app.post('/tavern/register',up.single('avatar'),shrinkAvatar,(req,res)=>{
   const name=(req.body.name||'').trim(),email=(req.body.email||'').toLowerCase().trim(),password=(req.body.password||'').trim();
   if(!name||!email||password.length<6)return res.redirect('/tavern?e='+encodeURIComponent('Name, email, and a 6+ char password are required'));
   if(db.patrons.find(p=>p.email===email))return res.redirect('/tavern?e='+encodeURIComponent('That email already has a seat'));
+  /* A guildmate who also claims a seat becomes two people to this site: two
+     identities, two hands, two piles of coin, and their name twice on the Roll
+     of Hands. That happened once and had to be merged by hand. A guild login
+     already does everything a seat does and more, so send them to it. */
+  if(db.users.find(u=>String(u.email||'').toLowerCase()===email))
+    return res.redirect('/members/login?e='+encodeURIComponent('That email already has a guild login — sign in there instead, and your hand stays in one place.'));
+  if(req.session.uid)
+    return res.redirect('/board?e='+encodeURIComponent('You are already signed in as a guildmate — you do not need a seat as well.'));
   const p={id:nid(),name,email,passhash:bcrypt.hashSync(password,10),avatar:req.file?('/uploads/'+req.file.filename):'',banned:false,created:Date.now()};
   db.patrons.push(p);save();req.session.pid=p.id;res.redirect('/board');
 });

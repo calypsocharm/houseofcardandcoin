@@ -152,7 +152,7 @@
              House in one place. Everyone can post to the wall, pledges
              included, so everyone can put pictures on their page. */
         %>
-        <% if(photos.length){ %>
+        <% var photos=locals.photos||[]; %><% if(photos.length){ %>
           <div class="pro-card" id="pics">
             <h2>Pictures</h2>
             <ul class="pro-pics">
