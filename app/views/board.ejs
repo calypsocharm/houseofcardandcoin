@@ -72,6 +72,13 @@
       <% if(i){ %>
         <a class="tav-purse" href="/board/rogues"><span class="tav-coin">✦</span> <%= i.coins||0 %> coins</a>
       <% } %>
+      <%
+        /* Mama Bear's own recording. preload="none" so the browser fetches
+           nothing at all until somebody presses the button, and there is no
+           autoplay attribute anywhere near it. */
+      %>
+      <button type="button" class="tav-song" id="songBtn" aria-pressed="false">♪ Play the tavern song</button>
+      <audio id="tavernSong" preload="none" loop src="/assets/audio/tavern.mp3"></audio>
     </div>
 
     <nav class="tav-doors">
@@ -518,4 +525,5 @@
 })();
 </script>
 
+<script defer src="/assets/js/tavern-song.js?v=<%= typeof assetv!=='undefined'?assetv:'1' %>"></script>
 <%- include('_bot') %>

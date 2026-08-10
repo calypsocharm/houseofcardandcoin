@@ -854,3 +854,17 @@
 .tav-pin button:hover{background:var(--gold-d);color:#1a120b}
 /* No hover on a touch screen, so the control simply stays put. */
 @media(hover:none){.tav-pin{opacity:1;position:static;margin-bottom:6px}}
+
+/* The tavern song. A control, not an ornament — it says what pressing it will
+   do, and it looks obviously pressable so nobody wonders whether the House is
+   about to start singing at them unbidden. */
+.tav-song{
+  margin-left:auto;cursor:pointer;
+  border:1px solid rgba(226,199,127,.45);border-radius:3px;
+  padding:5px 12px;background:rgba(36,26,16,.7);color:#e4c77f;
+  font-family:var(--display);font-size:.6rem;letter-spacing:.12em;text-transform:uppercase;
+  transition:background .18s var(--ease),color .18s var(--ease);
+}
+.tav-song:hover,.tav-song:focus-visible{background:var(--gold-d);color:#1a120b}
+.tav-song.is-playing{background:var(--wine);border-color:var(--wine-l);color:#f8edd1}
+@media(max-width:620px){.tav-song{margin-left:0}}
