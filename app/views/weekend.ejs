@@ -16,44 +16,16 @@
     /* Signed-in members only. `day` is null for everyone else, so a stranger
        reading the weekend page never sees a phone number. */
   %>
-  <% if(day && day.phone){ %>
-    <div class="wk-ring">
-      <span class="wk-ring__i" aria-hidden="true">🆘</span>
-      <div class="wk-ring__t">
-        <b class="wk-ring__hd">A real emergency &mdash; fire, injury, someone missing?</b>
-        <span class="wk-ring__how"><b>Call 911 first.</b> Tell the House afterwards. Do not wait
-          on anyone here.</span>
-
-        <hr class="wk-ring__rule">
-
-        <b class="wk-ring__hd">Need the Guild Elder?</b>
-        <span class="wk-ring__how"><a href="/board/whispers">Whisper</a> or
-          <a href="/pigeon.html">email</a> first &mdash; that is what <%= day.name %> will actually
-          read.</span>
-        <%
-          /* Behind a click rather than printed on the page. The real gate is
-             on the server — the number is only rendered for signed-in sworn
-             guildmates at all — but she did not want it sitting in the open
-             over someone's shoulder either. <details> so it works with no
-             JavaScript and answers to the keyboard. */
-        %>
-        <details class="wk-ring__hide">
-          <summary><span aria-hidden="true">📞</span> Show her number</summary>
-          <a class="wk-ring__n" href="sms:<%= day.tel %>"><%= day.phone %></a>
-          <span class="wk-ring__how"><b>Text it, do not ring it.</b> She is not answering the
-            phone during the faire.</span>
-        </details>
-        <span class="wk-ring__keep">Guildmates only. Keep it in the House.</span>
-      </div>
-    </div>
-  <% } else if(day && !day.sworn){ %>
-    <p class="wk-ring wk-ring--empty">📞 <b>Need to reach the House?</b>
-      <a href="/board/whispers">Send a whisper</a> or <a href="/pigeon.html">a pigeon</a> and
-      <%= day.name %> will answer. Sworn guildmates also get a number for the day itself.</p>
-  <% } else if(day && day.mine){ %>
+  <%
+    /* This used to be a banner across the top of the page. It did not need to
+       be — the day you need it you will go looking, and until then it is just
+       a siren over the bring-list. It lives in the FAQ now; this is the
+       signpost. */
+  %>
+  <% if(day && day.mine && !day.phone){ %>
     <p class="wk-ring wk-ring--empty">📞 <b>No number on file for the day.</b> Guildmates have no way to
       reach you from the car park. Add one under <a href="/members#profile">your tabard</a> and it
-      appears here for sworn guildmates only.</p>
+      appears in the <a href="/faq#reaching">FAQ</a> for sworn guildmates only.</p>
   <% } %>
 
   <!-- ── the three numbers worth knowing at a glance ───────────────────── -->
@@ -177,7 +149,8 @@
     <p class="wk-band"><b>🎟️ If you hold a bunk you have a wristband, and the wristband is your way in
       from the camping area.</b> Do not buy a ticket you already have.</p>
     <p class="wk-note">Box office, gate procedures and what the faire will not let in are on the
-      <a href="/camp.html#faire">Ren Faire Camp</a> page.</p>
+      <a href="/camp.html#faire">Ren Faire Camp</a> page.<br>
+      Lost, late or stuck on the day? <a href="/faq#reaching">How to reach the House</a>.</p>
   </div>
 
 </div></section>

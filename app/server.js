@@ -719,7 +719,7 @@ app.post('/guild/wall/:id/remove',canPost,(req,res)=>{
   res.redirect('/guild/'+(owner?slugById()[owner.id]:'')+'#wall');
 });
 app.get('/board/roll',(req,res)=>{const i=ident(req);res.render('roll',{i:i,rounds:roll(),champions:champions(),table:allHands(),slugs:slugById(),q:req.query,leader:!!(i&&i.leader),gates:countdown()});});
-app.get('/faq',(req,res)=>res.render('faq'));
+app.get('/faq',(req,res)=>res.render('faq',{day:dayContact(ident(req))}));
 app.get('/members/login',(req,res)=>res.render('login',{err:req.query.e||'',code:req.query.code||'',needCode:INVITE_REQUIRED}));
 // /join is the share link. If an invite code is required, ?code=XXXX pre-fills it.
 app.get('/join',(req,res)=>res.render('login',{err:req.query.e||'',code:req.query.code||'',needCode:INVITE_REQUIRED}));
