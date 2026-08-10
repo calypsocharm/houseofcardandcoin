@@ -33,6 +33,7 @@
   </div>
 </div></section>
 <% } %>
+<%- include("_myweekend",{mine:mine}) %>
 <section class="section section--parch2" style="padding-top:120px"><div class="container"><div class="bannerhead"><span class="eyebrow">Your Profile</span><h2>Welcome, <%= u.name %></h2><div class="rule"></div></div>
 <div style="display:flex;gap:18px;align-items:center;flex-wrap:wrap;justify-content:center"><a href="/guild/<%= mySlug %>" title="Your page" class="facelink"><% if(u.avatar){ %><img src="<%= u.avatar %>" style="width:96px;height:96px;border-radius:50%;border:3px solid var(--gold);object-fit:cover"><% } else { %><div class="member" style="padding:0;background:transparent;border:0;box-shadow:none"><div class="avatar"><%= u.name.slice(0,2).toUpperCase() %></div></div><% } %></a><div style="text-align:center"><div style="font-family:var(--display);font-size:1.2rem;color:var(--wine)"><%= rank %></div><div class="muted"><% if(u.class){ %>Class: <b><%= u.class %></b> &middot; <% } %>Faires with the guild: <b><%= u.faires %></b></div></div></div>
 </div></section>

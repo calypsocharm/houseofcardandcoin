@@ -1,0 +1,103 @@
+<%
+  /* Your weekend, at the top of the Guild Hall.
+
+     Nothing here is new — it is the RSVP, the bunk board, the bring-list and
+     the card game, which all already existed as separate sections further down
+     this page and on /weekend. What was missing was anybody's own slice of it,
+     so signing in landed you in an account rather than in your weekend.
+
+     Each tile answers one question and, when the answer is "nothing yet",
+     offers the one press that fixes it. */
+%>
+<section class="section mine" id="mine"><div class="container">
+  <div class="bannerhead">
+    <span class="eyebrow">⚜ Your Faire Weekend ⚜</span>
+    <h2>Where You Stand</h2>
+    <div class="rule"></div>
+  </div>
+
+  <% if(mine.gates && mine.gates.days){ %>
+    <p class="mine__clock"><b><%= mine.gates.days %></b> days until the gates open</p>
+  <% } else if(mine.gates && mine.gates.open){ %>
+    <p class="mine__clock mine__clock--now"><b>The gates are open.</b></p>
+  <% } %>
+
+  <div class="mine__grid">
+
+    <div class="mine__tile <%= mine.rsvp ? 'is-yes' : 'is-ask' %>">
+      <span class="mine__q">Are you coming?</span>
+      <% if(mine.rsvp){ %>
+        <b class="mine__a">Yes — you are on the list</b>
+        <span class="mine__note">Your name shows as coming on the guild page.</span>
+      <% } else { %>
+        <b class="mine__a">Not said yet</b>
+        <a class="btn btn--gold mine__do" href="#rsvp">Say you are coming</a>
+      <% } %>
+    </div>
+
+    <div class="mine__tile <%= mine.nights.length ? 'is-yes' : '' %>">
+      <span class="mine__q">Where are you sleeping?</span>
+      <% if(mine.nights.length){ %>
+        <b class="mine__a"><%= mine.nights.length %> night<%= mine.nights.length===1?'':'s' %> held</b>
+        <ul class="mine__list">
+          <% mine.nights.forEach(function(n){ %>
+            <li><%= n.night %> · Bunk <%= n.bunk %><% if(n.note){ %> <small><%= n.note %></small><% } %></li>
+          <% }) %>
+        </ul>
+      <% } else if(mine.pledge){ %>
+        <b class="mine__a">No bunk</b>
+        <span class="mine__note">Bunks are for guildmates who have camped a faire with the House.</span>
+      <% } else { %>
+        <b class="mine__a">No bunk held</b>
+        <a class="btn btn--gold mine__do" href="#bunks">Claim a night</a>
+      <% } %>
+    </div>
+
+    <div class="mine__tile <%= mine.bringing.length ? 'is-yes' : '' %>">
+      <span class="mine__q">What are you bringing?</span>
+      <% if(mine.bringing.length){ %>
+        <b class="mine__a"><%= mine.bringing.length %> thing<%= mine.bringing.length===1?'':'s' %> claimed</b>
+        <ul class="mine__list">
+          <% mine.bringing.forEach(function(b){ %>
+            <li><span aria-hidden="true"><%= b.icon %></span> <%= b.name %><% if(b.qty>1){ %> <small>×<%= b.qty %></small><% } %></li>
+          <% }) %>
+        </ul>
+      <% } else { %>
+        <b class="mine__a">Nothing yet</b>
+        <span class="mine__note"><%= mine.gaps %> thing<%= mine.gaps===1?' is':'s are' %> still wanted.</span>
+        <a class="btn btn--gold mine__do" href="#bring">Claim something</a>
+      <% } %>
+    </div>
+
+    <div class="mine__tile mine__tile--hand">
+      <span class="mine__q">Your hand</span>
+      <% if(mine.hand.length){ %>
+        <span class="mine__cards">
+          <% mine.hand.forEach(function(c){ %><b class="mine__card <%= c.red?'is-red':'' %>"><%= c.r %><%= c.glyph %></b><% }) %>
+        </span>
+        <b class="mine__a"><%= mine.handRank ? mine.handRank.name : '—' %></b>
+      <% } else { %>
+        <b class="mine__a">No cards yet</b>
+      <% } %>
+      <% if(mine.cardTonight){ %>
+        <a class="btn btn--gold mine__do" href="/board#hand">Take tonight's card</a>
+      <% } else { %>
+        <span class="mine__note">Tonight's card is taken. <%= mine.coins %> coin<%= mine.coins===1?'':'s' %> in your purse.</span>
+      <% } %>
+    </div>
+
+    <div class="mine__tile mine__tile--next">
+      <span class="mine__q">Next at camp</span>
+      <% if(mine.next){ %>
+        <b class="mine__a"><%= mine.next.title %></b>
+        <span class="mine__when"><%= mine.next.when %></span>
+        <span class="mine__note"><%= mine.next.body %></span>
+      <% } else { %>
+        <b class="mine__a">The weekend is over</b>
+        <span class="mine__note">Until next year.</span>
+      <% } %>
+      <a class="mine__more" href="/events.html">The whole scroll →</a>
+    </div>
+
+  </div>
+</div></section>

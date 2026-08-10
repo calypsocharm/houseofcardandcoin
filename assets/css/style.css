@@ -1086,3 +1086,44 @@ footer :where(a,button):focus-visible{
 .whichyou__card p:last-child{margin-bottom:0}
 .whichyou__do{font-size:.9rem !important;color:var(--muted) !important}
 .whichyou__do a{color:var(--wine);font-weight:600}
+
+/* ── Your Faire Weekend ───────────────────────────────────────────────────── */
+/* The first thing a guildmate sees after signing in. Five tiles, each
+   answering one question, and each offering the single press that fixes it
+   when the answer is "nothing yet". */
+.mine{padding-top:118px;padding-bottom:44px}
+.mine__clock{text-align:center;color:var(--muted);margin:-8px 0 24px;font-size:.95rem}
+.mine__clock b{font-family:var(--display);font-size:1.3rem;color:var(--wine)}
+.mine__clock--now b{color:var(--forest)}
+.mine__grid{display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(238px,1fr))}
+.mine__tile{
+  display:flex;flex-direction:column;gap:6px;
+  background:var(--ivory);border:1px solid var(--line);border-top:3px solid var(--line2);
+  border-radius:4px;padding:16px 18px;
+  box-shadow:0 14px 32px -28px rgba(60,40,15,.9);
+}
+/* Settled tiles lean green; the one still asking leans gold, so what needs
+   doing is findable without reading every word. */
+.mine__tile.is-yes{border-top-color:var(--forest)}
+.mine__tile.is-ask{border-top-color:var(--gold-d);background:#fdf6e4}
+.mine__q{font-family:var(--display);font-size:.66rem;letter-spacing:.18em;
+  text-transform:uppercase;color:var(--muted)}
+.mine__a{font-family:var(--display);font-size:1.06rem;color:var(--ink);line-height:1.35}
+.mine__tile.is-yes .mine__a{color:var(--forest)}
+.mine__note{font-size:.88rem;color:var(--muted);line-height:1.55}
+.mine__when{font-family:var(--serif);font-style:italic;color:var(--wine);font-size:.95rem}
+.mine__list{list-style:none;margin:2px 0 0;padding:0;display:grid;gap:4px}
+.mine__list li{font-size:.9rem;color:var(--ink2)}
+.mine__list small{color:var(--muted);font-style:italic}
+.mine__do{align-self:flex-start;margin-top:8px;padding:7px 15px;font-size:.6rem}
+.mine__more{margin-top:auto;padding-top:8px;font-size:.82rem;color:var(--wine);font-weight:600}
+/* the hand, small enough to sit in a tile */
+.mine__cards{display:flex;gap:5px;flex-wrap:wrap;margin:2px 0}
+.mine__card{
+  display:inline-flex;align-items:center;justify-content:center;
+  min-width:32px;height:42px;padding:0 5px;border-radius:3px;
+  background:#fbf6e9;border:1px solid var(--line2);
+  font-family:var(--display);font-size:.9rem;color:var(--ink);
+  box-shadow:0 3px 7px -4px rgba(60,40,15,.6);
+}
+.mine__card.is-red{color:#a32020}

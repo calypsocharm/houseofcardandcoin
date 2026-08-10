@@ -1,0 +1,22 @@
+{
+  "_note": "The guild's own schedule, as data so the site can read it — the Scroll of Events was hand-written HTML, which meant nothing could say what is happening next. `at` is a rough hour in Las Vegas local time, used only to work out which event is next; the words people read are `when`. Edit here, then run: node tools/build-events.js",
+  "tz": "America/Los_Angeles",
+  "days": [
+    { "date": "2026-10-09", "name": "Friday, October 9",   "gates": "Gates: 10:00AM – 10:00PM" },
+    { "date": "2026-10-10", "name": "Saturday, October 10", "gates": "Gates: 10:00AM – 10:00PM" },
+    { "date": "2026-10-11", "name": "Sunday, October 11",   "gates": "Gates: 10:00AM – 5:00PM" }
+  ],
+  "events": [
+    { "date": "2026-10-09", "at": "18:30", "when": "At dusk",              "title": "Campfire & S'mores",      "body": "The fire is lit and the marshmallows are toasted — the weekend begins." },
+    { "date": "2026-10-09", "at": "19:30", "when": "As the fire takes",    "title": "Guild Potluck & Drinks",  "body": "Bring a dish to share; drinks by the firelight as the night comes on." },
+    { "date": "2026-10-09", "at": "22:00", "when": "After the gates shut", "title": "After-Party Faire Stroll", "body": "A rough jaunt through the faire grounds after closing time to seek out new members and adventures." },
+
+    { "date": "2026-10-10", "at": "18:20", "when": "Sundown",              "title": "Guild Dinner",            "body": "The big camp meal, cooked up proper." },
+    { "date": "2026-10-10", "at": "20:30", "when": "By firelight",         "title": "Drinks & Tales",          "body": "The long night of drinking and stories by the camp." },
+    { "date": "2026-10-10", "at": "22:00", "when": "After the gates shut", "title": "After-Party Faire Stroll", "body": "Round two through the grounds — recruiting and revelling after the gates shut." },
+
+    { "date": "2026-10-11", "at": "07:00", "when": "First light",          "title": "Camp Breakfast",          "body": "Meat and eggs cooked up at camp (no campfire tonight) — fuel for the final day." },
+    { "date": "2026-10-11", "at": "12:00", "when": "High noon",            "title": "Last Call",               "body": "One last round together before the gates close. Raise a cup to the weekend." },
+    { "date": "2026-10-11", "at": "17:00", "when": "5:00 PM",              "title": "The Gates Close",         "body": "Pack the camp, take the tales home." }
+  ]
+}

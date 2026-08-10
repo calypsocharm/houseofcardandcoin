@@ -843,7 +843,7 @@ app.get('/members',au,(req,res)=>{
   })();
   const bunksLeft=NIGHTS.length*BUNKS.length-db.bunks.length;
   const items=db.items.map(it=>{const cl=db.claims.filter(c=>c.itemId===it.id);const claimed=cl.reduce((s,c)=>s+c.qty,0);return{...it,claimed,remaining:Math.max(0,it.need-claimed),claims:cl.map(c=>({qty:c.qty,who:db.users.find(y=>y.id===c.userId)})),mine:cl.find(c=>c.userId===u.id)};});
-  res.render('hall',{u,page:pageOf(u),mySlug:slugById()[u.id]||'',backdrops:BACKDROPS,layouts:LAYOUTS,fonts:FONTS,fontKeys:FONT_KEYS,sizeKeys:SIZE_KEYS,sizes:SIZES,charmKeys:CHARM_KEYS,charmSvg:charmSvg,charmMax:CHARM_MAX,rank:rank(u),classes:CLASSES,bunkBoard,bunksLeft,items,bringers,leader:u.role==='leader',users:u.role==='leader'?db.users.map(function(m){return{slug:slugById()[m.id]||'',berth:m.berth||'',vouches:vouchesFor(m.id),name:m.name,class:m.class,faires:m.faires,rank:rank(m),pledge:!!m.pledge,leader:m.role==='leader',title:m.title||'',avatar:m.avatar,id:m.id,contactEmail:m.contactEmail||'',phone:m.phone||'',bunks:db.bunks.filter(function(b){return b.userId===m.id}).map(function(b){return b.night+' \u00b7 Bunk '+b.bunk;})};}):[],announcements:db.announcements,prizes:db.prizes||{first:"",second:"",shown:false},outreach:{emails:db.users.filter(function(x){return x.contactEmail;}).map(function(x){return x.contactEmail;}),phones:db.users.filter(function(x){return x.phone;}).map(function(x){return x.phone;})},invite:INVITE,err:req.query.e||"",q:req.query});
+  res.render('hall',{u,page:pageOf(u),mySlug:slugById()[u.id]||'',backdrops:BACKDROPS,layouts:LAYOUTS,fonts:FONTS,fontKeys:FONT_KEYS,sizeKeys:SIZE_KEYS,sizes:SIZES,charmKeys:CHARM_KEYS,charmSvg:charmSvg,charmMax:CHARM_MAX,rank:rank(u),classes:CLASSES,bunkBoard,bunksLeft,items,bringers,leader:u.role==='leader',users:u.role==='leader'?db.users.map(function(m){return{slug:slugById()[m.id]||'',berth:m.berth||'',vouches:vouchesFor(m.id),name:m.name,class:m.class,faires:m.faires,rank:rank(m),pledge:!!m.pledge,leader:m.role==='leader',title:m.title||'',avatar:m.avatar,id:m.id,contactEmail:m.contactEmail||'',phone:m.phone||'',bunks:db.bunks.filter(function(b){return b.userId===m.id}).map(function(b){return b.night+' \u00b7 Bunk '+b.bunk;})};}):[],announcements:db.announcements,mine:myWeekend(u),prizes:db.prizes||{first:"",second:"",shown:false},outreach:{emails:db.users.filter(function(x){return x.contactEmail;}).map(function(x){return x.contactEmail;}),phones:db.users.filter(function(x){return x.phone;}).map(function(x){return x.phone;})},invite:INVITE,err:req.query.e||"",q:req.query});
 });
 // How your page looks. Separate from the details form above because these are
 // about presentation and those are about the guild — and because this one
@@ -1006,6 +1006,47 @@ function dayContact(i){
 }
 function mayPin(u){
   return !!u && (u.role==="leader" || u.title==="Guild Leader" || u.title==="Guild Elder");
+}
+
+/* The guild's own schedule, read from tools/events.json rather than the Scroll
+   of Events page, which is hand-written HTML that nothing could read. Read per
+   request so editing the JSON shows up on a refresh. */
+function guildEvents(){
+  try{ return JSON.parse(fs.readFileSync(path.join(__dirname,"..","tools","events.json"),"utf8")); }
+  catch(e){ return {days:[],events:[]}; }
+}
+/* What is on next. The times in the file are Las Vegas local; October is PDT,
+   seven hours behind UTC, which is the same offset the countdown is pinned to.
+   Returns null once the last one has passed. */
+function nextEvent(){
+  const cfg=guildEvents(), now=Date.now();
+  const upcoming=(cfg.events||[])
+    .map(function(e){
+      const t=Date.parse(e.date+"T"+e.at+":00-07:00");
+      return {when:e.when,title:e.title,body:e.body,day:e.date,ts:t};
+    })
+    .filter(function(e){ return e.ts && e.ts>now; })
+    .sort(function(a,b){ return a.ts-b.ts; });
+  return upcoming.length?upcoming[0]:null;
+}
+/* Your weekend at a glance. Nothing here is new information — it is the same
+   record the rest of the site already keeps, in one place. */
+function myWeekend(u){
+  const nights=db.bunks.filter(function(b){return b.userId===u.id;})
+    .sort(function(a,b){return a.night<b.night?-1:1;})
+    .map(function(b){return {night:b.night,bunk:b.bunk,note:BUNK_NOTES[b.bunk]||""};});
+  const bringing=(db.claims||[]).filter(function(c){return c.userId===u.id;}).map(function(c){
+    const it=db.items.find(function(x){return x.id===c.itemId;});
+    return {name:it?it.name:"something",qty:c.qty,icon:it?bringIcon(it.name):"\u{1F4E6}"};
+  });
+  const gaps=bringList().filter(function(x){return x.remaining>0;}).length;
+  return {
+    rsvp:!!u.rsvp, pledge:!!u.pledge,
+    nights:nights, bringing:bringing, gaps:gaps,
+    hand:(u.hand||[]).map(cardInfo), handRank:handRank(u.hand||[]),
+    coins:u.coins||0, cardTonight:u.lastRation!==dayKey(),
+    next:nextEvent(), gates:countdown()
+  };
 }
 function ident(req){
   if(req.session.uid){const u=db.users.find(x=>x.id===req.session.uid);if(u)return{t:'member',id:u.id,name:u.name,avatar:u.avatar,leader:u.role==='leader'};}

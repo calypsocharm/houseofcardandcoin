@@ -240,6 +240,18 @@ the JSON at runtime, so forgetting it leaves that page with no places on it.
 The artwork itself is `assets/img/shire-map.jpg`; if it is missing, both the
 homepage section and /map hide the picture rather than showing a broken image.
 
+### The Scroll of Events
+
+The schedule lives in **one** place: `tools/events.json`. The site reads it to
+work out what is on next; the page is generated from it. After editing:
+
+```powershell
+node tools/build-events.js         # rewrites the day columns in events.html
+```
+
+Deploy `events.html` **and** `tools/events.json` — the members' dashboard reads
+the JSON at runtime, so leaving it behind means "next at camp" goes blank.
+
 ### Verify after deploying
 
 ```bash
