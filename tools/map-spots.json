@@ -1,8 +1,8 @@
 {
   "_note": "Hotspots on the painted map, as percentages of the picture so they scale. x,y is the CENTRE of the spot. Edit here and run: node tools/build-map.js — that rewrites the block in index.html and app/views/map.ejs reads this file directly. Never edit the hotspots in either of those by hand.",
   "art": "/assets/img/shire-map.jpg",
-  "w": 1456,
-  "h": 1080,
+  "w": 1448,
+  "h": 1086,
   "spots": [
     {
       "n": 1,
