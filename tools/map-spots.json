@@ -1,0 +1,118 @@
+{
+  "_note": "Hotspots on the painted map, as percentages of the picture so they scale. x,y is the CENTRE of the spot. Edit here and run: node tools/build-map.js — that rewrites the block in index.html and app/views/map.ejs reads this file directly. Never edit the hotspots in either of those by hand.",
+  "art": "/assets/img/shire-map.jpg",
+  "w": 1456,
+  "h": 1080,
+  "spots": [
+    {
+      "n": 1,
+      "x": 50,
+      "y": 49,
+      "w": 22,
+      "h": 24,
+      "href": "/index.html",
+      "label": "The House",
+      "sub": "Where it all begins"
+    },
+    {
+      "n": 2,
+      "x": 16.5,
+      "y": 22,
+      "w": 18,
+      "h": 29,
+      "href": "/guild.html",
+      "label": "The Guild",
+      "sub": "Who we are"
+    },
+    {
+      "n": 3,
+      "x": 35.5,
+      "y": 26,
+      "w": 16,
+      "h": 22,
+      "href": "/events.html",
+      "label": "Scroll of Events",
+      "sub": "The three days"
+    },
+    {
+      "n": 4,
+      "x": 67,
+      "y": 23,
+      "w": 17,
+      "h": 29,
+      "href": "/weekend",
+      "label": "The Weekend",
+      "sub": "Everything, in one place"
+    },
+    {
+      "n": 5,
+      "x": 87,
+      "y": 27,
+      "w": 18,
+      "h": 24,
+      "href": "/camp.html",
+      "label": "Ren Faire Camp",
+      "sub": "Where we sleep"
+    },
+    {
+      "n": 6,
+      "x": 20,
+      "y": 50,
+      "w": 20,
+      "h": 22,
+      "href": "/board",
+      "label": "The Tavern",
+      "sub": "Talk by the fire"
+    },
+    {
+      "n": 7,
+      "x": 75,
+      "y": 51,
+      "w": 21,
+      "h": 24,
+      "href": "/board/roll",
+      "label": "The Roll of Hands",
+      "sub": "Who is winning"
+    },
+    {
+      "n": 8,
+      "x": 19,
+      "y": 77,
+      "w": 20,
+      "h": 23,
+      "href": "/gallery",
+      "label": "The Gallery",
+      "sub": "The faire, in pictures"
+    },
+    {
+      "n": 9,
+      "x": 38,
+      "y": 79,
+      "w": 18,
+      "h": 25,
+      "href": "/faq",
+      "label": "Questions & Customs",
+      "sub": "Asked and answered"
+    },
+    {
+      "n": 10,
+      "x": 60,
+      "y": 77,
+      "w": 12,
+      "h": 19,
+      "href": "/pigeon.html",
+      "label": "Carrier Pigeon",
+      "sub": "Send word"
+    },
+    {
+      "n": 11,
+      "x": 87,
+      "y": 77,
+      "w": 18,
+      "h": 22,
+      "href": "/members/login",
+      "label": "Guild Login",
+      "sub": "Access the House"
+    }
+  ]
+}

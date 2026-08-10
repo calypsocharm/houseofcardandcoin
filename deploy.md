@@ -226,6 +226,20 @@ ssh root@187.124.235.109 "cd /var/www/hocc && tar -xzf hocc.tar.gz && rm -f hocc
 > avatars are never clobbered. Take a backup first anyway (§7) — the `rm -rf` step
 > is destructive and there is no undo.
 
+
+### The map
+
+The hotspots live in **one** place: `tools/map-spots.json`. After editing it:
+
+```powershell
+node tools/build-map.js            # rewrites the block in index.html
+```
+
+Then deploy `index.html` **and** `tools/map-spots.json` — the /map page reads
+the JSON at runtime, so forgetting it leaves that page with no places on it.
+The artwork itself is `assets/img/shire-map.jpg`; if it is missing, both the
+homepage section and /map hide the picture rather than showing a broken image.
+
 ### Verify after deploying
 
 ```bash

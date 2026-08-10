@@ -722,11 +722,16 @@ app.post('/guild/wall/:id/remove',canPost,(req,res)=>{
   res.redirect('/guild/'+(owner?slugById()[owner.id]:'')+'#wall');
 });
 app.get('/board/roll',(req,res)=>{const i=ident(req);res.render('roll',{i:i,rounds:roll(),champions:champions(),table:allHands(),slugs:slugById(),q:req.query,leader:!!(i&&i.leader),gates:countdown()});});
+/* One source of truth for the map hotspots — tools/map-spots.json. This page
+   reads it live; the homepage gets the same spots written into it by
+   tools/build-map.js, because it is static HTML with no template behind it.
+   Read per request rather than at boot so editing the JSON shows up on a
+   refresh without a restart. */
 app.get("/map",(req,res)=>{
-  // The painted map is dropped in by hand rather than built. Until it lands,
-  // the page is the same ten doors as a list instead of a broken image.
-  var art=path.join(__dirname,"..","assets","img","shire-map.jpg");
-  res.render("map",{hasArt:fs.existsSync(art)});
+  var cfg={spots:[],art:"/assets/img/shire-map.jpg"};
+  try{ cfg=JSON.parse(fs.readFileSync(path.join(__dirname,"..","tools","map-spots.json"),"utf8")); }catch(e){}
+  var art=path.join(__dirname,"..",String(cfg.art).replace(/^\//,""));
+  res.render("map",{hasArt:fs.existsSync(art),cfg:cfg,spots:cfg.spots});
 });
 app.get('/faq',(req,res)=>res.render('faq',{day:dayContact(ident(req))}));
 app.get('/members/login',(req,res)=>res.render('login',{err:req.query.e||'',code:req.query.code||'',needCode:INVITE_REQUIRED}));

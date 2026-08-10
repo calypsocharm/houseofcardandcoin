@@ -13,18 +13,8 @@
      x,y is the CENTRE of the hotspot, w,h its size, all in % of the image.
      Every one is a real <a>: keyboard reachable, middle-clickable, and
      announced properly to a screen reader. */
-  var spots=[
-    {n:1,  x:48.0, y:33.5, w:26, h:30, href:'/index.html',  label:'The House',           sub:'Where it all begins'},
-    {n:2,  x:17.5, y:26.5, w:22, h:23, href:'/guild.html',  label:'The Guild',           sub:'Who we are'},
-    {n:3,  x:69.5, y:28.5, w:13, h:19, href:'/events.html', label:'Scroll of Events',    sub:'The three days'},
-    {n:4,  x:87.0, y:29.0, w:21, h:21, href:'/weekend',     label:'The Weekend',         sub:'Everything, in one place'},
-    {n:5,  x:16.5, y:50.5, w:26, h:22, href:'/camp.html',   label:'Ren Faire Camp',      sub:'Where we sleep'},
-    {n:6,  x:79.5, y:53.5, w:25, h:22, href:'/board',       label:'The Tavern',          sub:'Talk by the fire'},
-    {n:7,  x:87.0, y:79.5, w:21, h:26, href:'/board/roll',  label:'The Roll of Hands',   sub:'Who is winning'},
-    {n:8,  x:19.5, y:79.5, w:20, h:26, href:'/gallery',     label:'The Gallery',         sub:'The faire, in pictures'},
-    {n:9,  x:39.5, y:79.5, w:17, h:26, href:'/faq',         label:'Questions & Customs', sub:'Asked and answered'},
-    {n:10, x:63.0, y:80.5, w:15, h:26, href:'/pigeon.html', label:'Carrier Pigeon',      sub:'Send word'}
-  ];
+  /* spots come from tools/map-spots.json via the route, so this page and the
+     homepage can never disagree about where a building is. */
 %>
 
 <section class="mapwrap"><div class="container">
