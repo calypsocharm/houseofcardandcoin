@@ -18,15 +18,31 @@
   %>
   <% if(day && day.phone){ %>
     <div class="wk-ring">
-      <span class="wk-ring__i" aria-hidden="true">📞</span>
+      <span class="wk-ring__i" aria-hidden="true">🆘</span>
       <div class="wk-ring__t">
-        <b>Lost, late or stuck on the day?</b>
+        <b class="wk-ring__hd">A real emergency &mdash; fire, injury, someone missing?</b>
+        <span class="wk-ring__how"><b>Call 911 first.</b> Tell the House afterwards. Do not wait
+          on anyone here.</span>
+
+        <hr class="wk-ring__rule">
+
+        <b class="wk-ring__hd">Need the Guild Elder?</b>
         <span class="wk-ring__how"><a href="/board/whispers">Whisper</a> or
           <a href="/pigeon.html">email</a> first &mdash; that is what <%= day.name %> will actually
           read.</span>
-        <a class="wk-ring__n" href="sms:<%= day.tel %>"><%= day.phone %></a>
-        <span class="wk-ring__how"><b>Text it, do not ring it.</b> She will not be answering the
-          phone during the faire. A call is a last resort, for an emergency.</span>
+        <%
+          /* Behind a click rather than printed on the page. The real gate is
+             on the server — the number is only rendered for signed-in sworn
+             guildmates at all — but she did not want it sitting in the open
+             over someone's shoulder either. <details> so it works with no
+             JavaScript and answers to the keyboard. */
+        %>
+        <details class="wk-ring__hide">
+          <summary><span aria-hidden="true">📞</span> Show her number</summary>
+          <a class="wk-ring__n" href="sms:<%= day.tel %>"><%= day.phone %></a>
+          <span class="wk-ring__how"><b>Text it, do not ring it.</b> She is not answering the
+            phone during the faire.</span>
+        </details>
         <span class="wk-ring__keep">Guildmates only. Keep it in the House.</span>
       </div>
     </div>
@@ -87,6 +103,30 @@
     <% } else { %>
       <p class="wk-lead">Nobody has said yet. Mark yourself under <a href="/members#rsvp">Profile</a>.</p>
     <% } %>
+  </div>
+
+  <!-- ── what actually happens when you pull up ────────────────────────── -->
+  <%
+    /* Every piece of this already existed, spread across the camp page, the
+       gates block and the faire's own FAQ. Nobody arriving for the first time
+       was going to assemble it themselves in a hot car park. */
+  %>
+  <div class="wk-block wk-block--come">
+    <h2><i aria-hidden="true">🚗</i> When you arrive</h2>
+    <ol class="wk-steps">
+      <li><b>Drive to the camping entrance</b>, not the main box office. It is the far left
+        of the faire map &mdash; the <a href="/camp.html#parking">camp page</a> marks our site
+        with an X.</li>
+      <li><b>Park in the regular lots</b>, first come first served. Come early on the Friday:
+        the lots at the camping end are the small ones.</li>
+      <li><b>Show the QR code and get banded.</b> The faire sends one code per campground; you
+        present it on arrival and everyone in the party gets a wristband.</li>
+      <li><b>That wristband is your way in.</b> Show it at the RV campsite gate from then on.
+        <b>Do not buy a ticket</b> &mdash; the band already covers your day, and people have
+        paid twice.</li>
+      <li><b>Find the rig and put your bedding down.</b> Bunks are claimed here on the site
+        beforehand, so know which night is yours before you set off.</li>
+    </ol>
   </div>
 
   <!-- ── who sleeps where ──────────────────────────────────────────────── -->
