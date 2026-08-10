@@ -26,6 +26,7 @@
      so both halves of the site — generated HTML and EJS — get one list. */
   var HOUSE = [
     ['Home',                '/index.html'],
+    ['Map of the Faire',    '/map'],
     ['The Guild',           '/guild.html'],
     ['Scroll of Events',    '/events.html'],
     ['The Weekend',         '/weekend'],

@@ -1,0 +1,65 @@
+/* A Map of the Faire — the painted map, made walkable. Loaded only on /map. */
+
+.mapwrap{padding:118px 0 60px}
+.maplead{text-align:center;color:var(--ink2);margin:0 auto 22px}
+.mapmissing{max-width:620px;margin:0 auto}
+.mapmissing h3{color:var(--wine)}
+
+/* The frame is the positioning context for every hotspot, so it must hug the
+   picture exactly — hence the inline-block and the block-level image. */
+.mapframe{
+  position:relative;display:inline-block;width:100%;line-height:0;
+  border:1px solid var(--line2);border-radius:6px;overflow:hidden;
+  box-shadow:0 26px 52px -34px rgba(60,40,15,.7);
+}
+.mapart{display:block;width:100%;height:auto}
+
+/* Hotspots. Invisible until you go near them — the painting should be the
+   thing you look at, not a grid of boxes over it. */
+.mapspot{
+  position:absolute;transform:translate(-50%,-50%);
+  border-radius:10px;text-decoration:none;
+  transition:background-color .18s var(--ease),box-shadow .18s var(--ease);
+}
+.mapspot:hover,.mapspot:focus-visible{
+  background:rgba(255,244,205,.22);
+  box-shadow:0 0 0 2px rgba(226,199,127,.9),0 10px 30px -12px rgba(0,0,0,.6);
+  outline:none;
+}
+.mapspot__tip{
+  position:absolute;left:50%;bottom:100%;transform:translate(-50%,-8px);
+  display:flex;flex-direction:column;gap:1px;white-space:nowrap;
+  padding:7px 13px;border-radius:4px;line-height:1.3;
+  background:#241a10;border:1px solid var(--gold-d);
+  opacity:0;visibility:hidden;transition:opacity .16s var(--ease);
+  box-shadow:0 12px 26px -12px rgba(0,0,0,.8);pointer-events:none;
+}
+.mapspot:hover .mapspot__tip,.mapspot:focus-visible .mapspot__tip{opacity:1;visibility:visible}
+.mapspot__tip b{font-family:var(--display);font-size:.86rem;color:#f5e9c8;letter-spacing:.03em}
+.mapspot__tip small{font-family:var(--serif);font-size:.76rem;color:#c9ab7f}
+
+/* The same doors as a list. On a phone this is the map — the hotspots are
+   there, but a thumb is not a mouse. */
+.mapdoors{list-style:none;margin:26px 0 0;padding:0;
+  display:grid;gap:10px;grid-template-columns:repeat(auto-fit,minmax(232px,1fr))}
+.mapdoors a{display:flex;align-items:center;gap:12px;text-decoration:none;
+  background:var(--ivory);border:1px solid var(--line);border-radius:3px;padding:11px 14px;
+  transition:border-color .18s var(--ease),transform .18s var(--ease)}
+.mapdoors a:hover,.mapdoors a:focus-visible{border-color:var(--gold-d);transform:translateY(-2px)}
+.mapdoors__n{flex-shrink:0;width:28px;height:28px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  background:var(--parchment2);border:1px solid var(--line2);
+  font-family:var(--display);font-size:.8rem;color:var(--wine)}
+.mapdoors span span,.mapdoors a>span:last-child{display:flex;flex-direction:column;line-height:1.3}
+.mapdoors b{font-family:var(--display);font-size:.94rem;color:var(--ink)}
+.mapdoors small{font-size:.8rem;color:var(--muted)}
+
+@media (prefers-reduced-motion:reduce){
+  .mapspot,.mapspot__tip,.mapdoors a{transition:none}
+  .mapdoors a:hover{transform:none}
+}
+@media(max-width:620px){
+  .mapwrap{padding:104px 0 44px}
+  /* Tooltips are a mouse idea. On a touch screen the list below is the map. */
+  .mapspot__tip{display:none}
+}

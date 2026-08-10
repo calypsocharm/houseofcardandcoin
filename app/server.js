@@ -133,7 +133,7 @@ app.use((req,res,next)=>BLOCKED.test(req.path)?res.status(404).send('Not found')
 // had not been bumped by hand — most recently leaving a signed-in member unable
 // to reach their own profile. So the stamp is rewritten here at serve time from
 // the real file mtimes, and never has to be remembered again.
-const ASSET_FILES=['assets/css/style.css','assets/css/tavern.css','assets/css/profile.css','assets/css/gallery.css','assets/css/weekend.css',
+const ASSET_FILES=['assets/css/style.css','assets/css/tavern.css','assets/css/profile.css','assets/css/gallery.css','assets/css/weekend.css','assets/css/map.css',
   'assets/js/nav.js','assets/js/countdown.js','assets/js/hero-video.js','assets/js/avatar-crop.js','assets/js/dress.js','assets/js/gallery.js'];
 function assetVersion(){
   let newest=0;
@@ -722,6 +722,12 @@ app.post('/guild/wall/:id/remove',canPost,(req,res)=>{
   res.redirect('/guild/'+(owner?slugById()[owner.id]:'')+'#wall');
 });
 app.get('/board/roll',(req,res)=>{const i=ident(req);res.render('roll',{i:i,rounds:roll(),champions:champions(),table:allHands(),slugs:slugById(),q:req.query,leader:!!(i&&i.leader),gates:countdown()});});
+app.get("/map",(req,res)=>{
+  // The painted map is dropped in by hand rather than built. Until it lands,
+  // the page is the same ten doors as a list instead of a broken image.
+  var art=path.join(__dirname,"..","assets","img","shire-map.jpg");
+  res.render("map",{hasArt:fs.existsSync(art)});
+});
 app.get('/faq',(req,res)=>res.render('faq',{day:dayContact(ident(req))}));
 app.get('/members/login',(req,res)=>res.render('login',{err:req.query.e||'',code:req.query.code||'',needCode:INVITE_REQUIRED}));
 // /join is the share link. If an invite code is required, ?code=XXXX pre-fills it.
@@ -930,7 +936,12 @@ app.post('/members/admin/bunk/release',al,(req,res)=>{
   )+'#bunks');
 });
 app.post('/members/admin/fares',al,(req,res)=>{const id=parseInt(req.body.id);const u=db.users.find(x=>x.id===id);if(!u)return res.redirect('/members#admin');u.faires=Math.max(0,parseInt(req.body.faires||0));save();res.redirect('/members#admin');});app.post('/members/admin/round/close',al,(req,res)=>{const r=closeRound();return res.redirect('/board/roll'+(r?'?closed='+r.n:'?e=empty'));});app.post('/members/admin/berth',al,(req,res)=>{const u=db.users.find(x=>x.id===parseInt(req.body.id));if(!u)return res.redirect('/members#admin');u.berth=(req.body.berth||'').trim().slice(0,40);save();res.redirect('/members#admin');});app.post('/members/admin/title',al,(req,res)=>{const id=parseInt(req.body.id);const u=db.users.find(x=>x.id===id);if(!u)return res.redirect('/members#admin');u.title=(req.body.title||'').trim();save();res.redirect('/members#admin');});app.post('/members/admin/resetpw',al,(req,res)=>{const id=parseInt(req.body.id);const u=db.users.find(x=>x.id===id);if(!u)return res.redirect('/members#admin');const np=(req.body.password||'').trim();if(np.length<4)return res.redirect('/members?e=pwshort#admin');u.passhash=bcrypt.hashSync(np,10);save();res.redirect('/members?pwreset=1#admin');});app.post('/members/admin/add',al,(req,res)=>{const{name,email,password,faires,title}=req.body;const e=(email||'').toLowerCase().trim();if(!name||!e||!(password||'').trim())return res.redirect('/members?e=addreq#admin');if(db.users.find(x=>x.email===e))return res.redirect('/members?e=dup#admin');db.users.push({id:nid(),name:name.trim(),email:e,passhash:bcrypt.hashSync(password,10),avatar:'',class:'',faires:Math.max(0,parseInt(faires||0)),role:'member',title:(title||'').trim(),contactEmail:'',phone:''});save();res.redirect('/members?added=1#admin');});app.post('/members/admin/remove',al,(req,res)=>{const id=parseInt(req.body.id);const me=db.users.find(x=>x.id===req.session.uid);if(me&&me.id===id)return res.redirect('/members?e=self#admin');const u=db.users.find(x=>x.id===id);if(!u||u.role==='leader')return res.redirect('/members?e=nodel#admin');db.users=db.users.filter(x=>x.id!==id);db.bunks=db.bunks.filter(b=>b.userId!==id);db.claims=db.claims.filter(c=>c.userId!==id);save();res.redirect('/members?removed=1#admin');});app.get('/api/announcements',(req,res)=>res.json((db.announcements||[]).slice().reverse()));app.post('/members/admin/announce',al,(req,res)=>{const t=(req.body.text||'').trim();if(!t)return res.redirect('/members?e=notext#admin');db.announcements.push({id:nid(),text:t,ts:Date.now()});save();res.redirect('/members?ann=1#admin');});app.post('/members/admin/announce/remove',al,(req,res)=>{const id=parseInt(req.body.id);db.announcements=db.announcements.filter(function(a){return a.id!==id;});save();res.redirect('/members#admin');});app.post('/members/rsvp',au,(req,res)=>{const u=cur(req);if(!u)return res.redirect('/members/login');u.rsvp=!u.rsvp;save();res.redirect('/members#rsvp');});// ===== The Tavern: public notice board + polls =====
-const BOARDCATS=['General','Rides & Lodging','Trade & Barter',"Reader's Circle",'Camp Talk'];
+const BOARDCATS=['General','Rides & Lodging','Trade & Barter',"Reader's Circle",'Camp Talk',
+  'Wanted','Lost & Found','Notice'];
+/* The three that belong on the town board rather than in the tavern talk. Same
+   threads, same posting, same replies — a different wall to nail them to. The
+   tavern keeps the conversation; the board keeps the paper. */
+const TOWNCATS=['Wanted','Lost & Found','Notice'];
 /* The number to ring when you are stood in the car park on the Friday with a
    boot full of gear. Every route to a person on this site was email, which is
    no use at all on the day.
@@ -1155,6 +1166,37 @@ app.post('/board/thread',canPost,(req,res)=>{
   if(BOARDCATS.indexOf(category)<0)category='General';
   db.threads.push({id:nid(),category:category,title:title,body:body,authorType:i.t,authorId:i.id,authorName:i.name,authorAvatar:i.avatar,ts:Date.now(),replies:[]});
   save();res.redirect('/board');
+});
+/* The town board. A wooden board in the middle of town with paper nailed to
+   it: pledges standing at the gate, wanted notices, lost dogs.
+
+   The pledges are pinned by the site rather than by anyone — a newcomer is
+   news, and the point of the board is that the people who might know them see
+   them. Sworn guildmates can speak for one straight from the board, so nobody
+   has to go hunting for the profile page first. */
+app.get('/town',(req,res)=>{
+  const i=ident(req);
+  const me=i&&i.t==='member'?db.users.find(function(x){return x.id===i.id;}):null;
+  const slugs=slugById();
+  const pledges=db.users.filter(function(u){return u.pledge;}).map(function(u){
+    return {name:u.name, avatar:u.avatar||'', slug:slugs[u.id]||'', id:u.id,
+            about:(pageOf(u).about||'').slice(0,140), cls:u.class||'',
+            vouches:vouchesFor(u.id).map(function(v){return {who:v.who,slug:v.slug};}),
+            vouchedByMe:!!(me&&(db.vouches||[]).some(function(v){return v.forId===u.id&&v.byId===me.id;}))};
+  });
+  const papers=db.threads.filter(function(t){return TOWNCATS.indexOf(t.category)>-1;})
+    .sort(function(a,b){return b.ts-a.ts;})
+    .map(function(t){
+      const f=freshenPost(t);
+      return {id:t.id, kind:t.category, title:t.title, body:t.body, ts:t.ts,
+              who:f.authorName, avatar:f.authorAvatar,
+              slug:t.authorType==='member'?(slugs[t.authorId]||''):'',
+              replies:(t.replies||[]).length,
+              mine:!!(i&&t.authorType===i.t&&t.authorId===i.id)};
+    });
+  res.render('town',{i:i, pledges:pledges, papers:papers, kinds:TOWNCATS,
+    canVouch:!!(me&&isSworn(me)), q:req.query, err:req.query.e||'',
+    leader:!!(i&&i.leader)});
 });
 app.get('/board/thread/:id',(req,res)=>{
   const t=db.threads.find(x=>x.id==req.params.id);if(!t)return res.redirect('/board');

@@ -1,0 +1,81 @@
+<%- include('_top',{title:'A Map of the Faire',active:'map',desc:'The House of Card and Coin drawn as a village — the guild, the tavern, the camp, the gallery. Press a place to walk in.',image:'/assets/img/og/index.jpg',url:'https://houseofcardandcoin.com/map'}) %>
+<link rel="stylesheet" href="/assets/css/map.css?v=<%= typeof assetv!=='undefined'?assetv:'1' %>">
+
+<%
+  /* The site as a place rather than a menu.
+
+     The artwork is a painted illustration; the clickable layer is separate
+     from it. Hotspots are held as percentages of the image, not pixels, so
+     the map scales from a phone to a desktop without any of them drifting
+     off their building — and if the picture is ever redrawn, only these ten
+     numbers change.
+
+     x,y is the CENTRE of the hotspot, w,h its size, all in % of the image.
+     Every one is a real <a>: keyboard reachable, middle-clickable, and
+     announced properly to a screen reader. */
+  var spots=[
+    {n:1,  x:48.0, y:33.5, w:26, h:30, href:'/index.html',  label:'The House',           sub:'Where it all begins'},
+    {n:2,  x:17.5, y:26.5, w:22, h:23, href:'/guild.html',  label:'The Guild',           sub:'Who we are'},
+    {n:3,  x:69.5, y:28.5, w:13, h:19, href:'/events.html', label:'Scroll of Events',    sub:'The three days'},
+    {n:4,  x:87.0, y:29.0, w:21, h:21, href:'/weekend',     label:'The Weekend',         sub:'Everything, in one place'},
+    {n:5,  x:16.5, y:50.5, w:26, h:22, href:'/camp.html',   label:'Ren Faire Camp',      sub:'Where we sleep'},
+    {n:6,  x:79.5, y:53.5, w:25, h:22, href:'/board',       label:'The Tavern',          sub:'Talk by the fire'},
+    {n:7,  x:87.0, y:79.5, w:21, h:26, href:'/board/roll',  label:'The Roll of Hands',   sub:'Who is winning'},
+    {n:8,  x:19.5, y:79.5, w:20, h:26, href:'/gallery',     label:'The Gallery',         sub:'The faire, in pictures'},
+    {n:9,  x:39.5, y:79.5, w:17, h:26, href:'/faq',         label:'Questions & Customs', sub:'Asked and answered'},
+    {n:10, x:63.0, y:80.5, w:15, h:26, href:'/pigeon.html', label:'Carrier Pigeon',      sub:'Send word'}
+  ];
+%>
+
+<section class="mapwrap"><div class="container">
+
+  <% if(!hasArt){ %>
+    <%
+      /* The picture is not in place yet. Rather than a broken image, the page
+         is simply the same ten doors as a list — and the Guild Leader is told
+         exactly where to put the file. */
+    %>
+    <div class="bannerhead"><span class="eyebrow">&#9884; A Map of the Faire &#9884;</span>
+      <h1>The Places of the House</h1><div class="rule"></div></div>
+    <% if(locals.me && me.leader){ %>
+      <div class="scroll mapmissing">
+        <h3>The map artwork is not here yet</h3>
+        <p>Save the painted map as <b>assets/img/shire-map.jpg</b> and this page becomes the
+          picture, with every building clickable. Nothing else needs changing &mdash; the doors
+          below are already wired to it.</p>
+      </div>
+    <% } %>
+  <% } else { %>
+    <div class="bannerhead"><span class="eyebrow">&#9884; A Map of the Faire &#9884;</span>
+      <h1>Where Would You Like to Go?</h1><div class="rule"></div></div>
+    <p class="maplead">Press a place to walk in.</p>
+
+    <div class="mapframe">
+      <img class="mapart" src="/assets/img/shire-map.jpg"
+           alt="An illustrated map of the House of Card and Coin: the House at the centre, with the Guild, the Tavern, the camp, the gallery and more around it."
+           width="1456" height="1080">
+      <% spots.forEach(function(s){ %>
+        <a class="mapspot" href="<%= s.href %>"
+           style="left:<%= s.x %>%;top:<%= s.y %>%;width:<%= s.w %>%;height:<%= s.h %>%"
+           aria-label="<%= s.label %> — <%= s.sub %>">
+          <span class="mapspot__tip"><b><%= s.label %></b><small><%= s.sub %></small></span>
+        </a>
+      <% }) %>
+    </div>
+  <% } %>
+
+  <%
+    /* The same ten doors as plain text under the picture. Not a fallback
+       nobody sees — on a phone the hotspots are small, and some people would
+       simply rather read a list. */
+  %>
+  <ul class="mapdoors">
+    <% spots.forEach(function(s){ %>
+      <li><a href="<%= s.href %>"><span class="mapdoors__n"><%= s.n %></span>
+        <span><b><%= s.label %></b><small><%= s.sub %></small></span></a></li>
+    <% }) %>
+  </ul>
+
+</div></section>
+
+<%- include('_bot') %>
