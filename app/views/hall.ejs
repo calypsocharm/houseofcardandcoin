@@ -113,6 +113,55 @@
 
 <% if(leader){ %><section class="section section--dark" id="admin"><div class="container"><div class="bannerhead"><span class="eyebrow">Administration</span><h2 style="color:#f5e9c8">Roster &amp; Reservations</h2><div class="rule"></div></div>
 
+<%
+  /* Pledges waiting. This used to mean visiting each new account's page one
+     at a time to see whether anyone had spoken for them. Everything needed to
+     decide is here instead: who they are, who vouched, and what those people
+     said in private. The private word is shown here and nowhere else. */
+  var waiting=users.filter(function(m){return m.pledge;});
+%>
+<div class="bringers" id="pledges" style="margin-bottom:18px">
+  <h3>Pledges waiting<% if(waiting.length){ %> &mdash; <%= waiting.length %><% } %></h3>
+  <% if(!waiting.length){ %>
+    <p class="bringers__none">Nobody is waiting at the door.</p>
+  <% } else { %>
+    <p class="bringers__none" style="margin-bottom:14px">Every sworn guildmate is told when someone
+      pledges and asked to speak for them if they know them. What they wrote is below, and is seen
+      by you alone &mdash; the pledge is only ever told <i>that</i> they were vouched for, and by whom.</p>
+    <ul class="pledgelist">
+      <% waiting.forEach(function(m){ %>
+        <li class="pledgelist__row">
+          <a class="pledgelist__face" href="/guild/<%= m.slug %>" title="See <%= m.name %>’s page">
+            <% if(m.avatar){ %><img src="<%= m.avatar %>" alt=""><% } else { %><span><%= m.name.slice(0,2).toUpperCase() %></span><% } %>
+          </a>
+          <div class="pledgelist__body">
+            <b><a href="/guild/<%= m.slug %>"><%= m.name %></a></b>
+            <% if(m.contactEmail){ %><span class="pledgelist__meta"><%= m.contactEmail %></span><% } %>
+            <% if(m.phone){ %><span class="pledgelist__meta"><%= m.phone %></span><% } %>
+            <% if(!m.vouches.length){ %>
+              <span class="pledgelist__none">Nobody has spoken for them yet.</span>
+            <% } else { %>
+              <ul class="pledgelist__vouches">
+                <% m.vouches.forEach(function(v){ %>
+                  <li><b><%= v.who %></b>
+                    <small><%= new Date(v.ts).toLocaleDateString(undefined,{month:'short',day:'numeric'}) %></small>
+                    <% if(v.word){ %><em>&ldquo;<%= v.word %>&rdquo;</em><% } %></li>
+                <% }) %>
+              </ul>
+            <% } %>
+          </div>
+          <div class="pledgelist__act">
+            <a class="btn btn--ghost" href="/guild/<%= m.slug %>" style="padding:6px 14px;font-size:.6rem">Their page</a>
+            <form method="post" action="/members/admin/promote" onsubmit="return confirm('Take <%= m.name.replace(/'/g,"") %> into the House?')">
+              <input type="hidden" name="id" value="<%= m.id %>">
+              <button class="btn btn--gold" style="padding:6px 14px;font-size:.6rem">Take them in</button>
+            </form>
+          </div>
+        </li>
+      <% }) %>
+    </ul>
+  <% } %>
+</div>
 <div class="bringers" id="safekeeping" style="margin-bottom:18px">
   <h3>Keep a copy safe</h3>
   <p class="bringers__none" style="margin-bottom:12px">The nightly backup lives on the same server it protects — if that server is

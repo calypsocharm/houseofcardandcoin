@@ -147,6 +147,32 @@
         <% } %>
 
         <%
+          /* Pictures. Drawn from the photo wall rather than a second uploader,
+             so everything is shrunk, stripped of its EXIF and visible to the
+             House in one place. Everyone can post to the wall, pledges
+             included, so everyone can put pictures on their page. */
+        %>
+        <% if(photos.length){ %>
+          <div class="pro-card" id="pics">
+            <h2>Pictures</h2>
+            <ul class="pro-pics">
+              <% photos.forEach(function(ph){ %>
+                <li><a href="<%= ph.file %>" target="_blank" rel="noopener">
+                  <img src="<%= ph.thumb %>" alt="<%= ph.caption||(who.name+'’s photo') %>" loading="lazy">
+                </a><% if(ph.caption){ %><span><%= ph.caption %></span><% } %></li>
+              <% }) %>
+            </ul>
+            <% if(isMe){ %><p class="pro-pics__add"><a href="/gallery">Add another to the wall</a> &mdash; anything you post there shows up here.</p><% } %>
+          </div>
+        <% } else if(isMe){ %>
+          <div class="pro-card" id="pics">
+            <h2>Pictures</h2>
+            <p class="pro-empty">No pictures yet. Anything you put on the
+              <a href="/gallery">photo wall</a> appears here on your own page too.</p>
+          </div>
+        <% } %>
+
+        <%
           /* Spoken for. Who backed a pledge is public — that is the point of
              being brought in by somebody. What they said is the Guild Leader's
              alone, so a guildmate can be candid about character without it
@@ -182,6 +208,9 @@
               </ul>
               <% if(leader){ %>
                 <p class="pro-vouchnote">What each of them said is shown to you alone.</p>
+              <% } else if(who.pledge){ %>
+                <p class="pro-vouchnote">Being spoken for is not the same as being taken in &mdash;
+                  the Guild Leader still decides, one at a time, by hand.</p>
               <% } %>
             <% } else if(who.pledge){ %>
               <p class="pro-empty"><%= isMe?'Nobody has spoken for you yet.':'Nobody has spoken for '+who.name+' yet.' %>
@@ -190,7 +219,10 @@
 
             <% if(canVouch && !vouchedAlready){ %>
               <form class="pro-vouchform" method="post" action="/guild/<%= slug %>/vouch">
-                <label for="vouchWord">Speak for <%= who.name %></label>
+                <label for="vouchWord">Do you know <%= who.name %>?</label>
+                <p class="pro-vouchwhat">To vouch is to say you know them and you would have them
+                  in the House. It does not decide anything &mdash; the Guild Leader still takes
+                  people in by hand &mdash; but she wants to hear from whoever knows them.</p>
                 <input id="vouchWord" name="word" maxlength="300"
                        placeholder="How do you know them? (the Guild Leader alone reads this)">
                 <button class="btn btn--wine" type="submit">I vouch for them</button>

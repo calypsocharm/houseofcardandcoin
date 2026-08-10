@@ -1029,3 +1029,48 @@ footer :where(a,button):focus-visible{
   text-decoration:none;margin-bottom:6px;width:max-content}
 .faq-hide__n:hover,.faq-hide__n:focus-visible{text-decoration:underline}
 .faq-note{margin-top:10px;font-size:.9rem;color:var(--muted)}
+
+/* Pledges waiting, in Administration. One row per person with everything
+   needed to decide: who they are, who spoke for them, and what those people
+   said in private — which is shown here and on no other page. */
+.pledgelist{list-style:none;margin:0;padding:0;display:grid;gap:12px}
+.pledgelist__row{display:flex;gap:14px;align-items:flex-start;
+  background:rgba(255,255,255,.04);border:1px solid rgba(226,199,127,.22);
+  border-radius:4px;padding:13px 15px}
+.pledgelist__face{flex-shrink:0;width:46px;height:46px;border-radius:50%;overflow:hidden;
+  display:flex;align-items:center;justify-content:center;
+  border:1px solid var(--gold-d);background:var(--dark2)}
+.pledgelist__face img{width:100%;height:100%;object-fit:cover}
+.pledgelist__face span{font-family:var(--display);font-size:.9rem;color:var(--gold-l)}
+.pledgelist__body{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px}
+.pledgelist__body b{font-family:var(--display);font-size:1rem;color:#f5e9c8}
+.pledgelist__body b a{color:inherit;text-decoration:none}
+.pledgelist__body b a:hover{text-decoration:underline}
+.pledgelist__meta{font-size:.82rem;color:#c9ab7f}
+.pledgelist__none{font-size:.86rem;color:#a8916b;font-style:italic}
+.pledgelist__vouches{list-style:none;margin:6px 0 0;padding:0;display:grid;gap:6px}
+.pledgelist__vouches li{font-size:.88rem;color:#e4d3ab;
+  border-left:2px solid var(--gold-d);padding-left:10px;line-height:1.5}
+.pledgelist__vouches b{font-family:var(--serif);font-size:.88rem;color:#f5e9c8}
+.pledgelist__vouches small{color:#a8916b;margin-left:6px}
+.pledgelist__vouches em{display:block;color:#d6c39a}
+.pledgelist__act{display:flex;flex-direction:column;gap:7px;flex-shrink:0;align-items:stretch}
+@media(max-width:620px){
+  .pledgelist__row{flex-wrap:wrap}
+  .pledgelist__act{flex-direction:row;width:100%}
+}
+
+/* Pictures on a profile page. */
+.pro-pics{list-style:none;margin:0;padding:0;display:grid;gap:10px;
+  grid-template-columns:repeat(auto-fill,minmax(104px,1fr))}
+.pro-pics li{display:flex;flex-direction:column;gap:5px;min-width:0}
+.pro-pics a{display:block;border:1px solid var(--line2);border-radius:3px;overflow:hidden;
+  background:var(--ivory);line-height:0}
+.pro-pics a:hover,.pro-pics a:focus-visible{border-color:var(--u-accent,var(--gold-d))}
+.pro-pics img{width:100%;aspect-ratio:1;object-fit:cover;display:block}
+.pro-pics span{font-size:.76rem;color:var(--muted);line-height:1.4;
+  overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.pro-pics__add{margin-top:12px;font-size:.86rem;color:var(--muted)}
+.pro-pics__add a{color:var(--u-accent,var(--wine));font-weight:600}
+/* What vouching means, said where someone is about to do it. */
+.pro-vouchwhat{margin:2px 0 10px;font-size:.9rem;color:var(--muted);line-height:1.6}

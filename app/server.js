@@ -662,6 +662,9 @@ app.get('/guild/:slug',(req,res)=>{
     bunks:bunks, bringing:bringing, talk:talk.slice(0,5),
     hand:(u.hand||[]).map(cardInfo), handRank:handRank(u.hand||[]),
     page:pageOf(u), marks:marksFor(u), vouches:vouchesFor(u.id),
+    photos:(db.photos||[]).filter(function(ph){return ph.byT==="member"&&ph.byId===u.id;})
+      .sort(function(a,b){return b.ts-a.ts;})
+      .map(function(ph){return {id:ph.id,file:ph.file,thumb:ph.thumb||ph.file,caption:ph.caption||""};}),
     canVouch:!!(i&&i.t==='member'&&i.id!==u.id&&u.pledge&&isSworn(db.users.find(function(x){return x.id===i.id;}))),
     vouchedAlready:!!(i&&i.t==='member'&&(db.vouches||[]).some(function(v){return v.forId===u.id&&v.byId===i.id;})), nudges:(i&&i.t==='member'&&i.id===u.id)?nudgesFor(u):[], charmSvg:charmSvg, charmKeys:CHARM_KEYS, charmMax:CHARM_MAX,
     fonts:FONTS, fontKeys:FONT_KEYS, sizeKeys:SIZE_KEYS, sizes:SIZES,
@@ -723,7 +726,17 @@ app.get('/faq',(req,res)=>res.render('faq',{day:dayContact(ident(req))}));
 app.get('/members/login',(req,res)=>res.render('login',{err:req.query.e||'',code:req.query.code||'',needCode:INVITE_REQUIRED}));
 // /join is the share link. If an invite code is required, ?code=XXXX pre-fills it.
 app.get('/join',(req,res)=>res.render('login',{err:req.query.e||'',code:req.query.code||'',needCode:INVITE_REQUIRED}));
-app.post('/members/register',up.single('avatar'),shrinkAvatar,(req,res)=>{const{name,email,password,invite}=req.body;
+/* A pledge used to appear in silence — the only person who knew was the
+   Guild Leader, and only if she went looking. Vouching cannot happen if the
+   people who might know the newcomer are never told there is one. So every
+   sworn guildmate hears about it, with the ask attached. */
+function tellTheHouse(newcomer){
+  db.users.forEach(function(u){
+    if(u.id===newcomer.id||u.pledge) return;
+    notify("member",u.id,newcomer.name+" has pledged to the House. If you know them, speak for them on their page.");
+  });
+}
+app.post("/members/register",up.single("avatar"),shrinkAvatar,(req,res)=>{const{name,email,password,invite}=req.body;
   // honeypot: real people never fill this hidden field, bots do
   if(req.body.website)return res.redirect('/members/login');
   // keep a valid code in the URL on failure so they don't have to re-enter it
@@ -739,7 +752,9 @@ app.post('/members/register',up.single('avatar'),shrinkAvatar,(req,res)=>{const{
   // Signing up does not make you a guildmate — you join as a Pledge until the
   // Guild Leader promotes you. The very first account is the leader, not a pledge.
   const u={id:nid(),name:display,email:String(email).toLowerCase().trim(),passhash:bcrypt.hashSync(password,10),avatar:req.file?('/uploads/'+req.file.filename):'',class:'',faires:0,role:first?'leader':'member',pledge:!first};
-  db.users.push(u);save();req.session.uid=u.id;// A new pledge lands on a page that explains what a pledge is and what
+  db.users.push(u);
+  if(!first) tellTheHouse(u);
+  save();req.session.uid=u.id;// A new pledge lands on a page that explains what a pledge is and what
   // happens next, rather than being dropped into the Hall unexplained.
   res.redirect(first?'/members':'/members?new=1');});
 app.post('/members/login',throttleLogin,(req,res)=>{const{email,password}=req.body;const u=db.users.find(x=>x.email===String(email||'').toLowerCase());
