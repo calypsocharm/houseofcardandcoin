@@ -1,9 +1,18 @@
 <%- include('_top',{title:'The Gallery',active:'gallery',desc:'Pictures from the faire — the House of Card and Coin at the Age of Chivalry Renaissance Festival, put up by the guildmates who took them.',image:'/assets/img/og/index.jpg',url:'https://houseofcardandcoin.com/gallery'}) %>
 <link rel="stylesheet" href="/assets/css/gallery.css?v=<%= typeof assetv!=='undefined'?assetv:'1' %>">
 
-<section class="pagehero"><div class="pagehero__bg" style="background-image:url('/assets/img/024.jpg')"></div>
-<div class="container pagehero__inner"><span class="eyebrow">⚜ The Gallery ⚜</span>
-<h1>Pictures from the Faire</h1>
+<%
+  /* The page is called the Gallery everywhere else — the menu, the map, the
+     map's own hotspot — and the heading was the one place saying otherwise.
+
+     The header picture was the cards-and-coins still life, which belongs to
+     the Tavern's world rather than this one. 021 is real guildmates at the
+     faire, by the lake at Sunset Park with the tents behind them, which is
+     what this page actually holds. */
+%>
+<section class="pagehero"><div class="pagehero__bg" style="background-image:url('/assets/img/021.jpg')"></div>
+<div class="container pagehero__inner"><span class="eyebrow">⚜ Pictures from the Faire ⚜</span>
+<h1>The Gallery</h1>
 <p>Camp, garb, the fire, and whatever else was worth pointing a lens at. Put up by the guildmates who took them.</p>
 </div></section>
 
