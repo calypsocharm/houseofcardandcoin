@@ -14,7 +14,7 @@
   <% if(q.e){ %><div class="alert alert--bad" style="max-width:720px;margin:0 auto 22px"><%= q.e %></div><% } %>
 
   <% if(canAdd){ %>
-    <form class="galadd" method="post" action="/gallery/add" enctype="multipart/form-data">
+    <form class="galadd" id="add" method="post" action="/gallery/add" enctype="multipart/form-data">
       <div class="galadd__row">
         <label class="galadd__pick">
           <input type="file" name="photo" id="galPhoto" accept="image/*" required>
@@ -65,9 +65,23 @@
       <%= photos.length %> picture<%= photos.length===1?'':'s' %> on the wall<% if(photos.length>=max*0.8){ %> — room for <%= max-photos.length %> more<% } %>.
     </p>
   <% } else { %>
-    <p class="muted center" style="margin:40px 0">
-      Nothing on the wall yet. <% if(canAdd){ %>Be the first — there must be a picture of last year somewhere.<% } %>
-    </p>
+    <%
+      /* An empty wall is a dead end when the map has just promised somewhere
+         to go. Make it look like a wall waiting for paper rather than a page
+         with nothing on it, and put the ask in front of whoever arrives. */
+    %>
+    <div class="wall-empty">
+      <span class="wall-empty__pins" aria-hidden="true"><i></i><i></i><i></i></span>
+      <p class="wall-empty__lead">The wall is bare.</p>
+      <% if(canAdd){ %>
+        <p>Somebody has a picture of last year on their phone — the fire, the camp, somebody in
+          full garb at nine in the morning. Put the first one up and the rest will follow.</p>
+        <a class="btn btn--gold" href="#add">Put one up</a>
+      <% } else { %>
+        <p>Nothing here yet. <a href="/members/login">Sign in</a> or
+          <a href="/tavern">claim a seat</a> and you can be the one to start it.</p>
+      <% } %>
+    </div>
   <% } %>
 
 </div></section>

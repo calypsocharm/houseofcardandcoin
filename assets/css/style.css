@@ -1074,3 +1074,15 @@ footer :where(a,button):focus-visible{
 .pro-pics__add a{color:var(--u-accent,var(--wine));font-weight:600}
 /* What vouching means, said where someone is about to do it. */
 .pro-vouchwhat{margin:2px 0 10px;font-size:.9rem;color:var(--muted);line-height:1.6}
+
+/* Guild Member or Tavern Guest — said side by side, where people choose. */
+.whichyou{display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(232px,1fr));margin:20px 0 14px}
+.whichyou__card{background:rgba(251,246,233,.95);border:1px solid var(--line);border-radius:4px;
+  padding:15px 17px;line-height:1.6}
+.whichyou__card--guild{border-color:var(--gold-d);background:#fdf6e4}
+.whichyou__tag{display:inline-block;margin-bottom:8px;font-family:var(--display);
+  font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;color:var(--wine)}
+.whichyou__card p{margin:0 0 8px;font-size:.94rem;color:var(--ink2)}
+.whichyou__card p:last-child{margin-bottom:0}
+.whichyou__do{font-size:.9rem !important;color:var(--muted) !important}
+.whichyou__do a{color:var(--wine);font-weight:600}

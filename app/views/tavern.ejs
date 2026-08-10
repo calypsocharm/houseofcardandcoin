@@ -4,8 +4,30 @@
 <% if(i){ %>
 <div class="compose" style="border-color:var(--forest);margin:18px 0"><h3 style="color:#22402b">You're Already Seated</h3><p style="margin:0">You're signed in as <b><%= i.name %></b><% if(i.leader){ %> &mdash; guild leader, so you can strike notes and bar unruly patrons<% } %>. No need to claim a seat; head straight for the board.</p><a class="btn btn--gold" href="/board" style="margin-top:14px">Go to the Notice Board</a></div>
 <% } else { %>
-<p class="lead">Anyone may <b>read</b> the Tavern notice board and polls. To pin a note, reply, or raise a hand in a poll, you need a face at the table &mdash; claim a seat with a name and an avatar. No guild invite required.</p>
-<p class="muted center" style="margin:14px 0 22px">Already a guild member? <a href="/members/login">Sign in at the Guild Login</a> and you'll post as yourself &mdash; no seat needed.</p>
+<p class="lead">Anyone may <b>read</b> the Tavern. To pin a note, reply, or raise a hand in a poll, you need a face at the table.</p>
+<%
+  /* There are two kinds of account, and people were making the second without
+     realising — one guildmate ended up with two hands in the card game and her
+     name twice on the roll. Said plainly, side by side, before anyone signs
+     anything. */
+%>
+<div class="whichyou">
+  <div class="whichyou__card whichyou__card--guild">
+    <span class="whichyou__tag">&#9884; Guild Member</span>
+    <p>You are in the House &mdash; on the roster, with a page of your own, a bunk to claim and the
+      camp bring-list. You can talk in the Tavern too.</p>
+    <p class="whichyou__do"><b>Already have one?</b> <a href="/members/login">Sign in at the Guild
+      Login</a>. You do not need a seat as well.</p>
+  </div>
+  <div class="whichyou__card">
+    <span class="whichyou__tag">&#127866; Tavern Guest</span>
+    <p>A name and a face for the Tavern alone. Talk, reply, vote, and take a card a night. No
+      roster, no page of your own, no bunk.</p>
+    <p class="whichyou__do">Claim a seat below. No invite needed.</p>
+  </div>
+</div>
+<p class="muted center" style="margin:0 0 22px">One or the other &mdash; not both. Two accounts means
+  two hands in the card game and your name on the roll twice.</p>
 <% if(err){ %><div class="compose" style="border-color:var(--wine);color:var(--wine);margin:18px 0"><%= err %></div><% } %>
 <div class="compose" style="margin-bottom:18px"><h3>Sign In</h3><form method="post" action="/tavern/login"><div class="field"><label>Email</label><input type="email" name="email" required></div><div class="field"><label>Password</label><input type="password" name="password" required></div><button class="btn btn--gold" style="width:100%;justify-content:center">Take Your Seat</button></form></div>
 <div class="compose"><h3>Claim a Seat</h3><p class="muted" style="margin-top:0;font-size:.96rem">New here? Make a tavern account in seconds.</p><form method="post" action="/tavern/register" enctype="multipart/form-data"><div class="field"><label>Your Name</label><input name="name" required></div><div class="field"><label>Email</label><input type="email" name="email" required></div><div class="field"><label>Password</label><input type="password" name="password" required minlength="6"></div><div class="field"><label>Avatar (optional &mdash; otherwise we stamp your initials)</label><input type="file" name="avatar" accept="image/*"></div><button class="btn btn--wine" style="width:100%;justify-content:center">Pull Up a Stool</button></form></div>
