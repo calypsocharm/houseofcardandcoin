@@ -65,6 +65,15 @@ const stalls = e => Math.round(areaM2(e) / 28 / 5) * 5;
 const named = lots.map(e => ({ e, a: areaM2(e) })).sort((x, y) => y.a - x.a);
 const bigOnes = named.filter(x => x.a > 3000);
 
+/* Our camp. Mama Bear placed it on 2026-08-10: across the road from the
+   ~165-car lot near Eastern Avenue, in the square unlabelled lot. That is
+   way/305179040 — 53 x 58 m, the only square one anywhere near it; its
+   neighbours are the two crescents, which are nothing like square.
+   Held as an id rather than a hand-placed pin so it survives a redraw. */
+const CAMP_LOT = 'way/305179040';
+const camp = lots.find(e => e.id === CAMP_LOT);
+if (!camp) console.warn('  ! camp lot ' + CAMP_LOT + ' not found — the X will be missing');
+
 // ── road labels ────────────────────────────────────────────────────────────
 // One label per named road, placed on its longest visible run.
 const labels = {};
@@ -101,6 +110,11 @@ const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" wid
     .key-h{font:700 18px Georgia,serif;fill:#6e1a1a;letter-spacing:.08em}
     .cred{font:400 15px Georgia,serif;fill:#7a6749}
     .halo{paint-order:stroke;stroke:#fbf6e9;stroke-width:4px;stroke-linejoin:round}
+    /* Same red as the X on the faire's illustrated map, so the two maps
+       agree about which mark means "us". */
+    .camp{fill:#e23b2e;fill-opacity:.3;stroke:#e23b2e;stroke-width:4}
+    .camp-x{stroke:#e23b2e;stroke-width:11;stroke-linecap:round}
+    .camp-label{font:700 22px Georgia,serif;fill:#fff;letter-spacing:.05em}
   </style>
 </defs>
 
@@ -120,6 +134,26 @@ ${bigOnes.map(({ e, a }) => {
   return `<text class="lot-label halo" x="${X(lo).toFixed(0)}" y="${Y(la).toFixed(0)}" text-anchor="middle">P</text>` +
          `<text class="lot-sub halo" x="${X(lo).toFixed(0)}" y="${(Y(la) + 20).toFixed(0)}" text-anchor="middle">~${stalls(e)} cars</text>`;
 }).join('\n')}
+
+${camp ? (() => {
+  const [lo, la] = centre(camp);
+  const cx = X(lo), cy = Y(la);
+  // Size the X to the lot rather than fixing it, so it marks the square
+  // instead of swamping it.
+  const cr = camp.rings[0];
+  const lw = Math.abs(X(Math.max(...cr.map(p => p[1]))) - X(Math.min(...cr.map(p => p[1]))));
+  const lh = Math.abs(Y(Math.max(...cr.map(p => p[0]))) - Y(Math.min(...cr.map(p => p[0]))));
+  const r = Math.max(16, Math.min(lw, lh) * 0.36);
+  // Below the X, not above: above puts it straight on top of the ~165-car
+  // lot's own label, which sits just to the north. Below is open ground.
+  const w = 250, lx = Math.min(Math.max(cx, w / 2 + 8), W - w / 2 - 8), ly = cy + 76;
+  return `<path class="camp" d="${poly(camp)}"/>
+<g class="camp-x"><line x1="${(cx - r).toFixed(0)}" y1="${(cy - r).toFixed(0)}" x2="${(cx + r).toFixed(0)}" y2="${(cy + r).toFixed(0)}"/><line x1="${(cx + r).toFixed(0)}" y1="${(cy - r).toFixed(0)}" x2="${(cx - r).toFixed(0)}" y2="${(cy + r).toFixed(0)}"/></g>
+<g transform="translate(${lx.toFixed(0)} ${ly.toFixed(0)})">
+  <rect x="${(-w / 2).toFixed(0)}" y="-23" width="${w}" height="33" rx="4" fill="#e23b2e"/>
+  <text class="camp-label" x="0" y="0" text-anchor="middle">OUR CAMP SITE</text>
+</g>`;
+})() : ''}
 
 ${Object.keys(labels).map(n => {
   const r = labels[n].r, m = r[Math.floor(r.length / 2)];
@@ -144,12 +178,14 @@ ${Object.keys(labels).map(n => {
 </g>
 
 <g transform="translate(30 34)">
-  <rect x="-16" y="-26" width="430" height="128" fill="#fbf6e9" fill-opacity=".94" stroke="#cbb98f" stroke-width="1.5"/>
+  <rect x="-16" y="-26" width="430" height="158" fill="#fbf6e9" fill-opacity=".94" stroke="#cbb98f" stroke-width="1.5"/>
   <text class="key-h" x="0" y="0">PARKING AT SUNSET PARK</text>
   <rect x="0" y="16" width="28" height="19" class="lot lot-big"/>
   <text class="key" x="38" y="32">Public lot &#8212; capacity approximate</text>
-  <text class="cred" x="0" y="66">The faire has not published which lots it opens</text>
-  <text class="cred" x="0" y="86">for 2026. Map data &#169; OpenStreetMap contributors.</text>
+  <rect x="0" y="46" width="28" height="19" class="camp"/>
+  <text class="key" x="38" y="62">Our camp site</text>
+  <text class="cred" x="0" y="96">The faire has not published which lots it opens</text>
+  <text class="cred" x="0" y="116">for 2026. Map data &#169; OpenStreetMap contributors.</text>
 </g>
 </svg>
 `;

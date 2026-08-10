@@ -19,6 +19,11 @@
     .key-h{font:700 18px Georgia,serif;fill:#6e1a1a;letter-spacing:.08em}
     .cred{font:400 15px Georgia,serif;fill:#7a6749}
     .halo{paint-order:stroke;stroke:#fbf6e9;stroke-width:4px;stroke-linejoin:round}
+    /* Same red as the X on the faire's illustrated map, so the two maps
+       agree about which mark means "us". */
+    .camp{fill:#e23b2e;fill-opacity:.3;stroke:#e23b2e;stroke-width:4}
+    .camp-x{stroke:#e23b2e;stroke-width:11;stroke-linecap:round}
+    .camp-label{font:700 22px Georgia,serif;fill:#fff;letter-spacing:.05em}
   </style>
 </defs>
 
@@ -60,6 +65,13 @@
 <text class="lot-label halo" x="414" y="123" text-anchor="middle">P</text><text class="lot-sub halo" x="414" y="143" text-anchor="middle">~155 cars</text>
 <text class="lot-label halo" x="653" y="436" text-anchor="middle">P</text><text class="lot-sub halo" x="653" y="456" text-anchor="middle">~115 cars</text>
 
+<path class="camp" d="M153.9 434.9 L164.0 432.7 L165.9 434.6 L168.2 435.3 L178.8 433.0 L181.2 433.9 L182.5 436.8 L186.6 436.5 L195.6 470.5 L170.9 476.1 L164.3 477.7 L156.1 444.0 L153.9 434.9 Z"/>
+<g class="camp-x"><line x1="159" y1="439" x2="191" y2="471"/><line x1="191" y1="439" x2="159" y2="471"/></g>
+<g transform="translate(175 531)">
+  <rect x="-125" y="-23" width="250" height="33" rx="4" fill="#e23b2e"/>
+  <text class="camp-label" x="0" y="0" text-anchor="middle">OUR CAMP SITE</text>
+</g>
+
 <text class="rd-label halo" x="816" y="1349" text-anchor="middle" transform="rotate(-0.6 816 1349)" dy="-8">Warm Springs Road</text>
 <text class="rd-label halo" x="1115" y="76" text-anchor="middle" transform="rotate(-0.2 1115 76)" dy="-8">Sunset Road</text>
 <text class="rd-label halo" x="59" y="490" text-anchor="middle" transform="rotate(88.7 59 490)" dy="-8">Eastern Avenue</text>
@@ -79,11 +91,13 @@
 </g>
 
 <g transform="translate(30 34)">
-  <rect x="-16" y="-26" width="430" height="128" fill="#fbf6e9" fill-opacity=".94" stroke="#cbb98f" stroke-width="1.5"/>
+  <rect x="-16" y="-26" width="430" height="158" fill="#fbf6e9" fill-opacity=".94" stroke="#cbb98f" stroke-width="1.5"/>
   <text class="key-h" x="0" y="0">PARKING AT SUNSET PARK</text>
   <rect x="0" y="16" width="28" height="19" class="lot lot-big"/>
   <text class="key" x="38" y="32">Public lot &#8212; capacity approximate</text>
-  <text class="cred" x="0" y="66">The faire has not published which lots it opens</text>
-  <text class="cred" x="0" y="86">for 2026. Map data &#169; OpenStreetMap contributors.</text>
+  <rect x="0" y="46" width="28" height="19" class="camp"/>
+  <text class="key" x="38" y="62">Our camp site</text>
+  <text class="cred" x="0" y="96">The faire has not published which lots it opens</text>
+  <text class="cred" x="0" y="116">for 2026. Map data &#169; OpenStreetMap contributors.</text>
 </g>
 </svg>
