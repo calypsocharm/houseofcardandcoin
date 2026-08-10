@@ -227,7 +227,7 @@ ssh root@187.124.235.109 "cd /var/www/hocc && tar -xzf hocc.tar.gz && rm -f hocc
 > is destructive and there is no undo.
 
 
-### The map
+### The map of the House
 
 The hotspots live in **one** place: `tools/map-spots.json`. After editing it:
 

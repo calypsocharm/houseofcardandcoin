@@ -1,4 +1,4 @@
-<%- include('_top',{title:'A Map of the Faire',active:'map',desc:'The House of Card and Coin drawn as a village — the guild, the tavern, the camp, the gallery. Press a place to walk in.',image:'/assets/img/og/index.jpg',url:'https://houseofcardandcoin.com/map'}) %>
+<%- include('_top',{title:'A Map of the House',active:'map',desc:'Every corner of the House of Card and Coin drawn as a village — the guild, the tavern, the camp, the gallery. Press a place to walk in.',image:'/assets/img/og/index.jpg',url:'https://houseofcardandcoin.com/map'}) %>
 <link rel="stylesheet" href="/assets/css/map.css?v=<%= typeof assetv!=='undefined'?assetv:'1' %>">
 
 <%
@@ -25,7 +25,7 @@
          is simply the same ten doors as a list — and the Guild Leader is told
          exactly where to put the file. */
     %>
-    <div class="bannerhead"><span class="eyebrow">&#9884; A Map of the Faire &#9884;</span>
+    <div class="bannerhead"><span class="eyebrow">&#9884; A Map of the House &#9884;</span>
       <h1>The Places of the House</h1><div class="rule"></div></div>
     <% if(locals.me && me.leader){ %>
       <div class="scroll mapmissing">
@@ -36,13 +36,13 @@
       </div>
     <% } %>
   <% } else { %>
-    <div class="bannerhead"><span class="eyebrow">&#9884; A Map of the Faire &#9884;</span>
+    <div class="bannerhead"><span class="eyebrow">&#9884; A Map of the House &#9884;</span>
       <h1>Where Would You Like to Go?</h1><div class="rule"></div></div>
     <p class="maplead">Press a place to walk in.</p>
 
     <div class="mapframe">
       <img class="mapart" src="/assets/img/shire-map.jpg"
-           alt="An illustrated map of the House of Card and Coin: the House at the centre, with the Guild, the Tavern, the camp, the gallery and more around it."
+           alt="An illustrated map of this site drawn as a village: the House at the centre, with the Guild, the Tavern, the camp, the gallery and more around it."
            width="1456" height="1080">
       <% spots.forEach(function(s){ %>
         <a class="mapspot" href="<%= s.href %>"
