@@ -25,6 +25,7 @@
      one is a line here plus the file — nothing else needs to know. */
   var SOUNDS = {
     '/index.html':   { file: 'house.mp3',  hold: false, gain: 0.5,  music: true },
+    '/guild.html':   { file: 'banner.mp3', hold: false, gain: 0.6 },
     '/camp.html':    { file: 'fire.mp3',   hold: true,  gain: 0.55 },
     '/board':        { file: 'tavern.mp3', hold: true,  gain: 0.5,  music: true },
     '/pigeon.html':  { file: 'pigeon.mp3', hold: true,  gain: 0.6 },

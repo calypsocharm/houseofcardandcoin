@@ -25,8 +25,10 @@
   /* The rooms anyone may walk into. Kept here rather than read off the markup
      so both halves of the site — generated HTML and EJS — get one list. */
   var HOUSE = [
-    ['Home',                '/index.html'],
-    ['Map of the House',    '/map'],
+    // The map opens the homepage now, so two entries pointed at the same
+    // thing. One door, named for both. /map still works and is still linked
+    // from the homepage; it just no longer needs a line of its own.
+    ['Home · the Map',      '/index.html'],
     ['The Guild',           '/guild.html'],
     ['Scroll of Events',    '/events.html'],
     ['The Weekend',         '/weekend'],

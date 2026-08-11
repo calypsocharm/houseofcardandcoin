@@ -171,3 +171,9 @@
    difference between "Talk by the fire" and "12 said, over 4 notes" is
    visible at a glance. */
 .mapspot__tip small.is-live{color:var(--gold-l);font-variant-numeric:tabular-nums}
+
+/* The map opens the homepage now — it turned out to be the centrepiece rather
+   than something further down — so it needs the room under the fixed header
+   that the hero used to take. */
+.shire--first{padding-top:122px}
+@media(max-width:620px){.shire--first{padding-top:104px}}
