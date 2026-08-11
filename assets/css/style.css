@@ -46,6 +46,9 @@ header::before{content:"";position:absolute;left:0;right:0;bottom:0;height:2px;b
 .hero__inner{position:relative;z-index:3;max-width:720px;padding:120px 0}.hero .eyebrow{color:var(--gold-l)}.hero h1{color:#f8edd1;margin-bottom:18px}.hero .sub{font-size:1.26rem;color:#e6d4a8;margin-bottom:32px;max-width:54ch;font-style:italic}
 .hero__cta{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:36px}.hero__meta{display:flex;gap:14px;flex-wrap:wrap;font-size:.86rem;letter-spacing:.06em;color:#e6d4a8}
 .chip{display:inline-flex;align-items:center;gap:8px;border:1px solid rgba(228,199,127,.4);padding:8px 16px;border-radius:2px;background:rgba(0,0,0,.25)}.chip b{color:var(--gold-l);font-family:var(--display)}
+/* inline-flex outranks the [hidden] default, so a hidden chip stayed on screen
+   as an empty gold box. weekend.css patched its own copy; this covers the rest. */
+.chip[hidden]{display:none}
 .bannerhead{text-align:center;margin-bottom:54px}.bannerhead h2{position:relative;display:inline-block;padding:0 30px}.bannerhead h2::before{content:"\2756";position:absolute;left:-4px;top:50%;transform:translateY(-50%);color:var(--gold);font-size:1rem}.bannerhead h2::after{content:"\2756";position:absolute;right:-4px;top:50%;transform:translateY(-50%);color:var(--gold);font-size:1rem}.bannerhead .eyebrow{justify-content:center}
 .grid{display:grid;gap:26px}.grid--3{grid-template-columns:repeat(3,1fr)}.grid--2{grid-template-columns:repeat(2,1fr)}.grid--4{grid-template-columns:repeat(4,1fr)}
 .scroll{background:var(--ivory);border:1px solid var(--line2);border-radius:4px;padding:34px;box-shadow:0 22px 44px -28px rgba(60,40,15,.5),inset 0 0 0 1px rgba(255,255,255,.4);position:relative}.scroll::before{content:"";position:absolute;inset:6px;border:1px solid rgba(194,161,77,.35);border-radius:2px;pointer-events:none}.scroll h3{color:var(--wine);margin-bottom:10px}.scroll p{color:var(--ink2)}

@@ -4,7 +4,6 @@
 .wk-clock{margin-top:18px}
 /* .chip is display:inline-flex, which outranks the browser's [hidden]{display:none}
    — so the empty gates note was drawn as a bare gold box until it had text. */
-.wk-clock .chip[hidden]{display:none}
 
 /* Each block carries its own colour, set once here and inherited by the heading
    rule, the icon and anything tinted inside it, so a block's identity is one
