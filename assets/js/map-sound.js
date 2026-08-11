@@ -24,11 +24,13 @@
   /* Which place gets which sound, and whether it holds or fires once. Adding
      one is a line here plus the file — nothing else needs to know. */
   var SOUNDS = {
+    '/index.html':   { file: 'house.mp3',  hold: false, gain: 0.5,  music: true },
     '/camp.html':    { file: 'fire.mp3',   hold: true,  gain: 0.55 },
-    '/board':        { file: 'tavern.mp3', hold: true,  gain: 0.5 },
+    '/board':        { file: 'tavern.mp3', hold: true,  gain: 0.5,  music: true },
     '/pigeon.html':  { file: 'pigeon.mp3', hold: true,  gain: 0.6 },
     '/events.html':  { file: 'scroll.mp3', hold: false, gain: 0.55 },
     '/weekend':      { file: 'crowd.mp3',  hold: false, gain: 0.6 },
+    '/faq':          { file: 'quest.mp3',  hold: false, gain: 0.5,  music: true },
     '/board/roll':   { file: 'cards.mp3',  hold: false, gain: 0.7 },
     '/members/login':{ file: 'latch.mp3',  hold: false, gain: 0.7 }
   };
@@ -77,9 +79,10 @@
     if (!allowed()) return;          // the whole gate
     var spec = SOUNDS[href];
     if (!spec) return;
-    // The Tavern's sound is the tavern song. If the song is already playing
-    // there is nothing to add, and laying it over itself sounds like a fault.
-    if (href === '/board' && songPlaying()) return;
+    // The musical ones step aside while the song is actually sounding. A
+    // stinger over a tune is not atmosphere, it is two pieces of music
+    // fighting. The fire and the birds are happy over the top of it.
+    if (spec.music && songPlaying()) return;
     var a = get(spec);
     a.volume = Math.min(1, baseVolume() * spec.gain);
     if (spec.hold) {
