@@ -192,6 +192,29 @@ ${Object.keys(labels).map(n => {
 
 const out = path.join(__dirname, '..', 'assets', 'img', 'sunset-park-parking.svg');
 fs.writeFileSync(out, svg);
+
+/* Stamp the reference in camp.html with the file's own modified time.
+
+   Without this the browser keeps whatever it fetched first — which is exactly
+   what happened: the camp X sat on the server for hours while anyone who had
+   seen the map before it was added carried on seeing the version without it.
+   The app rewrites ?v= for stylesheets and scripts but not for images, so the
+   generator does it here. */
+const stamp = Math.floor(fs.statSync(out).mtimeMs);
+const campFile = path.join(__dirname, '..', 'camp.html');
+try {
+  const before = fs.readFileSync(campFile, 'utf8');
+  const after = before.replace(
+    /(["'])(\/assets\/img\/sunset-park-parking\.svg)(\?v=\d+)?\1/g,
+    (m, q, url) => q + url + '?v=' + stamp + q);
+  if (after !== before) {
+    fs.writeFileSync(campFile, after);
+    console.log('  stamped the reference in camp.html: ?v=' + stamp);
+  }
+} catch (e) {
+  console.warn('  ! could not stamp camp.html: ' + e.message);
+}
+
 console.log('wrote assets/img/sunset-park-parking.svg  ' + W + 'x' + H +
   '  (' + Math.round(svg.length / 1024) + ' KB)');
 console.log('  lots drawn: ' + lots.length + ', labelled: ' + bigOnes.length +
