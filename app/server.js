@@ -134,7 +134,7 @@ app.use((req,res,next)=>BLOCKED.test(req.path)?res.status(404).send('Not found')
 // to reach their own profile. So the stamp is rewritten here at serve time from
 // the real file mtimes, and never has to be remembered again.
 const ASSET_FILES=['assets/css/style.css','assets/css/tavern.css','assets/css/profile.css','assets/css/gallery.css','assets/css/weekend.css','assets/css/pigeon.css','assets/css/map.css',
-  'assets/js/nav.js','assets/js/countdown.js','assets/js/hero-video.js','assets/js/avatar-crop.js','assets/js/dress.js','assets/js/gallery.js','assets/js/player.js','assets/js/pigeon.js'];
+  'assets/js/nav.js','assets/js/countdown.js','assets/js/hero-video.js','assets/js/avatar-crop.js','assets/js/dress.js','assets/js/gallery.js','assets/js/player.js','assets/js/pigeon.js','assets/js/map-live.js'];
 function assetVersion(){
   let newest=0;
   ASSET_FILES.forEach(function(f){
@@ -1048,6 +1048,41 @@ function myWeekend(u){
     next:nextEvent(), gates:countdown()
   };
 }
+
+function mapLive(){
+  const g = countdown();
+  const sworn = db.users.filter(function(u){ return !u.pledge; }).length;
+  const coming = db.users.filter(function(u){ return u.rsvp; }).length;
+  const bunksOpen = NIGHTS.reduce(function(n,night){
+    return n + BUNKS.filter(function(b){
+      return !db.bunks.find(function(x){ return x.night===night && x.bunk===b; });
+    }).length;
+  }, 0);
+  const notes = (db.threads||[]).length;
+  const said = (db.threads||[]).reduce(function(n,t){ return n + 1 + ((t.replies||[]).length); }, 0);
+  const photos = (db.photos||[]).length;
+  const champs = champions();
+  const wanted = bringList().filter(function(x){ return x.remaining>0; }).length;
+  const next = nextEvent();
+
+  const out = {};
+  out['/guild.html'] = sworn + ' guildmate' + (sworn===1?'':'s') +
+                       (coming ? ' · ' + coming + ' coming' : '');
+  out['/weekend']    = g.ended ? 'The faire has been and gone'
+                     : g.open  ? 'The gates are open'
+                     : g.days + ' day' + (g.days===1?'':'s') + ' to go' +
+                       (wanted ? ' · ' + wanted + ' still wanted' : '');
+  out['/camp.html']  = bunksOpen ? bunksOpen + ' bunk' + (bunksOpen===1?'':'s') + ' open'
+                                 : 'Every bunk taken';
+  out['/board']      = said ? said + ' said, over ' + notes + ' note' + (notes===1?'':'s')
+                            : 'Nobody has spoken yet';
+  out['/board/roll'] = champs.length ? champs[0].name + ' leads'
+                                     : 'No rounds taken yet';
+  out['/gallery']    = photos ? photos + ' picture' + (photos===1?'':'s') + ' on the wall'
+                              : 'The wall is bare';
+  if (next) out['/events.html'] = 'Next: ' + next.title + ', ' + next.when.toLowerCase();
+  return out;
+}
 function ident(req){
   if(req.session.uid){const u=db.users.find(x=>x.id===req.session.uid);if(u)return{t:'member',id:u.id,name:u.name,avatar:u.avatar,leader:u.role==='leader'};}
   if(req.session.pid){const p=db.patrons.find(x=>x.id===req.session.pid);if(p&&!p.banned)return{t:'patron',id:p.id,name:p.name,avatar:p.avatar,leader:false};}
@@ -1589,6 +1624,7 @@ app.get('/board/whispers',canPost,(req,res)=>{var i=ident(req);var mine=(db.whis
 app.get('/board/whisper/:t/:id',canPost,(req,res)=>{var i=ident(req);var ot=req.params.t,oid=parseInt(req.params.id);if(ot===i.t&&oid===i.id)return res.redirect('/board/whispers');if(ot!=='member'&&ot!=='patron')return res.redirect('/board/whispers');var p=party(ot,oid);if(!p)return res.redirect('/board/whispers');var msgs=(db.whispers||[]).filter(function(w){return ((w.fromT===i.t&&w.fromId===i.id&&w.toT===ot&&w.toId===oid)||(w.fromT===ot&&w.fromId===oid&&w.toT===i.t&&w.toId===i.id));}).sort(function(a,b){return a.ts-b.ts;});db.whispers.forEach(function(w){if(w.fromT===ot&&w.fromId===oid&&w.toT===i.t&&w.toId===i.id)w.read=true;});save();res.render('whisper',{i:i,other:{t:ot,id:oid,name:p.name,avatar:p.avatar},msgs:msgs});});
 app.post('/board/whisper/:t/:id',canPost,(req,res)=>{var i=ident(req);var ot=req.params.t,oid=parseInt(req.params.id);if(ot===i.t&&oid===i.id)return res.redirect('/board/whispers');var body=(req.body.body||'').trim();if(!body)return res.redirect('/board/whisper/'+ot+'/'+oid);if(!Array.isArray(db.whispers))db.whispers=[];db.whispers.push({id:nid(),fromT:i.t,fromId:i.id,toT:ot,toId:oid,body:body,ts:Date.now(),read:false});notify(ot,oid,i.name+' whispered you');save();res.redirect('/board/whisper/'+ot+'/'+oid);});
 
+app.get('/api/map',(req,res)=>{res.set('Cache-Control','no-store');res.json(mapLive());});
 app.get('/health',(req,res)=>res.json({ok:true,t:Date.now()}));// A wrong URL used to hit Express's default and print "Cannot GET /whatever"
 // on a white page with no way back. Must sit after every route, before the
 // error handler.

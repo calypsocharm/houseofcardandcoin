@@ -166,3 +166,8 @@
   .mapart,.mapspot{transition:none}
   .mapspot:hover,.mapspot:focus-visible{transform:translate(-50%,-50%) scale(1.04)}
 }
+
+/* A sign carrying a live number rather than its written line — gold, so the
+   difference between "Talk by the fire" and "12 said, over 4 notes" is
+   visible at a glance. */
+.mapspot__tip small.is-live{color:var(--gold-l);font-variant-numeric:tabular-nums}
