@@ -119,22 +119,28 @@
     {
       "x": 49.7,
       "y": 63.2,
-      "r": 8.5,
+      "r": 3.4,
       "kind": "fire",
       "note": "the main firepit, centre of the camp"
     },
     {
       "x": 79.6,
       "y": 30.5,
-      "r": 4.6,
+      "r": 2.1,
       "kind": "fire",
       "note": "the little fire beside Ren Faire Camp"
     }
   ],
   "embers": {
     "x": 49.7,
-    "y": 62,
-    "count": 7,
+    "y": 62.4,
+    "count": 14,
     "note": "rising off the main firepit"
+  },
+  "embers2": {
+    "x": 79.6,
+    "y": 29.8,
+    "count": 6,
+    "note": "rising off the camp fire"
   }
 }

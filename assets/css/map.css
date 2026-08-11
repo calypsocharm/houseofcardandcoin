@@ -65,57 +65,93 @@
 }
 
 /* ── the map, alive ───────────────────────────────────────────────────────
-   Light laid over the painting rather than objects drawn on top of it. The
-   picture already has a fire, lanterns and a pigeon in it; a second pigeon
-   bobbing above the painted one would read as a mistake. So this is firelight
-   breathing, lantern glow, and a few embers going up from the firepit.
+   The first attempt was a wide, soft, screen-blended haze. That is the one
+   thing that cannot show on this picture: screen blend lifts dark pixels and
+   the map is bright parchment and pale canvas, so it lifted nothing. Proved
+   it by putting the layer on and off at four times zoom — barely a difference.
 
-   Everything here is decoration and sits under the hotspots, with pointer
-   events off, so it can never swallow a press. */
+   So: tight and hot rather than wide and soft, plain alpha instead of screen,
+   and many more embers. Motion against a still painting is what the eye
+   actually catches; a glow that only brightens will always lose to a picture
+   this busy.
+
+   The whole layer is pointer-events:none and sits under the hotspots, so it
+   can never swallow a press. */
 .mapfx{position:absolute;inset:0;pointer-events:none;overflow:hidden;border-radius:inherit}
 
 .mapglow{
   position:absolute;transform:translate(-50%,-50%);height:0;border-radius:50%;
-  mix-blend-mode:screen;
+  /* No blend mode. Painted straight on, so it shows on a light picture. */
+  background:radial-gradient(circle,
+    rgba(255,236,170,.95) 0%,
+    rgba(255,178,66,.72) 26%,
+    rgba(255,124,26,.34) 52%,
+    rgba(255,110,20,0) 76%);
+  filter:blur(1px);
 }
-/* Firelight: warm, and never quite steady. Two speeds so the two fires on the
-   map are not caught breathing in time with each other. */
-.mapglow--fire{
-  background:radial-gradient(circle,rgba(255,196,92,.62) 0%,rgba(255,138,40,.32) 38%,rgba(255,120,30,0) 70%);
-  animation:mapFire 2.7s ease-in-out infinite;
-}
-.mapglow--fire:nth-of-type(2){animation-duration:3.9s;animation-delay:-1.2s}
+.mapglow--fire{animation:mapFire 1.9s ease-in-out infinite}
+.mapglow--fire:nth-of-type(2){animation-duration:2.6s;animation-delay:-.9s}
 @keyframes mapFire{
-  0%,100%{opacity:.55;transform:translate(-50%,-50%) scale(1)}
-  35%    {opacity:.9; transform:translate(-50%,-50%) scale(1.11)}
-  62%    {opacity:.68;transform:translate(-50%,-50%) scale(.96)}
+  0%,100%{opacity:.55;transform:translate(-50%,-50%) scale(.9)}
+  30%    {opacity:1;  transform:translate(-50%,-50%) scale(1.28)}
+  55%    {opacity:.72;transform:translate(-50%,-50%) scale(1.02)}
+  78%    {opacity:.95;transform:translate(-50%,-50%) scale(1.18)}
 }
-/* Lanterns: cooler, slower, barely there — a lantern does not gutter. */
-.mapglow--lamp{
-  background:radial-gradient(circle,rgba(255,226,150,.5) 0%,rgba(226,199,127,.22) 42%,rgba(226,199,127,0) 72%);
-  animation:mapLamp 5.5s ease-in-out infinite;
-}
-.mapglow--lamp:nth-of-type(4){animation-delay:-2.3s}
-.mapglow--lamp:nth-of-type(5){animation-delay:-4.1s}
-@keyframes mapLamp{0%,100%{opacity:.42}50%{opacity:.72}}
 
-/* Embers off the firepit — small, few, and gone before they reach the top. */
+/* Embers. Bigger and brighter than before, and there are three times as many,
+   because a handful of 3px dots on a busy painting is not motion — it is
+   dust. They climb about a fifth of the map and go out. */
 .mapember{
-  position:absolute;width:3px;height:3px;border-radius:50%;
-  background:radial-gradient(circle,#fff0c4,#ff9d3c 60%,rgba(255,120,30,0));
+  position:absolute;width:5px;height:5px;border-radius:50%;
+  background:radial-gradient(circle,#fffbe8 0%,#ffca5e 42%,#ff8a1e 72%,rgba(255,120,26,0) 100%);
+  box-shadow:0 0 6px 2px rgba(255,168,60,.55);
   opacity:0;animation-name:mapEmber;animation-iteration-count:infinite;
-  animation-timing-function:ease-out;
+  animation-timing-function:cubic-bezier(.4,.05,.6,.95);
 }
 @keyframes mapEmber{
-  0%  {opacity:0;   transform:translate(-50%,0) scale(.6)}
-  15% {opacity:.95; transform:translate(-50%,-8%) scale(1)}
-  70% {opacity:.5;  transform:translate(calc(-50% + 6px),-26%) scale(.8)}
-  100%{opacity:0;   transform:translate(calc(-50% - 4px),-40%) scale(.4)}
+  0%  {opacity:0;   transform:translate(-50%,10%)  scale(.4)}
+  12% {opacity:1;   transform:translate(-50%,0)    scale(1)}
+  55% {opacity:.85; transform:translate(calc(-50% + 9px),-90%) scale(.85)}
+  100%{opacity:0;   transform:translate(calc(-50% - 7px),-190%) scale(.3)}
 }
 
-/* Nothing moves for anyone who has asked for stillness — but the fires keep
-   their light, since a dark firepit would look broken rather than calm. */
+/* Lit but still for anyone who has asked for less motion — a dark firepit
+   would look broken rather than calm. */
 @media (prefers-reduced-motion:reduce){
-  .mapglow{animation:none;opacity:.6}
+  .mapglow{animation:none;opacity:.85}
   .mapember{display:none}
+}
+
+/* ── hovering a place ─────────────────────────────────────────────────────
+   The map is one flat painting, so a building cannot light up on its own.
+   What can happen is everything else stepping back: hover a place and the
+   rest of the map dims and desaturates a little while that tent keeps its
+   colour, with a warm pool of light under it. The eye reads that as the
+   building coming forward, which is the effect wanted.
+
+   Done with a ring of shadow on the hotspot rather than an overlay, so it
+   costs nothing and cannot get between a finger and the link. */
+.mapframe{isolation:isolate}
+.mapart{transition:filter .35s var(--ease)}
+/* :has is doing the work — when the frame contains a hovered hotspot, the
+   picture beneath dims. Browsers without it simply keep the old behaviour. */
+.mapframe:has(.mapspot:hover) .mapart,
+.mapframe:has(.mapspot:focus-visible) .mapart{filter:brightness(.72) saturate(.78)}
+
+.mapspot{
+  /* the pool of light: a soft warm wash inside the hotspot, and a hard-edged
+     hole punched in the dimming outside it */
+  box-shadow:0 0 0 0 rgba(255,214,140,0);
+  transition:background-color .28s var(--ease),box-shadow .28s var(--ease),transform .28s var(--ease);
+}
+.mapframe:has(.mapspot:hover) .mapspot:hover,
+.mapframe:has(.mapspot:focus-visible) .mapspot:focus-visible{
+  background:radial-gradient(ellipse at center,rgba(255,226,160,.30) 0%,rgba(255,214,140,.12) 55%,rgba(255,214,140,0) 78%);
+  box-shadow:0 0 34px 12px rgba(255,206,120,.28), 0 0 0 2px rgba(226,199,127,.85);
+  transform:translate(-50%,-50%) scale(1.03);
+}
+
+@media (prefers-reduced-motion:reduce){
+  .mapart,.mapspot{transition:none}
+  .mapframe:has(.mapspot:hover) .mapspot:hover{transform:translate(-50%,-50%)}
 }
