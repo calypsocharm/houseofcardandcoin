@@ -63,3 +63,59 @@
   /* Tooltips are a mouse idea. On a touch screen the list below is the map. */
   .mapspot__tip{display:none}
 }
+
+/* ── the map, alive ───────────────────────────────────────────────────────
+   Light laid over the painting rather than objects drawn on top of it. The
+   picture already has a fire, lanterns and a pigeon in it; a second pigeon
+   bobbing above the painted one would read as a mistake. So this is firelight
+   breathing, lantern glow, and a few embers going up from the firepit.
+
+   Everything here is decoration and sits under the hotspots, with pointer
+   events off, so it can never swallow a press. */
+.mapfx{position:absolute;inset:0;pointer-events:none;overflow:hidden;border-radius:inherit}
+
+.mapglow{
+  position:absolute;transform:translate(-50%,-50%);height:0;border-radius:50%;
+  mix-blend-mode:screen;
+}
+/* Firelight: warm, and never quite steady. Two speeds so the two fires on the
+   map are not caught breathing in time with each other. */
+.mapglow--fire{
+  background:radial-gradient(circle,rgba(255,196,92,.62) 0%,rgba(255,138,40,.32) 38%,rgba(255,120,30,0) 70%);
+  animation:mapFire 2.7s ease-in-out infinite;
+}
+.mapglow--fire:nth-of-type(2){animation-duration:3.9s;animation-delay:-1.2s}
+@keyframes mapFire{
+  0%,100%{opacity:.55;transform:translate(-50%,-50%) scale(1)}
+  35%    {opacity:.9; transform:translate(-50%,-50%) scale(1.11)}
+  62%    {opacity:.68;transform:translate(-50%,-50%) scale(.96)}
+}
+/* Lanterns: cooler, slower, barely there — a lantern does not gutter. */
+.mapglow--lamp{
+  background:radial-gradient(circle,rgba(255,226,150,.5) 0%,rgba(226,199,127,.22) 42%,rgba(226,199,127,0) 72%);
+  animation:mapLamp 5.5s ease-in-out infinite;
+}
+.mapglow--lamp:nth-of-type(4){animation-delay:-2.3s}
+.mapglow--lamp:nth-of-type(5){animation-delay:-4.1s}
+@keyframes mapLamp{0%,100%{opacity:.42}50%{opacity:.72}}
+
+/* Embers off the firepit — small, few, and gone before they reach the top. */
+.mapember{
+  position:absolute;width:3px;height:3px;border-radius:50%;
+  background:radial-gradient(circle,#fff0c4,#ff9d3c 60%,rgba(255,120,30,0));
+  opacity:0;animation-name:mapEmber;animation-iteration-count:infinite;
+  animation-timing-function:ease-out;
+}
+@keyframes mapEmber{
+  0%  {opacity:0;   transform:translate(-50%,0) scale(.6)}
+  15% {opacity:.95; transform:translate(-50%,-8%) scale(1)}
+  70% {opacity:.5;  transform:translate(calc(-50% + 6px),-26%) scale(.8)}
+  100%{opacity:0;   transform:translate(calc(-50% - 4px),-40%) scale(.4)}
+}
+
+/* Nothing moves for anyone who has asked for stillness — but the fires keep
+   their light, since a dark firepit would look broken rather than calm. */
+@media (prefers-reduced-motion:reduce){
+  .mapglow{animation:none;opacity:.6}
+  .mapember{display:none}
+}

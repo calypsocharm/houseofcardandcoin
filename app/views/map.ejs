@@ -44,6 +44,21 @@
       <img class="mapart" src="<%= art %>"
            alt="An illustrated map of this site drawn as a village: the House at the centre, with the Guild, the Tavern, the camp, the gallery and more around it."
            width="1456" height="1080">
+      <%
+        /* The ambient layer, from the same JSON the hotspots come from.
+           Light rather than objects: the painting already holds a fire, a
+           dovecote and a pigeon, so a second one drawn on top would read as
+           a mistake. Firelight, lantern glow and a few embers instead. */
+      %>
+      <span class="mapfx" aria-hidden="true">
+        <% (cfg.glow||[]).forEach(function(g){ %>
+          <span class="mapglow mapglow--<%= g.kind %>"
+                style="left:<%= g.x %>%;top:<%= g.y %>%;width:<%= g.r*2 %>%;padding-bottom:<%= g.r*2 %>%"></span>
+        <% }) %>
+        <% var em=cfg.embers||{count:0}; for(var n=0;n<(em.count||0);n++){ var sway=(n%3-1)*1.1; %>
+          <i class="mapember" style="left:<%= (em.x+sway).toFixed(2) %>%;top:<%= em.y %>%;animation-delay:<%= (n*0.62).toFixed(2) %>s;animation-duration:<%= (3.4+(n%4)*0.7).toFixed(1) %>s"></i>
+        <% } %>
+      </span>
       <% spots.forEach(function(s){ %>
         <a class="mapspot" href="<%= s.href %>"
            style="left:<%= s.x %>%;top:<%= s.y %>%;width:<%= s.w %>%;height:<%= s.h %>%"

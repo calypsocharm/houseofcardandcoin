@@ -114,5 +114,27 @@
       "label": "Guild Login",
       "sub": "Access the House"
     }
-  ]
+  ],
+  "glow": [
+    {
+      "x": 49.7,
+      "y": 63.2,
+      "r": 8.5,
+      "kind": "fire",
+      "note": "the main firepit, centre of the camp"
+    },
+    {
+      "x": 79.6,
+      "y": 30.5,
+      "r": 4.6,
+      "kind": "fire",
+      "note": "the little fire beside Ren Faire Camp"
+    }
+  ],
+  "embers": {
+    "x": 49.7,
+    "y": 62,
+    "count": 7,
+    "note": "rising off the main firepit"
+  }
 }
