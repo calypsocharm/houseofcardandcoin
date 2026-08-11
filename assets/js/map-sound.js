@@ -18,7 +18,7 @@
   var frame = document.querySelector('.mapframe');
   if (!frame) return;
 
-  var K_ON = 'hocc-song-on';
+  var K_OK = 'hocc-sound-ok';     // set the first time the music is turned on
   var K_VOL = 'hocc-song-volume';
 
   /* Which place gets which sound, and whether it holds or fires once. Adding
@@ -31,8 +31,16 @@
     '/members/login':{ file: 'latch.mp3',  hold: false, gain: 0.7 }
   };
 
-  function musicOn() {
-    try { return localStorage.getItem(K_ON) === '1'; } catch (e) { return false; }
+  /* Permission, not playback. Somebody who has pressed play once has asked for
+     sound; pausing the song is not a request for the map to go silent. What
+     matters is that nothing here makes a noise for anyone who never asked. */
+  function allowed() {
+    try { return localStorage.getItem(K_OK) === '1'; } catch (e) { return false; }
+  }
+  /* The song itself, if the player drew itself on this page. Used only so the
+     Tavern's clip can keep out of its way. */
+  function songPlaying() {
+    return !!(window.__hoccSong && !window.__hoccSong.paused);
   }
   function baseVolume() {
     var v = parseFloat(localStorage.getItem(K_VOL));
@@ -64,9 +72,12 @@
   }
 
   function enter(href) {
-    if (!musicOn()) return;          // the whole gate
+    if (!allowed()) return;          // the whole gate
     var spec = SOUNDS[href];
     if (!spec) return;
+    // The Tavern's sound is the tavern song. If the song is already playing
+    // there is nothing to add, and laying it over itself sounds like a fault.
+    if (href === '/board' && songPlaying()) return;
     var a = get(spec);
     a.volume = Math.min(1, baseVolume() * spec.gain);
     if (spec.hold) {

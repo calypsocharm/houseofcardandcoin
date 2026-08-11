@@ -46,6 +46,9 @@
   var wanted = recall(K_ON) === '1';
 
   var audio = new Audio();
+  // The map hover sounds need to know this exists and whether it is sounding,
+  // so they can keep out of its way rather than playing the song over itself.
+  window.__hoccSong = audio;
   audio.preload = 'none';          // nothing is fetched until it is asked for
   audio.loop = true;
   audio.volume = vol;
@@ -122,7 +125,7 @@
   }
 
   btn.addEventListener('click', function () {
-    if (audio.paused) { remember(K_ON, 1); start(true); }
+    if (audio.paused) { remember(K_ON, 1); remember('hocc-sound-ok', 1); start(true); }
     else { remember(K_ON, 0); audio.pause(); }
   });
 
