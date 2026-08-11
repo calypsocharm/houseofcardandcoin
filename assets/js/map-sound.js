@@ -31,6 +31,7 @@
     '/events.html':  { file: 'scroll.mp3', hold: false, gain: 0.55 },
     '/weekend':      { file: 'crowd.mp3',  hold: false, gain: 0.6 },
     '/faq':          { file: 'quest.mp3',  hold: false, gain: 0.5,  music: true },
+    '/gallery':      { file: 'gallery.mp3',hold: false, gain: 0.55 },
     '/board/roll':   { file: 'cards.mp3',  hold: false, gain: 0.7 },
     '/members/login':{ file: 'latch.mp3',  hold: false, gain: 0.7 }
   };
