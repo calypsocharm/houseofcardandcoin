@@ -27,6 +27,7 @@
     '/camp.html':    { file: 'fire.mp3',   hold: true,  gain: 0.55 },
     '/board':        { file: 'tavern.mp3', hold: true,  gain: 0.5 },
     '/pigeon.html':  { file: 'pigeon.mp3', hold: true,  gain: 0.6 },
+    '/weekend':      { file: 'crowd.mp3',  hold: false, gain: 0.6 },
     '/board/roll':   { file: 'cards.mp3',  hold: false, gain: 0.7 },
     '/members/login':{ file: 'latch.mp3',  hold: false, gain: 0.7 }
   };
