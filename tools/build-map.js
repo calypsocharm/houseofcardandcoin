@@ -18,8 +18,19 @@ const esc = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(
 let stamp = "";
 try { stamp = '?v=' + Math.floor(fs.statSync(path.join(ROOT, String(cfg.art).replace(/^\//, ''))).mtimeMs); } catch (e) {}
 
+/* Each hotspot carries its own slice of the map as a background, lined up
+   exactly with the picture underneath. Invisible until hovered, when it lifts
+   away with a white edge — a sticker peeled off the map. The arithmetic is the
+   standard background-position percentage: an element w% wide shows the whole
+   image at (100/w)% and the offset runs 0..100 across the remaining space. */
+function slice(s) {
+  const sz = `${(10000 / s.w).toFixed(2)}% ${(10000 / s.h).toFixed(2)}%`;
+  const px = ((s.x - s.w / 2) / (100 - s.w) * 100).toFixed(3);
+  const py = ((s.y - s.h / 2) / (100 - s.h) * 100).toFixed(3);
+  return `background-image:url('${cfg.art}${stamp}');background-size:${sz};background-position:${px}% ${py}%;`;
+}
 const hotspots = cfg.spots.map(s =>
-  `<a class="mapspot" href="${s.href}" style="left:${s.x}%;top:${s.y}%;width:${s.w}%;height:${s.h}%"` +
+  `<a class="mapspot" href="${s.href}" style="left:${s.x}%;top:${s.y}%;width:${s.w}%;height:${s.h}%;${slice(s)}"` +
   ` aria-label="${esc(s.label)} — ${esc(s.sub)}">` +
   `<span class="mapspot__tip"><b>${esc(s.label)}</b><small>${esc(s.sub)}</small></span></a>`
 ).join('');

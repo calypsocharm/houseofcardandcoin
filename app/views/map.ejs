@@ -63,8 +63,17 @@
            }) %>
       </span>
       <% spots.forEach(function(s){ %>
+        <%
+          /* The same aligned slice the generator writes into the homepage:
+             the hotspot carries its own piece of the map, lined up exactly
+             with the picture beneath, so on hover it can peel away as a
+             sticker rather than a box drawn over the top. */
+          var _sz=(10000/s.w).toFixed(2)+"% "+(10000/s.h).toFixed(2)+"%";
+          var _px=((s.x-s.w/2)/(100-s.w)*100).toFixed(3);
+          var _py=((s.y-s.h/2)/(100-s.h)*100).toFixed(3);
+        %>
         <a class="mapspot" href="<%= s.href %>"
-           style="left:<%= s.x %>%;top:<%= s.y %>%;width:<%= s.w %>%;height:<%= s.h %>%"
+           style="left:<%= s.x %>%;top:<%= s.y %>%;width:<%= s.w %>%;height:<%= s.h %>%;background-image:url('<%= art %>');background-size:<%= _sz %>;background-position:<%= _px %>% <%= _py %>%"
            aria-label="<%= s.label %> — <%= s.sub %>">
           <span class="mapspot__tip"><b><%= s.label %></b><small><%= s.sub %></small></span>
         </a>

@@ -122,36 +122,47 @@
   .mapember{display:none}
 }
 
-/* ── hovering a place ─────────────────────────────────────────────────────
-   The map is one flat painting, so a building cannot light up on its own.
-   What can happen is everything else stepping back: hover a place and the
-   rest of the map dims and desaturates a little while that tent keeps its
-   colour, with a warm pool of light under it. The eye reads that as the
-   building coming forward, which is the effect wanted.
+/* ── hovering a place: the sticker ───────────────────────────────────────
+   A flat painting cannot light one tent on its own. So each hotspot carries
+   its own slice of the map, lined up exactly with the picture beneath it and
+   invisible until you go near. On hover the rest of the map dims and that
+   slice peels up instead — white edge, drop shadow, a degree of tilt — like a
+   sticker lifted off the page.
 
-   Done with a ring of shadow on the hotspot rather than an overlay, so it
-   costs nothing and cannot get between a finger and the link. */
+   Because it is a real piece of the picture rather than a box drawn over it,
+   what lifts is the tent itself. */
 .mapframe{isolation:isolate}
 .mapart{transition:filter .35s var(--ease)}
-/* :has is doing the work — when the frame contains a hovered hotspot, the
-   picture beneath dims. Browsers without it simply keep the old behaviour. */
 .mapframe:has(.mapspot:hover) .mapart,
-.mapframe:has(.mapspot:focus-visible) .mapart{filter:brightness(.72) saturate(.78)}
+.mapframe:has(.mapspot:focus-visible) .mapart{filter:brightness(.62) saturate(.72)}
 
 .mapspot{
-  /* the pool of light: a soft warm wash inside the hotspot, and a hard-edged
-     hole punched in the dimming outside it */
-  box-shadow:0 0 0 0 rgba(255,214,140,0);
-  transition:background-color .28s var(--ease),box-shadow .28s var(--ease),transform .28s var(--ease);
+  background-repeat:no-repeat;
+  /* the slice is there but invisible until wanted */
+  background-color:transparent;
+  opacity:1;
+  border-radius:10px;
+  transition:transform .26s var(--ease), box-shadow .26s var(--ease),
+             border-color .26s var(--ease), border-width .26s var(--ease);
+  border:0 solid #fff;
+  will-change:transform;
 }
-.mapframe:has(.mapspot:hover) .mapspot:hover,
-.mapframe:has(.mapspot:focus-visible) .mapspot:focus-visible{
-  background:radial-gradient(ellipse at center,rgba(255,226,160,.30) 0%,rgba(255,214,140,.12) 55%,rgba(255,214,140,0) 78%);
-  box-shadow:0 0 34px 12px rgba(255,206,120,.28), 0 0 0 2px rgba(226,199,127,.85);
-  transform:translate(-50%,-50%) scale(1.03);
+/* Nothing shows through the hotspot until it is hovered — otherwise every
+   place would sit as a faintly doubled patch over the map. */
+.mapspot:not(:hover):not(:focus-visible){background-image:none !important}
+
+.mapspot:hover,.mapspot:focus-visible{
+  border-width:5px;
+  border-color:#fff;
+  transform:translate(-50%,-50%) scale(1.08) rotate(-1.2deg);
+  box-shadow:0 18px 34px -12px rgba(0,0,0,.6), 0 0 0 1px rgba(120,90,40,.35);
+  outline:none;
+  z-index:3;
 }
+/* every other tent tilts the other way when it is the one lifted */
+.mapspot:nth-of-type(even):hover,.mapspot:nth-of-type(even):focus-visible{transform:translate(-50%,-50%) scale(1.08) rotate(1.2deg)}
 
 @media (prefers-reduced-motion:reduce){
   .mapart,.mapspot{transition:none}
-  .mapframe:has(.mapspot:hover) .mapspot:hover{transform:translate(-50%,-50%)}
+  .mapspot:hover,.mapspot:focus-visible{transform:translate(-50%,-50%) scale(1.04)}
 }
