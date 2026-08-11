@@ -13,7 +13,14 @@
    will not shut up.
 
    Sound follows the music volume, quieter than the music itself, so it sits
-   under the song rather than shouting over it. */
+   under the song rather than shouting over it.
+
+   The switch is here rather than in the header because the header's music
+   control only draws itself in the Tavern. That left somebody arriving at the
+   front door with hover sounds they could not hear and no way to ask for
+   them — the only switch in the House was in a room they had not reached yet.
+   This one sits under the map, on both pages the map appears on, and it is
+   the same permission the music button grants. */
 (function () {
   var frame = document.querySelector('.mapframe');
   if (!frame) return;
@@ -101,6 +108,56 @@
     if (!spec || !spec.hold) return; // one-shots run themselves out
     var a = made[spec.file];
     if (a) { fadeOut(a); if (holding === a) holding = null; }
+  }
+
+  /* ── the switch ────────────────────────────────────────────────────────
+     Drawn from here so both pages carrying the map get it from one place.
+     Turning it on plays the latch at once: the click is the gesture browsers
+     want before they will allow audio, and hearing something immediately is
+     the only honest confirmation that the switch did anything. */
+  var lead = document.querySelector('.maplead');
+  if (lead) {
+    var row = document.createElement('p');
+    row.className = 'mapsound';
+
+    var sw = document.createElement('button');
+    sw.type = 'button';
+    sw.className = 'mapsound__btn';
+
+    var hint = document.createElement('small');
+    hint.className = 'mapsound__hint';
+
+    row.appendChild(sw);
+    row.appendChild(hint);
+    lead.parentNode.insertBefore(row, lead.nextSibling);
+
+    function paintSwitch() {
+      var on = allowed();
+      sw.textContent = (on ? '♫' : '♪') + '  ' + (on ? 'Sound is on' : 'Turn on sound');
+      sw.title = on
+        ? 'Silence the map'
+        : 'Hear each place as you pass over it';
+      sw.setAttribute('aria-pressed', on ? 'true' : 'false');
+      sw.setAttribute('aria-label', sw.title);
+      row.classList.toggle('is-on', on);
+      hint.textContent = on
+        ? 'Pass over a tent to hear it.'
+        : 'Each place on the map has a sound of its own.';
+    }
+
+    sw.addEventListener('click', function () {
+      var turningOn = !allowed();
+      try { localStorage.setItem(K_OK, turningOn ? '1' : '0'); } catch (e) {}
+      if (turningOn) {
+        enter('/members/login');        // the latch — the House unlocking
+      } else {
+        Object.keys(made).forEach(function (k) { fadeOut(made[k]); });
+        holding = null;
+      }
+      paintSwitch();
+    });
+
+    paintSwitch();
   }
 
   frame.querySelectorAll('.mapspot').forEach(function (a) {

@@ -1,7 +1,27 @@
 /* A Map of the Faire — the painted map, made walkable. Loaded only on /map. */
 
 .mapwrap{padding:118px 0 60px}
-.maplead{text-align:center;color:var(--ink2);margin:0 auto 22px}
+.maplead{text-align:center;color:var(--ink2);margin:0 auto 10px}
+
+/* The sound switch, built by map-sound.js. Quiet by default — it is an offer,
+   not the point of the page — and lit like the wax seal once it is on. */
+.mapsound{display:flex;justify-content:center;align-items:center;gap:12px;
+  flex-wrap:wrap;margin:0 auto 22px}
+.mapsound__btn{
+  display:inline-flex;align-items:center;gap:2px;cursor:pointer;
+  font-family:var(--display);font-size:.94rem;letter-spacing:.04em;
+  color:var(--ink2);background:transparent;
+  border:1px solid var(--line2);border-radius:2px;padding:6px 14px;
+  transition:background .18s,color .18s,border-color .18s;
+}
+.mapsound__btn:hover,.mapsound__btn:focus-visible{
+  background:var(--gold-d);border-color:var(--gold-d);color:#1a120b}
+.mapsound__btn:focus-visible{outline:2px solid var(--gold-l);outline-offset:3px}
+.mapsound.is-on .mapsound__btn{
+  background:var(--wine);border-color:var(--wine-l);color:#f8edd1}
+.mapsound.is-on .mapsound__btn:hover{background:var(--wine-l);color:#fff}
+.mapsound__hint{color:var(--ink2);font-size:.86rem;opacity:.78}
+@media (max-width:560px){.mapsound__hint{display:none}}
 .mapmissing{max-width:620px;margin:0 auto}
 .mapmissing h3{color:var(--wine)}
 
