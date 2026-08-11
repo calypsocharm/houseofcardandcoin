@@ -1,0 +1,101 @@
+/* The pigeon taking wing. Loaded only on the Carrier Pigeon page.
+
+   Everything is drawn — no image request for something on screen for a
+   second and a half. Both the flight and the wingbeat stop entirely for
+   anyone who has asked for less motion; the message still arrives. */
+
+/* ── the bird ──────────────────────────────────────────────────────────── */
+.fly__bird{width:100px;height:72px;display:block;overflow:visible}
+.fly__body{fill:#f4efe1}
+.fly__tail{fill:#e2d8c2}
+.fly__beak{fill:#c2a14d}
+.fly__eye{fill:#241a12}
+.fly__head{fill:#f8f3e6}
+.fly__wing{fill:#fbf6e9;transform-origin:48px 32px}
+.fly__wing--far{fill:#ddd2ba}
+
+/* wings beat about the shoulder, the far one trailing the near one */
+@keyframes wingNear{0%,100%{transform:rotate(-8deg) scaleY(1)}50%{transform:rotate(38deg) scaleY(.55)}}
+@keyframes wingFar {0%,100%{transform:rotate(6deg)  scaleY(1)}50%{transform:rotate(-30deg) scaleY(.6)}}
+
+/* ── the departure ─────────────────────────────────────────────────────── */
+.fly{
+  position:fixed;inset:0;z-index:120;pointer-events:none;
+  display:flex;align-items:center;justify-content:center;
+}
+.fly .fly__bird{
+  width:96px;height:66px;
+  animation:flyOff 1.25s cubic-bezier(.35,.05,.5,1) forwards;
+  filter:drop-shadow(0 10px 18px rgba(0,0,0,.45));
+}
+.fly .fly__wing--near{animation:wingNear .17s ease-in-out infinite}
+.fly .fly__wing--far {animation:wingFar  .17s ease-in-out infinite}
+@keyframes flyOff{
+  0%  {transform:translate3d(0,40px,0) scale(.55) rotate(4deg);opacity:0}
+  18% {transform:translate3d(0,10px,0) scale(1) rotate(-2deg);opacity:1}
+  100%{transform:translate3d(46vw,-88vh,0) scale(.28) rotate(-16deg);opacity:0}
+}
+/* a puff of dust where it pushed off */
+.fly__puff{
+  position:absolute;left:50%;top:calc(50% + 26px);width:54px;height:14px;
+  transform:translate(-50%,0);border-radius:50%;
+  background:radial-gradient(closest-side,rgba(226,199,127,.55),transparent);
+  animation:puff .5s ease-out forwards;
+}
+@keyframes puff{0%{opacity:.8;transform:translate(-50%,0) scale(.4)}100%{opacity:0;transform:translate(-50%,-8px) scale(1.7)}}
+
+/* ── on the wing: the confirmation ─────────────────────────────────────── */
+.wing{
+  margin-top:20px;padding:26px 22px;text-align:center;
+  background:var(--ivory);border:1px solid var(--gold-d);border-radius:4px;
+  box-shadow:0 18px 40px -30px rgba(60,40,15,.9);
+}
+.wing .fly__bird{width:104px;height:75px;margin:0 auto 12px}
+.wing .fly__wing--near{animation:wingNear 1.5s ease-in-out infinite}
+.wing .fly__wing--far {animation:wingFar  1.5s ease-in-out infinite}
+.wing__say{font-family:var(--display);font-size:1.24rem;color:var(--wine);margin-bottom:6px}
+.wing__note{color:var(--muted);font-size:.92rem}
+
+@media (prefers-reduced-motion:reduce){
+  .fly,.fly__puff{display:none}
+  .wing .fly__wing--near,.wing .fly__wing--far{animation:none}
+}
+
+/* ── the swoosh and the wake ───────────────────────────────────────────── */
+/* Both sit on the same line the bird flies, so they read as something it
+   left behind rather than confetti thrown at the screen. */
+.fly__swoosh{
+  position:absolute;left:50%;top:50%;width:2px;height:2px;
+  /* the flight is up and to the right; this is that line, drawn thin */
+  background:linear-gradient(90deg,rgba(226,199,127,0),rgba(248,237,209,.85),rgba(226,199,127,0));
+  border-radius:2px;transform-origin:0 50%;
+  animation:swoosh 1.1s cubic-bezier(.3,.1,.4,1) .06s forwards;
+}
+@keyframes swoosh{
+  0%  {opacity:0;transform:rotate(-62deg) scaleX(0)   scaleY(1)}
+  22% {opacity:.9;transform:rotate(-62deg) scaleX(140) scaleY(3)}
+  100%{opacity:0;transform:rotate(-62deg) scaleX(560) scaleY(1.2)}
+}
+.fly__spark{
+  position:absolute;left:50%;top:50%;width:7px;height:7px;margin:-3px 0 0 -3px;
+  border-radius:50%;opacity:0;
+  background:radial-gradient(circle,#fff8e2 0%,var(--gold-l) 45%,rgba(226,199,127,0) 70%);
+  animation:spark .7s ease-out forwards;
+}
+/* The inline transform puts each one on the path; this animates around it,
+   which is why the keyframes only touch opacity and scale. */
+@keyframes spark{
+  0%  {opacity:0}
+  25% {opacity:1}
+  100%{opacity:0}
+}
+.fly__spark::after{
+  content:"";position:absolute;inset:-4px;border-radius:50%;
+  background:radial-gradient(circle,rgba(255,248,226,.5),transparent 60%);
+  animation:sparkPop .7s ease-out forwards;
+}
+@keyframes sparkPop{0%{transform:scale(.2)}60%{transform:scale(1.5)}100%{transform:scale(.4)}}
+
+@media (prefers-reduced-motion:reduce){
+  .fly__swoosh,.fly__spark{display:none}
+}
