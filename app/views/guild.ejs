@@ -25,15 +25,17 @@
      message. */
 %>
 <section class="pagehero pagehero--film">
-  <video class="pagehero__film" muted loop playsinline preload="none"
-         poster="/assets/img/guild-film.jpg" data-src="/assets/vid-guild.mp4"
-         aria-label="The House of Card and Coin — a consortium of specialists: the Dealer, the Reader, the Broker and the Sellsword">
-    <img src="/assets/img/guild-film.jpg" alt="The House of Card and Coin and its four classes — the Dealer of Dares and Delights, the Reader of Inner Trails, the Broker of Balanced Bargains, and the Sellsword at the Door">
-  </video>
-  <div class="container pagehero__inner">
-    <span class="eyebrow">The Guild</span>
-    <h1>Welcome to the House of Card and Coin</h1>
-    <p>A gathering of specialists dedicated to life&rsquo;s more artful pursuits.</p>
+  <div class="container pagehero__filmrow">
+    <video class="pagehero__film" muted loop playsinline preload="none"
+           poster="/assets/img/guild-film.jpg" data-src="/assets/vid-guild.mp4"
+           aria-label="The House of Card and Coin — a consortium of specialists: the Dealer, the Reader, the Broker and the Sellsword">
+      <img src="/assets/img/guild-film.jpg" alt="The House of Card and Coin and its four classes — the Dealer of Dares and Delights, the Reader of Inner Trails, the Broker of Balanced Bargains, and the Sellsword at the Door">
+    </video>
+    <div class="pagehero__inner">
+      <span class="eyebrow">The Guild</span>
+      <h1>Welcome to the House of Card and Coin</h1>
+      <p>A gathering of specialists dedicated to life&rsquo;s more artful pursuits.</p>
+    </div>
   </div>
 </section>
 <section class="section"><div class="container"><div class="bannerhead"><span class="eyebrow">⚜ Guild Roster ⚜</span><h2>The House, Assembled</h2><div class="rule"></div></div><% if(comingCount){ %><p class="lead center" style="margin-bottom:28px"><b style="color:var(--forest);font-size:1.2rem"><%= comingCount %></b> guildmate<%= comingCount>1?'s':'' %> marked as coming to the 2026 Faire.</p><% } %>

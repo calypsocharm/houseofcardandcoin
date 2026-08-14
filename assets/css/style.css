@@ -1253,24 +1253,36 @@ footer :where(a,button):focus-visible{
    has its own crest, its own headline and four labelled cards, so anything
    printed over it lands on top of words already there.
 
-   So the wash is switched off, the film keeps the band, and the heading sits
-   under it on the dark. */
-.pagehero--film{padding:104px 0 52px;background:var(--dark);text-align:center}
+   So the wash is switched off and the film keeps its own space — but beside
+   the heading rather than above it. Stacked, the header ran 630px of film
+   plus the heading beneath, which was most of a laptop screen before the
+   roster began. Side by side the film is a little over half the width, the
+   heading fills the space next to it that was empty anyway, and the whole
+   header comes in under 400px. */
+.pagehero--film{padding:96px 0 44px;background:var(--dark)}
 .pagehero--film::after{display:none}          /* no gradient over the film */
+.pagehero__filmrow{display:grid;gap:30px;align-items:center}
+/* Side by side as soon as there is room for it — a tablet stacking the film
+   at full container width is the same problem the desktop had. */
+@media(min-width:780px){
+  .pagehero__filmrow{grid-template-columns:minmax(0,1.22fr) minmax(0,1fr)}
+}
 .pagehero__film{
-  display:block;width:100%;max-width:1120px;margin:0 auto;
-  aspect-ratio:16/9;object-fit:cover;background:#150c11;
+  display:block;width:100%;aspect-ratio:16/9;object-fit:cover;background:#150c11;
   border:1px solid var(--gold-d);border-radius:4px;
-  box-shadow:0 30px 60px -34px rgba(0,0,0,.9);
+  box-shadow:0 26px 52px -34px rgba(0,0,0,.9);
 }
 .pagehero__film img{width:100%;height:100%;object-fit:cover;display:block}
-.pagehero--film .pagehero__inner{max-width:720px;margin:30px auto 0}
-.pagehero--film h1{margin-top:4px}
-.pagehero--film p{margin-left:auto;margin-right:auto}
+.pagehero--film .pagehero__inner{max-width:none;margin:0}
+.pagehero--film h1{margin-top:4px;font-size:clamp(1.5rem,2.6vw,2.1rem)}
+.pagehero--film p{font-size:1.06rem;margin-top:12px}
 /* Edge to edge on a phone: a 1px frame around a small video only makes it
    smaller, and the band is the same colour as the surround anyway. */
 @media(max-width:620px){
-  .pagehero--film{padding:88px 0 40px}
-  .pagehero__film{border-left:0;border-right:0;border-radius:0}
-  .pagehero--film .pagehero__inner{margin-top:22px}
+  .pagehero--film{padding:86px 0 36px}
+  .pagehero__filmrow{gap:22px}
+  .pagehero__film{
+    border-left:0;border-right:0;border-radius:0;
+    width:calc(100% + 56px);margin-left:-28px;   /* out past the container padding */
+  }
 }
