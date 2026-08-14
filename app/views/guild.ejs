@@ -5,7 +5,37 @@
 .member--pledge .role{color:var(--wine);font-weight:600;letter-spacing:.06em}
 .member--pledge .avatar{filter:grayscale(.35)}
 </style>
-<section class="pagehero"><div class="pagehero__bg" style="background-image:url('/assets/img/010.jpg')"></div><div class="container pagehero__inner"><span class="eyebrow">The Guild</span><h1>Welcome to the House of Card and Coin</h1><p>Where chance, destiny, and deals align. A gathering of specialists dedicated to life's more artful pursuits.</p></div></section>
+<%
+  /* The header is the guild's own motion graphic rather than a photograph
+     behind a wash of dark.
+
+     It cannot be treated as a background the way the other page heroes are.
+     It carries its own typography — the crest, the four classes, and the very
+     line this page's opening paragraph used to say — so laying the page's
+     heading over it would put two sets of words in the same place and hide
+     both. It gets the band to itself, and the heading sits underneath.
+
+     "Where chance, destiny, and deals align" is gone from the paragraph below
+     for the same reason: the film says it, in gold, a few inches above.
+
+     Same data-src as every other video on the site, so hero-video.js decides
+     whether it is worth downloading. A phone, a metered connection or anyone
+     who asked for less motion gets the still — and because the still is the
+     frame with all four classes on it, they lose the movement and none of the
+     message. */
+%>
+<section class="pagehero pagehero--film">
+  <video class="pagehero__film" muted loop playsinline preload="none"
+         poster="/assets/img/guild-film.jpg" data-src="/assets/vid-guild.mp4"
+         aria-label="The House of Card and Coin — a consortium of specialists: the Dealer, the Reader, the Broker and the Sellsword">
+    <img src="/assets/img/guild-film.jpg" alt="The House of Card and Coin and its four classes — the Dealer of Dares and Delights, the Reader of Inner Trails, the Broker of Balanced Bargains, and the Sellsword at the Door">
+  </video>
+  <div class="container pagehero__inner">
+    <span class="eyebrow">The Guild</span>
+    <h1>Welcome to the House of Card and Coin</h1>
+    <p>A gathering of specialists dedicated to life&rsquo;s more artful pursuits.</p>
+  </div>
+</section>
 <section class="section"><div class="container"><div class="bannerhead"><span class="eyebrow">⚜ Guild Roster ⚜</span><h2>The House, Assembled</h2><div class="rule"></div></div><% if(comingCount){ %><p class="lead center" style="margin-bottom:28px"><b style="color:var(--forest);font-size:1.2rem"><%= comingCount %></b> guildmate<%= comingCount>1?'s':'' %> marked as coming to the 2026 Faire.</p><% } %>
 <% if(members.length){ %><div class="roster"><% members.forEach(function(m){ %>
 <a class="member<%= m.title==='Guild Leader'?' member--lead':'' %><%= m.pledge?' member--pledge':'' %><%= m.ace?' member--ace':'' %>" href="/guild/<%= m.slug %>" title="<%= m.pledge?'A pledge — awaiting acceptance into the House. See their page':'See '+m.name+'’s page' %>"><% if(m.avatar){ %><img src="<%= m.avatar %>" class="member__avatar" alt="<%= m.name %>"><% } else { %><div class="avatar"><%= m.name.slice(0,2).toUpperCase() %></div><% } %><%
@@ -16,6 +46,12 @@
 %><% if(m.ace){ %><span class="member__ace" title="<%= m.aceShared?'Level on the high hand of the run so far':'The high hand of the run so far' %> — <%= m.aceRank %>, made in <%= m.ace %>">✦ <%= m.aceShared?'Joint High Hand':'High Hand' %></span><% } %><h3><%= m.name %></h3><span class="role"><%= m.rank %><% if(m.class){ %> &middot; <%= m.class %><% } %></span><% if(m.rsvp){ %><span class="member__coming">✓ Coming</span><% } %><% if(m.faires){ %><span class="member__faires"><%= m.faires %> faire<%= m.faires>1?'s':'' %> camped</span><% } else { %><span class="member__faires">Newly sworn</span><% } %><% if(m.bunks.length){ %><span class="member__bunks">Bunked: <%= m.bunks.join('; ') %></span><% } %></a>
 <% }) %></div><% } else { %><p class="muted center">The roster fills as guildmates join the Hall.</p><% } %>
 <p class="muted center" style="margin-top:24px">Want your portrait on the board? <a href="/members/login" style="color:var(--gold-d);font-weight:600">Sign in</a> to set your class, your face and your own page, and to claim a bunk.</p>
+<%
+  /* hero-video.js lives in the two static pages that had videos; this is the
+     first rendered page to want one, so it has to ask for the script itself.
+     Nothing downloads until that script decides the connection can afford it. */
+%>
+<script defer src="/assets/js/hero-video.js?v=<%= typeof assetv!=='undefined'?assetv:'1' %>"></script>
 </div></section>
 <section class="section" id="bunks"><div class="container"><div class="bannerhead"><span class="eyebrow">⚜ Camp Bunks ⚜</span><h2>Who Is in Which Bunk</h2><div class="rule"></div></div><p class="lead center" style="margin-bottom:22px">Two berths are spoken for all weekend;
   the other <b>three are open each night</b> &mdash; guildmates, claim yours under Profile.</p>

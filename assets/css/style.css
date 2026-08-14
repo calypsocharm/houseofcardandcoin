@@ -1246,3 +1246,31 @@ footer :where(a,button):focus-visible{
 .player__scope:hover,.player__scope:focus-visible{border-color:var(--gold-l);color:var(--gold-l)}
 .player__scope.is-on{background:rgba(226,199,127,.16);border-color:var(--gold);color:var(--gold-l)}
 @media(max-width:720px){.player__scope{display:none}}
+
+/* ── The guild header, when it is a film ────────────────────────────────────
+   The other page heroes are a photograph with a heavy gradient laid over it
+   and the heading on top. This one cannot work that way: the motion graphic
+   has its own crest, its own headline and four labelled cards, so anything
+   printed over it lands on top of words already there.
+
+   So the wash is switched off, the film keeps the band, and the heading sits
+   under it on the dark. */
+.pagehero--film{padding:104px 0 52px;background:var(--dark);text-align:center}
+.pagehero--film::after{display:none}          /* no gradient over the film */
+.pagehero__film{
+  display:block;width:100%;max-width:1120px;margin:0 auto;
+  aspect-ratio:16/9;object-fit:cover;background:#150c11;
+  border:1px solid var(--gold-d);border-radius:4px;
+  box-shadow:0 30px 60px -34px rgba(0,0,0,.9);
+}
+.pagehero__film img{width:100%;height:100%;object-fit:cover;display:block}
+.pagehero--film .pagehero__inner{max-width:720px;margin:30px auto 0}
+.pagehero--film h1{margin-top:4px}
+.pagehero--film p{margin-left:auto;margin-right:auto}
+/* Edge to edge on a phone: a 1px frame around a small video only makes it
+   smaller, and the band is the same colour as the surround anyway. */
+@media(max-width:620px){
+  .pagehero--film{padding:88px 0 40px}
+  .pagehero__film{border-left:0;border-right:0;border-radius:0}
+  .pagehero--film .pagehero__inner{margin-top:22px}
+}
