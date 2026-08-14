@@ -113,38 +113,52 @@ app.use('/assets',express.static(path.join(__dirname,'..','assets')));
 app.use('/uploads',express.static(path.join(__dirname,'uploads'),{
   setHeaders:function(res){ res.setHeader('Content-Type','image/jpeg'); }
 }));
-/* Who is leading the card game, for the roster. Keyed by member id.
+/* The high hand of the whole run — every round already played plus the round
+   in play — which is the contest that actually stands until the faire. Not the
+   leader of the current table: a round is a heat, and the best hand anybody has
+   held since the game began is the thing worth wearing.
 
-   Level with the top hand rather than "whoever sorted first" — a genuine dead
-   heat happens with a small guild and short hands, and the Roll already
-   credits a shared round to everybody level. The two pages have to agree.
+   Level rather than "whoever sorted first" — a genuine dead heat happens with a
+   small guild and short hands, and a closed round is already credited to
+   everybody level.
 
-   handRank returns nothing under two cards, so nobody carries this at the very
-   start of a round when the whole table holds a single card each. That is the
-   point: leading on one card is not leading. */
-function cardLeaders(){
-  var table=allHands();
-  var top=table[0];
-  if(!top||!top.rank)return {by:{},shared:false,rank:''};
-  var level=table.filter(function(h){return cmpHand(h.rank,top.rank)===0;});
+   handRank returns nothing under two cards, so nobody holds this while the best
+   anyone has shown is a single card. Leading on one card is not leading. */
+function highHand(){
+  var best=null, held=[];
+  function offer(kind,id,name,rank,when){
+    if(!rank)return;
+    var c=best?cmpHand(rank,best):-1;
+    if(c<0){ best=rank; held=[]; }
+    else if(c>0){ return; }
+    // Somebody who made the same hand twice should appear once.
+    var k=(kind||'member')+':'+(id!=null?id:name);
+    if(!held.some(function(h){return h.k===k;}))held.push({k:k,kind:kind||'member',id:id,name:name,when:when});
+  }
+  (db.rounds||[]).forEach(function(r){
+    (r.hands||[]).forEach(function(h){ offer(h.kind,h.id,h.name,h.rank,'Round '+r.n); });
+  });
+  allHands().forEach(function(h){ offer(h.kind,h.id,h.name,h.rank,'the round in play'); });
+
   var by={};
-  level.forEach(function(h){ if(h.kind==='member'&&h.id!=null)by[h.id]=h.rank.name; });
-  return {by:by, shared:level.length>1, rank:top.rank.name};
+  held.forEach(function(h){ if(h.kind==='member'&&h.id!=null)by[h.id]=h.when; });
+  return {by:by, shared:held.length>1, rank:best?best.name:'',
+          names:held.map(function(h){return h.name;}), when:held.length?held[0].when:''};
 }
 
 app.get('/guild.html',(req,res)=>{
-  // The badge below names the leader of the round in play, so the round has to
-  // be current before it is drawn.
+  // The badge below reads off the round in play as well as the closed ones,
+  // so the round has to be current before it is drawn.
   maybeCloseRound();
   const slugs=slugById();
-  const ace=cardLeaders();
+  const ace=highHand();
   // The four specialists were described in the abstract while the people who
   // are them sat in a separate list further up. Same page, never joined.
   const byClass={};
   CLASSES.forEach(function(c){ byClass[c]=[]; });
   db.users.forEach(function(m){
     if(m.class&&byClass[m.class]) byClass[m.class].push({name:m.name,slug:slugs[m.id]||'',avatar:m.avatar||''});
-  });const members=db.users.map(function(m){const bunks=db.bunks.filter(function(b){return b.userId===m.id;}).sort(function(a,b){return a.night<b.night?-1:1;}).map(function(b){return b.night+' \u00b7 Bunk '+b.bunk;});return{slug:slugs[m.id],name:m.name,avatar:m.avatar,class:m.class,rank:rank(m),pledge:!!m.pledge,faires:m.faires||0,title:m.title||'',role:m.role||'',rsvp:!!m.rsvp,bunks:bunks,ace:ace.by[m.id]||"",aceShared:ace.shared};}).sort(function(a,b){const k=function(x){if(x.title==='Guild Leader')return 0;if(x.role==='leader'||x.title==='Guild Elder')return 1;if(x.pledge)return 3;return 2;};const ka=k(a),kb=k(b);if(ka!==kb)return ka-kb;return (b.faires||0)-(a.faires||0);});const bunkBoard=NIGHTS.map(function(n){return{night:n,bunks:BUNKS.map(function(b){const o=db.bunks.find(function(x){return x.night===n&&x.bunk===b;});return{bunk:b,note:BUNK_NOTES[b]||"",taken:!!o,who:o?db.users.find(function(y){return y.id===o.userId;}):null};})};});res.render('guild',{members:members,bunkBoard:bunkBoard,berths:heldBerths(),byClass:byClass,comingCount:db.users.filter(function(x){return x.rsvp;}).length});});
+  });const members=db.users.map(function(m){const bunks=db.bunks.filter(function(b){return b.userId===m.id;}).sort(function(a,b){return a.night<b.night?-1:1;}).map(function(b){return b.night+' \u00b7 Bunk '+b.bunk;});return{slug:slugs[m.id],name:m.name,avatar:m.avatar,class:m.class,rank:rank(m),pledge:!!m.pledge,faires:m.faires||0,title:m.title||'',role:m.role||'',rsvp:!!m.rsvp,bunks:bunks,ace:ace.by[m.id]||"",aceShared:ace.shared,aceRank:ace.rank};}).sort(function(a,b){const k=function(x){if(x.title==='Guild Leader')return 0;if(x.role==='leader'||x.title==='Guild Elder')return 1;if(x.pledge)return 3;return 2;};const ka=k(a),kb=k(b);if(ka!==kb)return ka-kb;return (b.faires||0)-(a.faires||0);});const bunkBoard=NIGHTS.map(function(n){return{night:n,bunks:BUNKS.map(function(b){const o=db.bunks.find(function(x){return x.night===n&&x.bunk===b;});return{bunk:b,note:BUNK_NOTES[b]||"",taken:!!o,who:o?db.users.find(function(y){return y.id===o.userId;}):null};})};});res.render('guild',{members:members,bunkBoard:bunkBoard,berths:heldBerths(),byClass:byClass,comingCount:db.users.filter(function(x){return x.rsvp;}).length});});
 app.post('/pigeon',async(req,res)=>{const{Name,Email,Reason,Message}=req.body||{};const ep=process.env.FORMSPREE_ENDPOINT;if(!ep){console.log('FORMSPREE_ENDPOINT not set; pigeon dropped');return res.redirect('/pigeon.html?e=1');}try{const r=await fetch(ep,{method:'POST',headers:{'Content-Type':'application/json','Accept':'application/json'},body:JSON.stringify({Name:Name||'',Email:Email||'',Reason:Reason||'',Message:Message||'',_subject:'New pigeon — House of Card and Coin',_replyto:Email||''})});if(!r.ok)throw new Error('formspree '+r.status);res.redirect('/pigeon.html?sent=1');}catch(e){console.log('pigeon forward error',e.message);res.redirect('/pigeon.html?e=1');}});
 // The static mount below is rooted at /var/www/hocc, which also contains app/ and
 // content/. Without this guard, /app/data/guild.json (every member's record and
@@ -891,7 +905,7 @@ app.get("/board/roll",(req,res)=>{maybeCloseRound();const i=ident(req);
      under two cards there is no hand to lead with. */
   const _t=allHands(), _top=_t[0];
   const atTop=(_top&&_top.rank)?_t.filter(function(h){return cmpHand(h.rank,_top.rank)===0;}).length:0;
-  res.render("roll",{i:i,rounds:roll(),champions:champions(),table:_t,atTop:atTop,roundEnds:roundEnds(),roundDays:ROUND_DAYS,roundNo:db.rounds.length+1,slugs:slugById(),q:req.query,leader:!!(i&&i.leader),gates:countdown(),prizes:db.prizes||{first:"",second:"",shown:false}});});
+  res.render("roll",{i:i,rounds:roll(),champions:champions(),table:_t,atTop:atTop,high:highHand(),roundEnds:roundEnds(),roundDays:ROUND_DAYS,roundNo:db.rounds.length+1,slugs:slugById(),q:req.query,leader:!!(i&&i.leader),gates:countdown(),prizes:db.prizes||{first:"",second:"",shown:false}});});
 app.post("/members/admin/prizes",al,(req,res)=>{
   db.prizes={first:String(req.body.first||"").trim().slice(0,140),
              second:String(req.body.second||"").trim().slice(0,140),

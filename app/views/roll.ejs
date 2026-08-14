@@ -37,6 +37,20 @@
           if(_left<=3){ %> &mdash; <%= _left===0?'today':(_left===1?'tomorrow':'in '+_left+' days') %><% } %>,
         or as soon as every hand below is holding five. Whichever comes first.
       </p>
+
+      <%
+        /* The standing high hand — every round already played and this one
+           together. A round is a heat; this is the contest that runs to the
+           gates, and it is what the roster's ribbon reads from. */
+      %>
+      <% if(high.rank){ %>
+        <p class="roll__high">
+          <span class="roll__high__k">✦ High hand of the run</span>
+          <b><%= high.names.join(' & ') %></b>
+          <span class="roll__high__r"><%= high.rank %></span>
+          <small>made in <%= high.when %><%= high.shared?', and matched since':'' %> · stands until the gates open</small>
+        </p>
+      <% } %>
       <% if(table.length){ %>
         <div class="roll__grid">
           <% table.forEach(function(h,n){ %>
