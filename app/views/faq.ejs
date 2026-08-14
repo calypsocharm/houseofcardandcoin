@@ -190,6 +190,71 @@
       <p>Bunks come later still, once you have camped a faire with us.</p></div>
   </div>
 
+  <%
+    /* The card game, explained from the numbers that actually run it. Every
+       figure below comes off the server's own constants, so the page cannot
+       quietly drift out of step with the game the way a written-out copy would
+       the first time a price or a payout moved. */
+  %>
+  <div class="faq-group">
+    <h2>The cards &amp; the coin</h2>
+
+    <div class="faq"><h3>How do I get coins?</h3>
+      <p><b>One way only: take your card in the Tavern each night.</b> Nothing else on the site
+        pays. What you get is the card&rsquo;s own worth plus a bonus for turning up.</p>
+      <p style="margin-top:10px">The card pays by its rank &mdash; the suit makes no difference:</p>
+      <ul class="faq-pay">
+        <% game.tiers.forEach(function(t){ %>
+          <%
+            /* Both halves stay inside their own element. A loose text node
+               between the <b> and the <span> becomes an anonymous grid item of
+               its own, which pushed the card list into a third column and sat
+               it underneath the label. */
+          %>
+          <li><b><%= t.pays %> coin<%= t.pays===1?'':'s' %></b><span><%= t.cards %></span></li>
+        <% }) %>
+      </ul>
+      <p style="margin-top:10px">On top of that, turning up pays <b><%= game.ladder.join(', ') %></b>
+        &mdash; one more each night in a row. <b>Miss a night and it starts again at one.</b>
+        So a night is worth between <b><%= 1+game.ladder[0] %></b> and
+        <b><%= 3+game.ladder[game.ladder.length-1] %></b> coins.</p>
+      <p style="margin-top:10px" class="faq-note">A hand is five cards and you cannot draw on a full
+        hand, so five nights running is as far as the bonus can climb. A whole round comes to
+        somewhere between <b><%= game.ladder.reduce(function(s,b){return s+1+b;},0) %></b> and
+        <b><%= game.ladder.reduce(function(s,b){return s+3+b;},0) %></b> coins.</p></div>
+
+    <div class="faq"><h3>What are the coins for?</h3>
+      <p><b>Buying a card early.</b> <%= game.price %> coins deals you the next one now instead of
+        waiting for tomorrow. It never buys a <i>better</i> card &mdash; the deal stays random &mdash;
+        and it does not count toward your streak, because paying is not turning up.</p>
+      <p style="margin-top:10px">They also set what the Tavern calls you:</p>
+      <ul class="faq-pay faq-pay--titles">
+        <% game.titles.slice().reverse().forEach(function(t){ %>
+          <li><b><%= t.at %></b><span><%= t.name %></span></li>
+        <% }) %>
+      </ul>
+      <p style="margin-top:10px">And your coin count is your <b>bounty</b> on the
+        <a href="/board/rogues">Rogues&rsquo; Gallery</a>, which is ordered by it.</p>
+      <p style="margin-top:10px"><b>Coins never win a round.</b> Rounds are decided by the hand and
+        nothing else, so a full purse and an empty one have exactly the same odds.</p></div>
+
+    <div class="faq"><h3>What is a round, and when does it end?</h3>
+      <p>A round is one go at building a five-card hand. It closes on whichever comes first:
+        <b><%= game.days %> days</b> from the round starting, or <b>every hand at the table holding
+        its five</b>. One person finishing alone does not end it &mdash; the rest of the House has
+        not had their go.</p>
+      <p style="margin-top:10px">When it closes, every hand goes onto the
+        <a href="/board/roll">Roll of Hands</a>, the decks are shuffled, and the dealing starts again
+        the same evening. <b>Coins carry over</b>; the cards do not. The Guild Leader can also call a
+        round early.</p>
+      <p style="margin-top:10px" class="faq-note">The Tavern and the Roll both show the date the
+        round closes, so it never arrives without warning.</p></div>
+
+    <div class="faq"><h3>Do I have to play?</h3>
+      <p><b>No.</b> None of it touches camp, bunks or the bring-list. It is something to do of an
+        evening before October, and nothing more.</p></div>
+  </div>
+
   <p class="muted center" style="margin-top:34px">
     Still stuck? <a href="/pigeon.html" style="color:var(--wine);font-weight:600">Send a pigeon</a> —
     or read the <a href="/camp.html" style="color:var(--wine);font-weight:600">Ren Faire Camp</a> page

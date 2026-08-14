@@ -879,7 +879,11 @@ app.get("/map",(req,res)=>{
   try{ stamp="?v="+Math.floor(fs.statSync(art).mtimeMs); }catch(e){}
   res.render("map",{hasArt:fs.existsSync(art),cfg:cfg,spots:cfg.spots,art:cfg.art+stamp});
 });
-app.get('/faq',(req,res)=>res.render('faq',{day:dayContact(ident(req))}));
+// The card game's rules are explained on the FAQ from the constants that run
+// it, so the page cannot quietly disagree with the game.
+app.get('/faq',(req,res)=>res.render('faq',{day:dayContact(ident(req)),
+  game:{price:CARD_PRICE,days:ROUND_DAYS,tiers:coinTiers(),ladder:coinLadder(),
+        titles:COIN_TITLES}}));
 app.get('/members/login',(req,res)=>res.render('login',{err:req.query.e||'',code:req.query.code||'',needCode:INVITE_REQUIRED}));
 // /join is the share link. If an invite code is required, ?code=XXXX pre-fills it.
 app.get('/join',(req,res)=>res.render('login',{err:req.query.e||'',code:req.query.code||'',needCode:INVITE_REQUIRED}));
@@ -1638,6 +1642,27 @@ function cardInfo(code){
 // A card is worth a little coin on its own; face cards a little more.
 function cardCoins(code){return 1+Math.floor(cardInfo(code).v/5);}
 
+/* The same rule, read backwards, for explaining it on the FAQ. Generated
+   rather than written out, so the page cannot drift from the payout: change
+   cardCoins and the table changes with it. */
+function coinTiers(){
+  var by={};
+  RANKS.forEach(function(r){
+    var pays=1+Math.floor(r[1]/5);
+    (by[pays]=by[pays]||[]).push(r[0]==='T'?'10':r[0]);
+  });
+  return Object.keys(by).map(Number).sort(function(a,b){return a-b;})
+    .map(function(n){ return {pays:n, cards:by[n].join(', ')}; });
+}
+/* The bonus ladder as it can actually be climbed. The rule caps at seven, but
+   a hand fills at five and you cannot draw on a full hand — so the last two
+   rungs are unreachable and printing them would be a lie. */
+function coinLadder(){
+  var out=[];
+  for(var n=1;n<=5;n++)out.push(Math.min(n,7));
+  return out;
+}
+
 // Five-card stud: you play the cards you were dealt, however many you managed
 // to collect. Someone who only turned up four nights ranks on four cards.
 // A straight or a flush needs all five, so a short hand cannot make one.
@@ -1709,7 +1734,14 @@ const HAND_PRIZES=[
   'the finest thing the House has to give'
 ];
 const SPECIALS=['Tonight: Spiced Rum & a Tall Tale \u2014 tell us your first faire memory.','Tonight: Dice & Doubloons \u2014 what is the worst bargain you ever struck at faire?',"Tonight: The Hermit's Hour \u2014 share one piece of advice you would give a first-time camper.",'Tonight: Wheels & Whispers \u2014 who in the guild should be immortalized in a shanty, and why?','Tonight: A Round for the House \u2014 raise a toast to a guildmate in the replies.',"Tonight: The Reader's Lantern \u2014 what did the cards get right last faire?",'Tonight: Campfire Confessions \u2014 your most glorious faire mishap.','Tonight: Coin & Counsel \u2014 what do you still need to borrow or bring to camp?',"Tonight: The Sellsword's Tab \u2014 name the quest you would hire a mercenary for this faire.",'Tonight: Moonlit Wager \u2014 predict one thing that will absolutely go sideways this weekend.'];
-function tavernTitle(coins){coins=coins||0;if(coins>=120)return 'Captain';if(coins>=70)return 'Quartermaster';if(coins>=40)return 'Bosun';if(coins>=18)return 'Deckhand';if(coins>=5)return 'Sailor';return 'Landlubber';}
+/* What your purse calls you in the Tavern. A table rather than a ladder of ifs
+   so the FAQ can print the same thresholds the game uses — two copies of these
+   numbers would disagree the first time one of them moved. Highest first. */
+const COIN_TITLES=[{at:120,name:'Captain'},{at:70,name:'Quartermaster'},
+  {at:40,name:'Bosun'},{at:18,name:'Deckhand'},{at:5,name:'Sailor'},{at:0,name:'Landlubber'}];
+function tavernTitle(coins){coins=coins||0;
+  var hit=COIN_TITLES.find(function(t){return coins>=t.at;});
+  return hit?hit.name:'Landlubber';}
 function dayKey(){const d=new Date();return d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate();}
 function dayOfYear(){const now=new Date();const start=new Date(now.getFullYear(),0,0);return Math.floor((now-start)/86400000);}
 function identRich(req){const i=ident(req);if(!i)return null;const rec=i.t==='member'?db.users.find(function(x){return x.id===i.id;}):db.patrons.find(function(x){return x.id===i.id;});if(!rec)return i;return Object.assign({},i,{coins:rec.coins||0,lastRation:rec.lastRation||'',lastCard:rec.lastCard||null,streak:rec.streak||0,hand:rec.hand||[],pending:rec.pending||null});}

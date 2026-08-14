@@ -1031,6 +1031,26 @@ footer :where(a,button):focus-visible{
 .faq-hide__n{display:block;font-family:var(--display);font-size:1.45rem;color:var(--wine);
   text-decoration:none;margin-bottom:6px;width:max-content}
 .faq-hide__n:hover,.faq-hide__n:focus-visible{text-decoration:underline}
+
+/* The payout tables on the FAQ. A two-column list rather than a real <table>:
+   the left side is a single number and the right a short phrase, so a table
+   would only add borders and a horizontal scrollbar on a phone. */
+.faq-pay{list-style:none;margin:0;padding:0;display:grid;gap:5px;max-width:400px}
+.faq-pay li{
+  display:grid;grid-template-columns:5.4em 1fr;gap:14px;align-items:baseline;
+  padding:6px 0;border-bottom:1px dotted var(--line);
+}
+.faq-pay li:last-child{border-bottom:0}
+.faq-pay b{
+  font-family:var(--display);font-variant-numeric:tabular-nums;
+  color:var(--wine);text-align:right;
+}
+.faq-pay span{color:var(--ink2);font-variant-numeric:tabular-nums}
+/* Every rung is a floor, not an exact figure — "40+ Bosun" — so each one
+   carries the plus, including the nought everybody starts on. */
+.faq-pay--titles{grid-template-columns:none}
+.faq-pay--titles li{grid-template-columns:3.4em 1fr}
+.faq-pay--titles b::after{content:"+";opacity:.55;margin-left:1px}
 .faq-note{margin-top:10px;font-size:.9rem;color:var(--muted)}
 
 /* Pledges waiting, in Administration. One row per person with everything
