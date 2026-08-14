@@ -40,10 +40,10 @@
       <% if(table.length){ %>
         <div class="roll__grid">
           <% table.forEach(function(h,n){ %>
-            <div class="roll__tile<%= n===0?' is-top':'' %>">
+            <div class="roll__tile<%= n<atTop?' is-top':'' %>">
               <div class="roll__who">
                 <%- include('_avatar',{name:h.name,avatar:h.avatar,slug:h.kind==='member'&&h.id?(slugs[h.id]||''):''}) %>
-                <span class="roll__name"><%= h.name %><% if(n===0){ %><small>leading</small><% } %></span>
+                <span class="roll__name"><%= h.name %><% if(n<atTop){ %><small><%= atTop>1?'level in front':'leading' %></small><% } %></span>
               </div>
               <span class="roll__cards">
                 <% h.cards.forEach(function(c){ %>
