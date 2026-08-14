@@ -683,7 +683,10 @@ function coinWays(u) {
   // Nothing to spend it on once the hand is full — the route refuses a sixth
   // card, so offering the purchase there would be an advert for a locked door.
   if (held < 5) out.push({ pay: '−' + CARD_PRICE,
-    say: 'The only thing to spend on: ' + CARD_PRICE + ' coins buys the next card now instead of tomorrow. It never buys a better card, and a hand is five, so nobody can buy more than four in a lifetime.' });
+    // The old copy said "four in a lifetime", inherited from when a hand was
+    // dealt once and never again. Rounds reset the table, and somebody who
+    // never takes the free card could buy all five, so both halves were wrong.
+    say: 'The only thing to spend on: ' + CARD_PRICE + ' coins buys the next card now instead of tomorrow. It never buys a better card — the deal is still random — and a hand is five, so five is the most anyone can buy in a round.' });
 
   return out;
 }
