@@ -347,6 +347,19 @@
           <% } %>
         </div>
 
+        <%
+          /* When this round ends. Said out loud rather than left as a surprise
+             — a hand that vanishes without warning reads as a fault. */
+          var _ends=new Date(roundEnds);
+          var _left=Math.max(0,Math.ceil((roundEnds-Date.now())/86400000));
+        %>
+        <p class="tav-roundend">
+          <b>Round <%= roundNo %></b> closes <%= _ends.toLocaleDateString('en-US',{month:'long',day:'numeric'}) %>
+          <% if(_left<=3){ %><span class="tav-roundend__soon"><%= _left===0?'today':(_left===1?'tomorrow':'in '+_left+' days') %></span><% } %>
+          &mdash; or the moment every hand at the table is full, whichever comes first.
+          Whatever you are holding then goes to the <a href="/board/roll">Roll</a>, and the deal starts over.
+        </p>
+
         <% if(hand.length>=5){ %>
           <p class="muted">That's your five. Bring them to the faire and see how they stack up.</p>
         <% } else if(ration.canDraw){ %>

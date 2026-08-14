@@ -868,3 +868,24 @@
 .tav-song:hover,.tav-song:focus-visible{background:var(--gold-d);color:#1a120b}
 .tav-song.is-playing{background:var(--wine);border-color:var(--wine-l);color:#f8edd1}
 @media(max-width:620px){.tav-song{margin-left:0}}
+
+/* ── When the round ends ────────────────────────────────────────────────────
+   The round closes itself now, so both places that show a hand say when.
+   Quiet by default; the last three days go gold so the deadline arrives as a
+   warning rather than a surprise. */
+.tav-roundend{
+  margin:14px 0 4px;padding:9px 13px;border-radius:3px;font-size:.86rem;line-height:1.6;
+  background:rgba(122,85,20,.09);border-left:3px solid var(--line2);color:#4a3722;
+}
+.tav-roundend b{color:#5c1b1b}
+.tav-roundend a{color:#7a2020;font-weight:600}
+.tav-roundend__soon{
+  display:inline-block;margin-left:5px;padding:1px 8px;border-radius:2px;
+  background:#6d1d1d;color:#f6e7c4;font-family:var(--display);
+  font-size:.68rem;letter-spacing:.08em;text-transform:uppercase;
+}
+.roll__ends{
+  text-align:center;margin:-6px 0 18px;font-size:.86rem;line-height:1.6;
+  color:#b9a582;
+}
+.roll__ends b{color:var(--gold-l)}

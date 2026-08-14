@@ -26,6 +26,17 @@
     <!-- ── the round being played now ──────────────────────────────────── -->
     <section class="roll__now">
       <h2>The round in play</h2>
+      <%
+        /* The two ways this round can end, stated plainly. It closes itself
+           now, so the table needs to say when. */
+        var _ends=new Date(roundEnds);
+        var _left=Math.max(0,Math.ceil((roundEnds-Date.now())/86400000));
+      %>
+      <p class="roll__ends">
+        Round <b><%= roundNo %></b> closes <b><%= _ends.toLocaleDateString('en-US',{month:'long',day:'numeric'}) %></b><%
+          if(_left<=3){ %> &mdash; <%= _left===0?'today':(_left===1?'tomorrow':'in '+_left+' days') %><% } %>,
+        or as soon as every hand below is holding five. Whichever comes first.
+      </p>
       <% if(table.length){ %>
         <div class="roll__grid">
           <% table.forEach(function(h,n){ %>

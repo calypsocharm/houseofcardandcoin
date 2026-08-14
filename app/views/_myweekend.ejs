@@ -86,6 +86,33 @@
       <% } %>
     </div>
 
+    <%
+      /* The purse, next to the hand it comes from. A square with the count
+         large, because that is the thing being asked, then the two accounts
+         and the last line of the ledger — enough to know it is being kept.
+         Everything else is a press away on your own page. */
+    %>
+    <div class="mine__tile mine__tile--purse">
+      <span class="mine__q">Your purse</span>
+      <b class="mine__a mine__purse">
+        <span class="mine__coin" aria-hidden="true"></span>
+        <span class="mine__purse__n"><%= mine.purse.coins %></span>
+        <span class="mine__purse__w">coin<%= mine.purse.coins===1?'':'s' %></span>
+      </b>
+      <% if(mine.purse.earned){ %>
+        <span class="mine__note"><%= mine.purse.earned %> taken in<% if(mine.purse.spent){ %> · <%= mine.purse.spent %> paid out<% } %></span>
+      <% } else { %>
+        <span class="mine__note">Not a coin yet. The House pays for every card it deals.</span>
+      <% } %>
+      <% if(mine.purse.last && mine.purse.last.ts){ %>
+        <span class="mine__last">
+          <b class="<%= mine.purse.last.n<0?'is-out':'is-in' %>"><%= mine.purse.last.n>0?'+':'−' %><%= Math.abs(mine.purse.last.n) %></b>
+          <%= mine.purse.last.why %>
+        </span>
+      <% } %>
+      <a class="mine__more" href="<%= mine.purseHref %>">Where it came from &rarr;</a>
+    </div>
+
     <div class="mine__tile mine__tile--next">
       <span class="mine__q">Next at camp</span>
       <% if(mine.next){ %>

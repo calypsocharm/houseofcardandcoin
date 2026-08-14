@@ -856,7 +856,7 @@ app.post('/guild/wall/:id/remove',canPost,(req,res)=>{
    the game is not knowing. The Guild Leader writes them from Administration
    and can unseal them whenever she likes, so revealing at the faire needs no
    code change. Stored on db so they survive a restart. */
-app.get("/board/roll",(req,res)=>{const i=ident(req);res.render("roll",{i:i,rounds:roll(),champions:champions(),table:allHands(),slugs:slugById(),q:req.query,leader:!!(i&&i.leader),gates:countdown(),prizes:db.prizes||{first:"",second:"",shown:false}});});
+app.get("/board/roll",(req,res)=>{maybeCloseRound();const i=ident(req);res.render("roll",{i:i,rounds:roll(),champions:champions(),table:allHands(),roundEnds:roundEnds(),roundDays:ROUND_DAYS,roundNo:db.rounds.length+1,slugs:slugById(),q:req.query,leader:!!(i&&i.leader),gates:countdown(),prizes:db.prizes||{first:"",second:"",shown:false}});});
 app.post("/members/admin/prizes",al,(req,res)=>{
   db.prizes={first:String(req.body.first||"").trim().slice(0,140),
              second:String(req.body.second||"").trim().slice(0,140),
@@ -1151,6 +1151,14 @@ function myWeekend(u){
     nights:nights, bringing:bringing, gaps:gaps,
     hand:(u.hand||[]).map(cardInfo), handRank:handRank(u.hand||[]),
     coins:u.coins||0, cardTonight:u.lastRation!==dayKey(),
+    // The purse gets its own square beside the hand. Only the headline here —
+    // the ledger and the advice live on your own page, and this tile is the
+    // door to them.
+    purse:(function(){
+      var p=purseFor(u);
+      return {coins:p.coins,earned:p.earned,spent:p.spent,last:p.log[0]||null};
+    })(),
+    purseHref:'/guild/'+(slugById()[u.id]||'')+'#purse',
     next:nextEvent(), gates:countdown()
   };
 }
@@ -1284,13 +1292,55 @@ function allHands(){
 // shuffled fresh, and the dealing starts again. Coins are earned by turning up
 // rather than won, so they carry over.
 if(!Array.isArray(db.rounds))db.rounds=[];
-function closeRound(){
+
+/* A round used to end only when the Guild Leader remembered to end it, which
+   meant a table of finished hands could sit there for weeks with nothing to
+   draw and nothing to win. It closes itself now, on whichever comes first:
+
+     · ten days from the round starting, or
+     · every hand at the table holding its five.
+
+   Nothing runs on a timer. The check happens when somebody actually looks —
+   drawing a card, opening the Tavern or the Roll — which is the only time the
+   answer matters, and keeps the app free of background work. */
+const ROUND_DAYS = 10;
+
+// The clock has to start somewhere. Rounds only ever recorded when they ended,
+// so the open one is dated from the last close, or from the first time the app
+// runs with this rule in place.
+if (typeof db.roundStarted !== 'number') {
+  db.roundStarted = db.rounds.length ? db.rounds[db.rounds.length - 1].ended : Date.now();
+  save();
+}
+function roundEnds(){ return (db.roundStarted || Date.now()) + ROUND_DAYS * 86400000; }
+
+// Why the round is over, or '' while it is not.
+function roundOver(){
+  var table = allHands();
+  if (!table.length) return '';                       // an empty table is not a round
+  if (Date.now() >= roundEnds()) return 'time';
+  // Everybody at the table holding five: no card can be drawn or bought, so
+  // the round has genuinely run out. Two hands at least — one player finishing
+  // alone is not a contest, and closing on them would shut the rest of the
+  // House out of a round they had not started yet. The ten days catch that.
+  if (table.length > 1 && table.every(function(h){ return h.cards.length >= 5; })) return 'full';
+  return '';
+}
+// Call before showing anything that depends on the round. Returns the round it
+// closed, or null.
+function maybeCloseRound(){
+  var why = roundOver();
+  return why ? closeRound(why) : null;
+}
+
+function closeRound(why){
   var table=allHands();
   if(!table.length)return null;
   var round={
     id:nid(),
     n:(db.rounds.length+1),
     ended:Date.now(),
+    why:why||'called',
     hands:table.map(function(h){
       return {id:h.id!=null?h.id:null,name:h.name,avatar:h.avatar||'',kind:h.kind,
               slug:h.kind==='member'&&h.id?(slugById()[h.id]||''):'',
@@ -1299,6 +1349,24 @@ function closeRound(){
     })
   };
   db.rounds.push(round);
+  db.roundStarted=Date.now();          // the next round's ten days start here
+
+  /* Tell the people who were holding cards, before the table is wiped. A hand
+     that disappears without a word reads as a bug — especially when it was the
+     House that ended it rather than the Guild Leader. */
+  var top=table[0];
+  var winners=table.filter(function(h){return cmpHand(h.rank,top.rank)===0;}).map(function(h){return h.name;});
+  var said='Round '+round.n+' is closed'+
+    (why==='time' ? ' — its ten days were up.'
+     : why==='full' ? ' — every hand at the table was full.'
+     : '.')+' '+
+    (winners.length===1
+      ? winners[0]+' took it with '+((top.rank&&top.rank.name)||'the best hand')+'.'
+      : winners.join(' and ')+' shared it.')+
+    ' Your cards are on the Roll and every deck is shuffled again.';
+  (db.users||[]).forEach(function(u){ if((u.hand||[]).length)notify('member',u.id,said); });
+  (db.patrons||[]).forEach(function(p){ if((p.hand||[]).length&&!p.banned)notify('patron',p.id,said); });
+
   // Wipe the table. lastRation goes too, so the first card of the new round can
   // be taken the same evening rather than making everybody wait for tomorrow.
   function clear(x){ x.hand=[]; x.deck=null; x.pending=null; x.lastCard=null; x.lastRation=null; }
@@ -1347,6 +1415,10 @@ function roll(){
     });
 }
 app.get('/board',(req,res)=>{
+  // Before anything is read off the table — identRich copies the hand out of
+  // the record, so a close has to happen first or the page would draw a hand
+  // that no longer exists.
+  maybeCloseRound();
   const i=identRich(req);
   const today=dayKey();
   const pres=tavernFolk();
@@ -1385,7 +1457,7 @@ app.get('/board',(req,res)=>{
     });
   }
   const polls=db.polls.slice().sort((a,b)=>b.ts-a.ts).map(freshenPost).map(function(p){const total=p.options.reduce((s,o)=>s+o.votes.length,0);const voted=i?!!p.options.find(o=>o.votes.find(v=>v.t===i.t&&v.id===i.id)):false;return Object.assign({},p,{total:total,voted:voted});});
-  res.render('board',{i:i,threads:threads,canPin:mayPin(cur(req)),polls:polls,cats:BOARDCATS,q:req.query,leader:!!(i&&i.leader),ration:{canDraw:!!(i&&i.lastRation!==today),card:i?i.lastCard:null},hand:i?(i.hand||[]).map(cardInfo):[],pending:i&&i.pending?cardInfo(i.pending):null,handRank:i?handRank(i.hand||[]):null,handPrizes:HAND_PRIZES,tableHands:allHands(),cardPrice:CARD_PRICE,special:SPECIALS[dayOfYear()%SPECIALS.length],gates:countdown(),near:nearness(countdown()),notices:i?(db.notices||[]).filter(function(n){return n.toT===i.t&&n.toId===i.id&&!n.read;}).length:0,folk:pres.folk,quietHrs:quietHrs,editMs:EDIT_WINDOW,editDays:EDIT_DAYS,slugs:slugById(),reacts:REACTS,seenBefore:seenBefore,find:find,found:threads.length});
+  res.render('board',{i:i,threads:threads,canPin:mayPin(cur(req)),polls:polls,cats:BOARDCATS,q:req.query,leader:!!(i&&i.leader),ration:{canDraw:!!(i&&i.lastRation!==today),card:i?i.lastCard:null},hand:i?(i.hand||[]).map(cardInfo):[],pending:i&&i.pending?cardInfo(i.pending):null,handRank:i?handRank(i.hand||[]):null,handPrizes:HAND_PRIZES,tableHands:allHands(),cardPrice:CARD_PRICE,roundEnds:roundEnds(),roundDays:ROUND_DAYS,roundNo:db.rounds.length+1,special:SPECIALS[dayOfYear()%SPECIALS.length],gates:countdown(),near:nearness(countdown()),notices:i?(db.notices||[]).filter(function(n){return n.toT===i.t&&n.toId===i.id&&!n.read;}).length:0,folk:pres.folk,quietHrs:quietHrs,editMs:EDIT_WINDOW,editDays:EDIT_DAYS,slugs:slugById(),reacts:REACTS,seenBefore:seenBefore,find:find,found:threads.length});
 });
 app.post('/board/thread',canPost,(req,res)=>{
   const i=ident(req);const body=(req.body.body||'').trim();let category=(req.body.category||'General').trim();
@@ -1675,7 +1747,9 @@ app.post('/board/hand/buy',canPost,(req,res)=>{
   purseAdd(rec,-CARD_PRICE,'Bought the '+cardInfo(card).label+' of '+cardInfo(card).suitName+' early');
   // deliberately does NOT touch lastRation or streak — the streak is for
   // turning up, and buying a card is not turning up.
-  save();res.redirect('/board#hand');
+  save();
+  var done=maybeCloseRound();      // a bought card can fill the table too
+  res.redirect(done?('/board/roll?closed='+done.n):'/board#hand');
 });
 app.post('/board/ration',canPost,(req,res)=>{
   var i=ident(req);var rec=holder(i);
@@ -1700,7 +1774,13 @@ app.post('/board/ration',canPost,(req,res)=>{
   rec.hand.push(card);
   rec.pending=null;
   rec.lastCard={code:card,ts:Date.now(),streak:streak,bonus:bonus};
-  save();res.redirect('/board#hand');
+  save();
+  // That card may have been the one that filled the last empty seat. If so the
+  // round ends here rather than on somebody's next page load — and they are
+  // sent to the Roll, where the hand they just finished is waiting, instead of
+  // back to a table that has silently emptied.
+  var done=maybeCloseRound();
+  res.redirect(done?('/board/roll?closed='+done.n):'/board#hand');
 });
 app.post('/board/thread/:id/react',canPost,(req,res)=>{const t=db.threads.find(function(x){return x.id==req.params.id;});if(!t)return res.redirect('/board');doReact(req,res,t);});
 app.post('/board/thread/:tid/reply/:rid/react',canPost,(req,res)=>{const t=db.threads.find(function(x){return x.id==req.params.tid;});if(!t)return res.redirect('/board');const r=t.replies.find(function(x){return x.id==req.params.rid;});if(!r)return res.redirect('/board/thread/'+t.id);doReact(req,res,r);});
