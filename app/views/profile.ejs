@@ -260,6 +260,56 @@
           </div>
         <% } %>
 
+        <%
+          /* The purse. Only ever rendered for its owner — the balance is on
+             the sheet for anyone, but the ledger and the advice are private.
+             Sits directly above the Hand, because in this House the coin and
+             the cards are the same nightly act. */
+        %>
+        <% if(locals.purse){ %>
+        <div class="pro-card" id="purse">
+          <h2>Your Purse</h2>
+
+          <div class="purse-sum">
+            <div class="purse-sum__now"><b><%= purse.coins %></b><span>in hand</span></div>
+            <div class="purse-sum__side">
+              <span><b>+<%= purse.earned %></b> taken in</span>
+              <span><b>−<%= purse.spent %></b> paid out</span>
+            </div>
+          </div>
+
+          <h3 class="purse-h">Where it came from</h3>
+          <% if(purse.log.length){ %>
+            <ul class="purse-log">
+              <% purse.log.slice(0,12).forEach(function(e){ %>
+                <li class="<%= e.n<0?'is-out':'is-in' %>">
+                  <span class="purse-log__n"><%= e.n>0?'+':'−' %><%= Math.abs(e.n) %></span>
+                  <span class="purse-log__w"><%= e.why %></span>
+                  <span class="purse-log__t"><%= e.ts?new Date(e.ts).toLocaleDateString('en-US',{month:'short',day:'numeric'}):'earlier' %></span>
+                </li>
+              <% }) %>
+            </ul>
+            <% if(purse.log.length>12){ %>
+              <p class="pro-empty purse-more">The <%= purse.log.length-12 %> older lines have been let go; the totals above still count them.</p>
+            <% } %>
+          <% } else { %>
+            <p class="pro-empty">Not a coin yet. The House deals a card a night and pays for it &mdash; <a href="/board#hand">start tonight</a>.</p>
+          <% } %>
+
+          <h3 class="purse-h">How to fill it</h3>
+          <ul class="purse-ways">
+            <% ways.forEach(function(w){ %>
+              <li<%= w.warn?' class="is-warn"':'' %>>
+                <span class="purse-ways__pay"><%= w.pay %></span>
+                <span class="purse-ways__say"><%= w.say %>
+                  <% if(w.go){ %><a class="purse-ways__go" href="<%= w.go %>"><%= w.act %> &rarr;</a><% } %>
+                </span>
+              </li>
+            <% }) %>
+          </ul>
+        </div>
+        <% } %>
+
         <div class="pro-card">
           <h2>The Hand<% if(handRank){ %> — <b class="pro-rank"><%= handRank.name %></b><% } %></h2>
           <% if(hand.length){ %>

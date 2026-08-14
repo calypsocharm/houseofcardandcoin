@@ -518,3 +518,65 @@
 .pro-pics__add-form .btn{align-self:flex-start;padding:7px 16px;font-size:.6rem}
 .pro-pics__add-form small{font-size:.78rem;color:var(--muted);line-height:1.5}
 .pro-pics__add-form small a{color:var(--u-accent,var(--wine));font-weight:600}
+
+/* ── The purse ──────────────────────────────────────────────────────────────
+   Only the owner ever sees this block, so it can afford to be a working
+   ledger rather than an ornament: the balance large, the accounts beside it
+   small, then the lines themselves in a column that reads like a tally.
+   Everything numeric is tabular so the coins line up down the page. */
+.purse-sum{
+  display:flex;align-items:center;justify-content:space-between;gap:18px;
+  flex-wrap:wrap;padding-bottom:14px;border-bottom:1px solid var(--line);
+}
+.purse-sum__now{display:flex;align-items:baseline;gap:9px}
+.purse-sum__now b{
+  font-family:var(--display);font-size:calc(2.1rem * var(--u-scale,1));line-height:1;
+  color:var(--u-accent,var(--wine));font-variant-numeric:tabular-nums;
+}
+.purse-sum__now span{font-family:var(--display);font-size:.68rem;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--muted)}
+.purse-sum__side{display:flex;flex-direction:column;gap:3px;text-align:right}
+.purse-sum__side span{font-size:.82rem;color:var(--muted)}
+.purse-sum__side b{font-variant-numeric:tabular-nums;color:var(--ink)}
+
+.purse-h{
+  font-family:var(--display);font-size:calc(.6rem * var(--u-scale,1));
+  letter-spacing:.2em;text-transform:uppercase;color:var(--muted);
+  margin:16px 0 8px;
+}
+
+.purse-log{list-style:none;margin:0;padding:0}
+.purse-log li{
+  display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:baseline;
+  padding:6px 0;border-bottom:1px dotted var(--line);font-size:.92rem;
+}
+.purse-log li:last-child{border-bottom:0}
+.purse-log__n{
+  font-family:var(--display);font-variant-numeric:tabular-nums;
+  font-size:.98rem;min-width:2.6em;text-align:right;
+}
+.purse-log .is-in .purse-log__n{color:var(--forest)}
+.purse-log .is-out .purse-log__n{color:var(--wine)}
+.purse-log__t{font-size:.76rem;color:var(--muted);white-space:nowrap}
+.purse-more{margin-top:9px;font-size:.8rem}
+
+/* The advice. A pill saying what it pays, then the reason in plain words —
+   the number first because that is what the eye is hunting for. */
+.purse-ways{list-style:none;margin:0;padding:0;display:grid;gap:10px}
+.purse-ways li{display:grid;grid-template-columns:auto 1fr;gap:12px;align-items:start}
+.purse-ways__pay{
+  font-family:var(--display);font-size:.68rem;letter-spacing:.06em;
+  white-space:nowrap;padding:4px 9px;border-radius:2px;
+  border:1px solid var(--line2);color:var(--ink2);background:rgba(201,176,122,.14);
+  font-variant-numeric:tabular-nums;
+}
+.purse-ways__say{font-size:.9rem;line-height:1.62;color:var(--ink2)}
+.purse-ways .is-warn .purse-ways__pay{border-color:var(--wine);color:var(--wine);background:rgba(139,42,42,.09)}
+.purse-ways__go{display:inline-block;margin-left:4px;white-space:nowrap;
+  font-weight:600;color:var(--u-accent,var(--wine))}
+
+@media(max-width:620px){
+  .purse-sum__side{text-align:left}
+  .purse-log li{grid-template-columns:auto 1fr;row-gap:2px}
+  .purse-log__t{grid-column:2;font-size:.72rem}
+}

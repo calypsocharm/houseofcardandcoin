@@ -586,6 +586,108 @@ app.post('/guild/vouch/:id/withdraw',au,(req,res)=>{
   save();
   res.redirect('/guild/'+(them?slugById()[them.id]:'')+'#vouch');
 });
+/* ── The purse ──────────────────────────────────────────────────────────────
+   Coins were a single running number, so "you have 34" was the whole story and
+   there was no way to answer where they came from or why the total dropped
+   after buying a card. This keeps a ledger beside the number.
+
+   Two running totals rather than counting the log, because the log is trimmed
+   and the totals must stay true for someone who has been drawing cards for
+   months. The log is the recent story; earned and spent are the accounts. */
+const PURSE_KEEP = 40;                 // entries held; the totals outlive them
+
+/* Everybody who already had coins predates the ledger. Rather than pretend
+   their balance came from nowhere, their history is folded into one opening
+   line that makes the arithmetic add up: what they hold now, plus what the
+   cards they bought early cost them. */
+function ensurePurse(rec) {
+  if (typeof rec.earned === 'number') return false;
+  var spent = (rec.bought || 0) * CARD_PRICE;
+  rec.spent  = spent;
+  rec.earned = (rec.coins || 0) + spent;
+  rec.purse  = [];
+  if (rec.earned) rec.purse.push({ ts: 0, n: rec.earned, why: 'Earned before the House kept a ledger' });
+  if (spent) rec.purse.push({ ts: 0, n: -spent,
+    why: rec.bought + ' card' + (rec.bought === 1 ? '' : 's') + ' bought early' });
+  return true;
+}
+
+function purseAdd(rec, n, why) {
+  ensurePurse(rec);
+  if (!n) return;
+  if (n > 0) rec.earned += n; else rec.spent += -n;
+  rec.purse.push({ ts: Date.now(), n: n, why: why });
+  if (rec.purse.length > PURSE_KEEP) rec.purse = rec.purse.slice(-PURSE_KEEP);
+}
+
+// Newest first for reading. Kept out of the public page — the balance is
+// already on the sheet for anyone, but where a person's coin came from is
+// their own business.
+function purseFor(u) {
+  // The opening line is written once, the first time anybody looks. Reading a
+  // page should not normally write to the file, but leaving it unsaved means
+  // recomputing it on every view and losing it at the next restart.
+  if (ensurePurse(u)) save();
+  return {
+    coins:  u.coins || 0,
+    earned: u.earned || 0,
+    spent:  u.spent || 0,
+    log:    (u.purse || []).slice().reverse()
+  };
+}
+
+/* Where more coin comes from — read off the rules as they actually are, and
+   off this person's own state, so it is advice rather than a rulebook. There
+   is one tap and one drain in this economy; saying so plainly beats inventing
+   errands nobody is really being paid for. */
+function coinWays(u) {
+  var out = [];
+  var held    = (u.hand || []).length;
+  var drewToday = u.lastRation === dayKey();
+  var onAChain  = u.lastRation === dayKey() || u.lastRation === yesterdayKey();
+  // The bonus the next draw will pay, whenever it happens. One expression
+  // covers both cases: if tonight is still owed, the streak has not been
+  // incremented yet and this is tonight's; if tonight is already drawn, it
+  // has been, and this is tomorrow's. Either way it is the run they are on
+  // plus the night they are about to add, capped where the rule caps it.
+  var nextBonus = onAChain ? Math.min((u.streak || 0) + 1, 7) : 1;
+
+  if (held >= 5) {
+    out.push({ pay: 'done', say: 'Your hand is full. Five cards is the whole hand and there is no sixth night, so the nightly coin has run its course for you.' });
+  } else if (!drewToday) {
+    out.push({ pay: (1 + nextBonus) + '–' + (3 + nextBonus),
+      say: 'Tonight’s card is still waiting. The card itself pays 1 to 3 by its rank, and turning up pays ' + nextBonus + ' on top.',
+      act: 'Take tonight’s card', go: '/board#hand' });
+  } else {
+    out.push({ pay: (1 + nextBonus) + '–' + (3 + nextBonus),
+      say: 'Tonight’s card is drawn. Come back tomorrow and the next one pays ' + nextBonus + ' for turning up, on top of the card.' });
+  }
+
+  if (held < 5) {
+    // Only claim a run they are actually on. A streak of three that ended a
+    // week ago is not "you are three nights in" — it is a broken chain, and
+    // the warning below is the honest thing to say about it.
+    out.push({ pay: '+1 a night',
+      say: 'The bonus for turning up grows by one each night in a row, up to seven. ' +
+           (onAChain && u.streak > 1 ? 'You are ' + u.streak + ' nights in.'
+                                     : 'Two nights running is where it starts to tell.') });
+    out.push({ pay: '1 → 3',
+      say: 'Cards are not worth the same. A low card pays 1, a ten or a face card pays 3. That part is luck and nothing else.' });
+  }
+
+  if (!onAChain && u.lastRation) {
+    out.push({ pay: 'careful', warn: true,
+      say: 'You have missed a night, so the next card starts the count again at one. The chain is the part worth guarding.' });
+  }
+
+  // Nothing to spend it on once the hand is full — the route refuses a sixth
+  // card, so offering the purchase there would be an advert for a locked door.
+  if (held < 5) out.push({ pay: '−' + CARD_PRICE,
+    say: 'The only thing to spend on: ' + CARD_PRICE + ' coins buys the next card now instead of tomorrow. It never buys a better card, and a hand is five, so nobody can buy more than four in a lifetime.' });
+
+  return out;
+}
+
 // What your own page is still missing. Only you ever see these, only while the
 // thing is missing, and never more than three at once — the point is a nudge,
 // not a list of everything you have failed to do. Ordered by what actually
@@ -690,6 +792,10 @@ app.get('/guild/:slug',(req,res)=>{
     photos:(db.photos||[]).filter(function(ph){return ph.byT==="member"&&ph.byId===u.id;})
       .sort(function(a,b){return b.ts-a.ts;})
       .map(function(ph){return {id:ph.id,file:ph.file,thumb:ph.thumb||ph.file,caption:ph.caption||""};}),
+    // The balance is on the sheet for anyone to see; where it came from and
+    // what to do about it is only ever shown to its owner.
+    purse:(i&&i.t==='member'&&i.id===u.id)?purseFor(u):null,
+    ways:(i&&i.t==='member'&&i.id===u.id)?coinWays(u):[],
     canVouch:!!(i&&i.t==='member'&&i.id!==u.id&&u.pledge&&isSworn(db.users.find(function(x){return x.id===i.id;}))),
     vouchedAlready:!!(i&&i.t==='member'&&(db.vouches||[]).some(function(v){return v.forId===u.id&&v.byId===i.id;})), nudges:(i&&i.t==='member'&&i.id===u.id)?nudgesFor(u):[], charmSvg:charmSvg, charmKeys:CHARM_KEYS, charmMax:CHARM_MAX,
     fonts:FONTS, fontKeys:FONT_KEYS, sizeKeys:SIZE_KEYS, sizes:SIZES,
@@ -1561,10 +1667,12 @@ app.post('/board/hand/buy',canPost,(req,res)=>{
   if(rec.hand.length>=5)return res.redirect('/board#hand');
   if((rec.coins||0)<CARD_PRICE)
     return res.redirect('/board?e='+encodeURIComponent('That costs '+CARD_PRICE+' coins and you have '+(rec.coins||0)+'. Come back tomorrow for a free one.')+'#hand');
+  ensurePurse(rec);
   rec.coins=(rec.coins||0)-CARD_PRICE;
   var card=dealOne(rec);
   rec.hand.push(card);
   rec.bought=(rec.bought||0)+1;
+  purseAdd(rec,-CARD_PRICE,'Bought the '+cardInfo(card).label+' of '+cardInfo(card).suitName+' early');
   // deliberately does NOT touch lastRation or streak — the streak is for
   // turning up, and buying a card is not turning up.
   save();res.redirect('/board#hand');
@@ -1582,7 +1690,12 @@ app.post('/board/ration',canPost,(req,res)=>{
   rec.streak=streak;
   var card=dealOne(rec);
   var bonus=Math.min(streak,7);
+  ensurePurse(rec);
   rec.coins=(rec.coins||0)+cardCoins(card)+bonus;
+  // Two lines, not one. "The Queen of Hearts, 3" and "Night 4 in a row, 4" is
+  // the story; a single total of 7 is just a number going up.
+  purseAdd(rec,cardCoins(card),'The '+cardInfo(card).label+' of '+cardInfo(card).suitName);
+  if(bonus)purseAdd(rec,bonus,'Night '+streak+' in a row');
   rec.lastRation=today;
   rec.hand.push(card);
   rec.pending=null;
