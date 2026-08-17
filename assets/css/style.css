@@ -1294,3 +1294,13 @@ footer :where(a,button):focus-visible{
    ever added back. */
 .bunkgrid{display:grid;gap:22px;grid-template-columns:repeat(auto-fit,minmax(260px,1fr))}
 @media(max-width:620px){.bunkgrid{gap:16px;grid-template-columns:1fr}}
+
+/* Setup night on the bunk board: a note beside the date, and the reason the
+   beds cannot be claimed yet where the claim buttons would have been. */
+.nightnote{display:block;font-family:var(--serif);font-style:italic;font-weight:400;
+  font-size:.72rem;color:var(--muted);letter-spacing:0;text-transform:none;margin-top:2px}
+.nightshut{
+  margin:0;padding:9px 12px;border-bottom:1px solid var(--line);
+  background:rgba(122,85,20,.09);
+  font-size:.8rem;line-height:1.55;color:var(--ink2);
+}
