@@ -18,13 +18,36 @@ if(!Array.isArray(db.notices))db.notices=[];
 if(!Array.isArray(db.whispers))db.whispers=[];
 if(!Array.isArray(db.waitlist))db.waitlist=[];
 const nid=()=>{db.seq++;save();return db.seq;};
-const NIGHTS=['Friday, Oct 9','Saturday, Oct 10','Sunday, Oct 11'];
+// Sunday night is not offered. The faire closes at 5 on Sunday and camp comes
+// down that evening — nobody sleeps in the rig that night.
+const NIGHTS=['Friday, Oct 9','Saturday, Oct 10'];
 // The three that can be claimed. The House's rig sleeps more than this — the
 // main bunk is the Guild Elder's and another is the Guild Leader's, both theirs
 // for the whole weekend rather than booked a night at a time. Those are held on
 // the member record as `berth` and shown beside the board, so the page tells the
 // truth about where everyone sleeps without offering the pair to anybody else.
 const BUNKS=[1,2,3];
+
+/* The bunk arithmetic, in words as well as figures, so the pages that talk
+   about it read off the same two lists the board is built from.
+
+   This exists because of Sunday. The night came out of NIGHTS, the board
+   dropped to two columns as it should — and the prose around it went on saying
+   "three nights" and "nine across the weekend" in three separate places,
+   because those were typed out by hand. Anything that counts nights or beds
+   asks here now, and the next change to either list carries the sentences with
+   it. */
+const NUMWORD=['no','one','two','three','four','five','six','seven','eight','nine','ten',
+  'eleven','twelve'];
+function bunkFacts(){
+  var nights=NIGHTS.length, per=BUNKS.length, total=nights*per;
+  return {
+    nights:nights, perNight:per, total:total,
+    nightsWord:NUMWORD[nights]||String(nights),
+    perNightWord:NUMWORD[per]||String(per),
+    totalWord:NUMWORD[total]||String(total)
+  };
+}
 // What you are actually claiming. Bunk 3 is likely to be a cot rather than a
 // bed in the rig — said where the bunk is claimed rather than buried on the
 // camp page, so nobody finds out on the Friday night.
@@ -927,7 +950,7 @@ app.get("/map",(req,res)=>{
 });
 // The card game's rules are explained on the FAQ from the constants that run
 // it, so the page cannot quietly disagree with the game.
-app.get('/faq',(req,res)=>res.render('faq',{day:dayContact(ident(req)),
+app.get('/faq',(req,res)=>res.render('faq',{day:dayContact(ident(req)),bunkFacts:bunkFacts(),
   game:{price:CARD_PRICE,days:ROUND_DAYS,tiers:coinTiers(),ladder:coinLadder(),
         titles:COIN_TITLES}}));
 app.get('/members/login',(req,res)=>res.render('login',{err:req.query.e||'',code:req.query.code||'',needCode:INVITE_REQUIRED}));
@@ -1002,7 +1025,7 @@ app.get('/members',au,(req,res)=>{
   })();
   const bunksLeft=NIGHTS.length*BUNKS.length-db.bunks.length;
   const items=db.items.map(it=>{const cl=db.claims.filter(c=>c.itemId===it.id);const claimed=cl.reduce((s,c)=>s+c.qty,0);return{...it,claimed,remaining:Math.max(0,it.need-claimed),claims:cl.map(c=>({qty:c.qty,who:db.users.find(y=>y.id===c.userId)})),mine:cl.find(c=>c.userId===u.id)};});
-  res.render('hall',{u,page:pageOf(u),mySlug:slugById()[u.id]||'',backdrops:BACKDROPS,layouts:LAYOUTS,fonts:FONTS,fontKeys:FONT_KEYS,sizeKeys:SIZE_KEYS,sizes:SIZES,charmKeys:CHARM_KEYS,charmSvg:charmSvg,charmMax:CHARM_MAX,rank:rank(u),classes:CLASSES,bunkBoard,bunksLeft,items,bringers,leader:u.role==='leader',users:u.role==='leader'?db.users.map(function(m){return{slug:slugById()[m.id]||'',berth:m.berth||'',vouches:vouchesFor(m.id),name:m.name,class:m.class,faires:m.faires,rank:rank(m),pledge:!!m.pledge,leader:m.role==='leader',title:m.title||'',avatar:m.avatar,id:m.id,contactEmail:m.contactEmail||'',phone:m.phone||'',bunks:db.bunks.filter(function(b){return b.userId===m.id}).map(function(b){return b.night+' \u00b7 Bunk '+b.bunk;})};}):[],announcements:db.announcements,mine:myWeekend(u),prizes:db.prizes||{first:"",second:"",shown:false},outreach:{emails:db.users.filter(function(x){return x.contactEmail;}).map(function(x){return x.contactEmail;}),phones:db.users.filter(function(x){return x.phone;}).map(function(x){return x.phone;})},invite:INVITE,err:req.query.e||"",q:req.query});
+  res.render('hall',{u,page:pageOf(u),mySlug:slugById()[u.id]||'',backdrops:BACKDROPS,layouts:LAYOUTS,fonts:FONTS,fontKeys:FONT_KEYS,sizeKeys:SIZE_KEYS,sizes:SIZES,charmKeys:CHARM_KEYS,charmSvg:charmSvg,charmMax:CHARM_MAX,rank:rank(u),classes:CLASSES,bunkBoard,bunksLeft,bunkFacts:bunkFacts(),items,bringers,leader:u.role==='leader',users:u.role==='leader'?db.users.map(function(m){return{slug:slugById()[m.id]||'',berth:m.berth||'',vouches:vouchesFor(m.id),name:m.name,class:m.class,faires:m.faires,rank:rank(m),pledge:!!m.pledge,leader:m.role==='leader',title:m.title||'',avatar:m.avatar,id:m.id,contactEmail:m.contactEmail||'',phone:m.phone||'',bunks:db.bunks.filter(function(b){return b.userId===m.id}).map(function(b){return b.night+' \u00b7 Bunk '+b.bunk;})};}):[],announcements:db.announcements,mine:myWeekend(u),prizes:db.prizes||{first:"",second:"",shown:false},outreach:{emails:db.users.filter(function(x){return x.contactEmail;}).map(function(x){return x.contactEmail;}),phones:db.users.filter(function(x){return x.phone;}).map(function(x){return x.phone;})},invite:INVITE,err:req.query.e||"",q:req.query});
 });
 // How your page looks. Separate from the details form above because these are
 // about presentation and those are about the guild — and because this one

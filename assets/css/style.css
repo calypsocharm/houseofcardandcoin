@@ -1286,3 +1286,11 @@ footer :where(a,button):focus-visible{
     width:calc(100% + 56px);margin-left:-28px;   /* out past the container padding */
   }
 }
+
+/* The bunk board: one column per night, however many nights there are.
+   It was a fixed three-column grid back when the weekend had three nights.
+   Dropping Sunday left the third column standing empty on both boards, so it
+   fits itself to the nights instead — and will still be right if a night is
+   ever added back. */
+.bunkgrid{display:grid;gap:22px;grid-template-columns:repeat(auto-fit,minmax(260px,1fr))}
+@media(max-width:620px){.bunkgrid{gap:16px;grid-template-columns:1fr}}
