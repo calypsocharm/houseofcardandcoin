@@ -220,15 +220,19 @@
         &mdash; one more each night in a row. <b>Miss a night and it starts again at one.</b>
         So a night is worth between <b><%= 1+game.ladder[0] %></b> and
         <b><%= 3+game.ladder[game.ladder.length-1] %></b> coins.</p>
-      <p style="margin-top:10px" class="faq-note">A hand is five cards and you cannot draw on a full
-        hand, so five nights running is as far as the bonus can climb. A whole round comes to
-        somewhere between <b><%= game.ladder.reduce(function(s,b){return s+1+b;},0) %></b> and
-        <b><%= game.ladder.reduce(function(s,b){return s+3+b;},0) %></b> coins.</p></div>
+      <p style="margin-top:10px" class="faq-note">A hand is five cards, so five nights fills it and
+        a round ending does <b>not</b> break your run &mdash; the sixth and seventh rungs come in
+        the round after. Starting from nothing, a first round of five nights comes to somewhere
+        between <b><%= game.first.low %></b> and <b><%= game.first.high %></b> coins.</p></div>
 
     <div class="faq"><h3>What are the coins for?</h3>
       <p><b>Buying a card early.</b> <%= game.price %> coins deals you the next one now instead of
         waiting for tomorrow. It never buys a <i>better</i> card &mdash; the deal stays random &mdash;
         and it does not count toward your streak, because paying is not turning up.</p>
+      <p style="margin-top:10px"><b>Throwing one back.</b> <%= game.redeal %> coins takes a card you do
+        not want out of your hand and deals the next one off your deck in its place. The card you
+        throw is gone for good, so a re-deal costs you a card as well as the coins &mdash; nobody
+        sits there cycling a deck looking for an ace.</p>
       <p style="margin-top:10px">They also set what the Tavern calls you:</p>
       <ul class="faq-pay faq-pay--titles">
         <% game.titles.slice().reverse().forEach(function(t){ %>

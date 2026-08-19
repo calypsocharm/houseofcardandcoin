@@ -340,6 +340,19 @@
               <span class="pcard<%= card.red?' is-red':'' %>">
                 <b class="pcard__r"><%= card.r==='T'?'10':card.r %></b>
                 <span class="pcard__s"><%= card.glyph %></span>
+              
+                <%
+                  /* Throwing one back. Only on your own cards, and only when
+                     you can afford it — an offer you cannot take is a locked
+                     door with a price written on it. */
+                %>
+                <% if((i.coins||0) >= redealPrice){ %>
+                  <form class="pcard__redeal" method="post" action="/board/hand/redeal"
+                        onsubmit="return confirm(<%= JSON.stringify('Throw back the '+card.label+' of '+card.suitName+' and take the next card off your deck? It costs '+redealPrice+' coins, and the card you throw is gone for good.') %>)">
+                    <input type="hidden" name="card" value="<%= card.code %>">
+                    <button type="submit" aria-label="Throw this card back for another" title="Throw this back for another — <%= redealPrice %> coins">&#8635;</button>
+                  </form>
+                <% } %>
               </span>
             <% } else { %>
               <span class="pcard is-empty" aria-label="empty slot"></span>

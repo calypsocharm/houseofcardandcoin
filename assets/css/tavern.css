@@ -909,3 +909,24 @@
   border:1px solid var(--gold-d);color:#f0e0b4;font-size:.82rem;
 }
 .roll__high small{width:100%;color:#b9a582;font-size:.79rem;line-height:1.55}
+
+/* Throwing a card back. The control lives on the card itself rather than in a
+   row of buttons underneath — it is the card you are acting on, so that is
+   where the handle belongs. Hidden until the card is hovered or the button
+   itself is focused, so a full hand does not read as five buttons. */
+.pcard{position:relative}
+.pcard__redeal{position:absolute;bottom:-7px;right:-7px;margin:0;line-height:0}
+.pcard__redeal button{
+  width:22px;height:22px;border-radius:50%;cursor:pointer;padding:0;
+  border:1px solid var(--gold-d);background:#3b2a12;color:var(--gold-l);
+  font-size:.78rem;line-height:1;
+  opacity:0;transform:scale(.8);transition:opacity .15s,transform .15s,background .15s;
+  box-shadow:0 3px 8px -3px rgba(0,0,0,.8);
+}
+.pcard:hover .pcard__redeal button,
+.pcard__redeal button:focus-visible{opacity:1;transform:scale(1)}
+.pcard__redeal button:hover{background:var(--wine);color:#f8edd1}
+.pcard__redeal button:focus-visible{outline:2px solid var(--gold-l);outline-offset:2px}
+/* No hover on a touch screen, so the handle is simply always there. */
+@media(hover:none){.pcard__redeal button{opacity:1;transform:scale(1)}}
+@media(prefers-reduced-motion:reduce){.pcard__redeal button{transition:none}}

@@ -741,6 +741,10 @@ function ensurePurse(rec) {
 
 function purseAdd(rec, n, why) {
   ensurePurse(rec);
+  // ensurePurse only writes the log when it writes the totals, so a record that
+  // has totals and no log slips past it and the next line would throw. Drawing
+  // a card should never 500 over its own bookkeeping.
+  if (!Array.isArray(rec.purse)) rec.purse = [];
   if (!n) return;
   if (n > 0) rec.earned += n; else rec.spent += -n;
   rec.purse.push({ ts: Date.now(), n: n, why: why });
@@ -1017,7 +1021,7 @@ app.get("/map",(req,res)=>{
 // The card game's rules are explained on the FAQ from the constants that run
 // it, so the page cannot quietly disagree with the game.
 app.get('/faq',(req,res)=>res.render('faq',{day:dayContact(ident(req)),bunkFacts:bunkFacts(),
-  game:{price:CARD_PRICE,days:ROUND_DAYS,tiers:coinTiers(),ladder:coinLadder(),
+  game:{price:CARD_PRICE,redeal:REDEAL_PRICE,days:ROUND_DAYS,tiers:coinTiers(),ladder:coinLadder(),first:coinFirstRound(),
         titles:COIN_TITLES}}));
 app.get('/members/login',(req,res)=>res.render('login',{err:req.query.e||'',code:req.query.code||'',needCode:INVITE_REQUIRED}));
 // /join is the share link. If an invite code is required, ?code=XXXX pre-fills it.
@@ -1697,9 +1701,26 @@ function closeRound(why){
   (db.users||[]).forEach(function(u){ if((u.hand||[]).length)notify('member',u.id,said); });
   (db.patrons||[]).forEach(function(p){ if((p.hand||[]).length&&!p.banned)notify('patron',p.id,said); });
 
-  // Wipe the table. lastRation goes too, so the first card of the new round can
-  // be taken the same evening rather than making everybody wait for tomorrow.
-  function clear(x){ x.hand=[]; x.deck=null; x.pending=null; x.lastCard=null; x.lastRation=null; }
+  /* Wipe the table, but not the chain.
+
+     The cards go; the run of nights does not. Clearing lastRation outright used
+     to reset everybody to night one, which meant the bonus could never climb
+     past five — a hand fills at five cards and you cannot draw on a full hand,
+     so five draws was a whole round and the rule's cap of seven was a rung
+     nobody could reach. Somebody who turns up every single evening should get
+     there.
+
+     Dating the last draw to yesterday rather than clearing it does both jobs at
+     once: the first card of the new round can still be taken the same evening,
+     and the chain reads as unbroken. Only for somebody whose chain was live —
+     a person who last drew a week ago has already broken it, and this must not
+     quietly mend it for them. */
+  function clear(x){
+    var live = x.lastRation===dayKey() || x.lastRation===yesterdayKey();
+    x.hand=[]; x.deck=null; x.pending=null; x.lastCard=null;
+    x.lastRation = live ? yesterdayKey() : null;
+    if(!live) x.streak = 0;
+  }
   (db.users||[]).forEach(clear);
   (db.patrons||[]).forEach(clear);
   save();
@@ -1787,7 +1808,7 @@ app.get('/board',(req,res)=>{
     });
   }
   const polls=db.polls.slice().sort((a,b)=>b.ts-a.ts).map(freshenPost).map(function(p){const total=p.options.reduce((s,o)=>s+o.votes.length,0);const voted=i?!!p.options.find(o=>o.votes.find(v=>v.t===i.t&&v.id===i.id)):false;return Object.assign({},p,{total:total,voted:voted});});
-  res.render('board',{i:i,threads:threads,canPin:mayPin(cur(req)),polls:polls,cats:BOARDCATS,q:req.query,leader:!!(i&&i.leader),ration:{canDraw:!!(i&&i.lastRation!==today),card:i?i.lastCard:null},hand:i?(i.hand||[]).map(cardInfo):[],pending:i&&i.pending?cardInfo(i.pending):null,handRank:i?handRank(i.hand||[]):null,handPrizes:HAND_PRIZES,tableHands:allHands(),cardPrice:CARD_PRICE,roundEnds:roundEnds(),roundDays:ROUND_DAYS,roundNo:db.rounds.length+1,special:SPECIALS[dayOfYear()%SPECIALS.length],gates:countdown(),near:nearness(countdown()),notices:i?(db.notices||[]).filter(function(n){return n.toT===i.t&&n.toId===i.id&&!n.read;}).length:0,folk:pres.folk,quietHrs:quietHrs,editMs:EDIT_WINDOW,editDays:EDIT_DAYS,slugs:slugById(),reacts:REACTS,seenBefore:seenBefore,find:find,found:threads.length});
+  res.render('board',{i:i,threads:threads,canPin:mayPin(cur(req)),polls:polls,cats:BOARDCATS,q:req.query,leader:!!(i&&i.leader),ration:{canDraw:!!(i&&i.lastRation!==today),card:i?i.lastCard:null},hand:i?(i.hand||[]).map(cardInfo):[],pending:i&&i.pending?cardInfo(i.pending):null,handRank:i?handRank(i.hand||[]):null,handPrizes:HAND_PRIZES,tableHands:allHands(),cardPrice:CARD_PRICE,redealPrice:REDEAL_PRICE,roundEnds:roundEnds(),roundDays:ROUND_DAYS,roundNo:db.rounds.length+1,special:SPECIALS[dayOfYear()%SPECIALS.length],gates:countdown(),near:nearness(countdown()),notices:i?(db.notices||[]).filter(function(n){return n.toT===i.t&&n.toId===i.id&&!n.read;}).length:0,folk:pres.folk,quietHrs:quietHrs,editMs:EDIT_WINDOW,editDays:EDIT_DAYS,slugs:slugById(),reacts:REACTS,seenBefore:seenBefore,find:find,found:threads.length});
 });
 app.post('/board/thread',canPost,(req,res)=>{
   const i=ident(req);const body=(req.body.body||'').trim();let category=(req.body.category||'General').trim();
@@ -1967,10 +1988,22 @@ function coinTiers(){
 /* The bonus ladder as it can actually be climbed. The rule caps at seven, but
    a hand fills at five and you cannot draw on a full hand — so the last two
    rungs are unreachable and printing them would be a lie. */
+/* The bonus ladder, all of it. It used to stop at five and say so, because a
+   hand fills at five cards and a round reset the count — the last two rungs
+   existed in the rule and nowhere else. The chain survives a round closing
+   now, so the whole ladder is climbable and the page can print it honestly.
+   Five nights gets you to five; the sixth and seventh come in the round
+   after. */
 function coinLadder(){
   var out=[];
-  for(var n=1;n<=5;n++)out.push(Math.min(n,7));
+  for(var n=1;n<=7;n++)out.push(n);
   return out;
+}
+// What a round is worth from a standing start, which is still five nights.
+function coinFirstRound(){
+  var low=0, high=0;
+  for(var n=1;n<=5;n++){ low+=1+n; high+=3+n; }
+  return {low:low, high:high};
 }
 
 // Five-card stud: you play the cards you were dealt, however many you managed
@@ -2077,6 +2110,18 @@ function dealOne(rec){
 // buying does not buy a *better* card, only a sooner one, since the deal is
 // still random. Patience or coin; either way you end up with five.
 const CARD_PRICE=15;
+
+/* The second thing to spend on, because one sink is not an economy.
+
+   Buying a card early only buys it *sooner* — it never buys a better one. This
+   buys a different one: throw a card back and take the next off your deck. The
+   card you threw does not go back in, so nobody cycles the same deck forever
+   looking for an ace; each re-deal costs you a card as well as the coins.
+
+   Dearer than a card, deliberately. A card off the House is patience you did
+   not have; this is a hand you did not like, and it should cost more than a
+   night of turning up is worth. */
+const REDEAL_PRICE=25;
 app.post('/board/hand/buy',canPost,(req,res)=>{
   var i=ident(req);var rec=holder(i);
   if(!rec)return res.redirect('/board');
@@ -2094,6 +2139,33 @@ app.post('/board/hand/buy',canPost,(req,res)=>{
   // turning up, and buying a card is not turning up.
   save();
   var done=maybeCloseRound();      // a bought card can fill the table too
+  res.redirect(done?('/board/roll?closed='+done.n):'/board#hand');
+});
+app.post('/board/hand/redeal',canPost,(req,res)=>{
+  var i=ident(req);var rec=holder(i);
+  if(!rec)return res.redirect('/board');
+  var code=String(req.body.card||'');
+  var at=(rec.hand||[]).indexOf(code);
+  if(at<0)return res.redirect('/board#hand');
+  if((rec.coins||0)<REDEAL_PRICE)
+    return res.redirect('/board?e='+encodeURIComponent('A re-deal costs '+REDEAL_PRICE+' coins and you have '+(rec.coins||0)+'.')+'#hand');
+  // Nothing left to draw from would make this a way to pay for the same card
+  // back, so it is refused rather than fudged.
+  if(!Array.isArray(rec.deck)||!rec.deck.length){
+    var held=(rec.hand||[]).concat(rec.pending?[rec.pending]:[]);
+    rec.deck=shuffle(freshDeck().filter(function(c){return held.indexOf(c)<0;}));
+  }
+  ensurePurse(rec);
+  rec.coins=(rec.coins||0)-REDEAL_PRICE;
+  var out=cardInfo(code);
+  var card=dealOne(rec);                       // the discard does not go back
+  rec.hand[at]=card;
+  var got=cardInfo(card);
+  purseAdd(rec,-REDEAL_PRICE,'Threw back the '+out.label+' of '+out.suitName+' for the '+got.label+' of '+got.suitName);
+  // deliberately does NOT touch lastRation or streak, for the same reason
+  // buying a card does not: the streak is for turning up.
+  save();
+  var done=maybeCloseRound();
   res.redirect(done?('/board/roll?closed='+done.n):'/board#hand');
 });
 app.post('/board/ration',canPost,(req,res)=>{
