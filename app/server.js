@@ -650,26 +650,42 @@ app.get('/weekend',(req,res)=>{
 // page.
 if(!Array.isArray(db.photos))db.photos=[];
 const PHOTO_MAX=300;
-function shrinkPhoto(req,res,next){
-  if(!req.file)return next();
-  var p=req.file.path, input;
-  try{ input=fs.readFileSync(p); }
-  catch(e){ req.photoBad='could not be read'; return next(); }
-  sharp(input).rotate().resize(1600,1600,{fit:'inside',withoutEnlargement:true})
-    .jpeg({quality:78,mozjpeg:true}).toBuffer()
-    .then(function(full){
-      fs.writeFileSync(p,full);
-      return sharp(input).rotate().resize(500,500,{fit:'cover',position:sharp.strategy.attention})
+/* Every uploaded picture is re-encoded before it is kept: turned the right way
+   up, capped at 1600px, and given a 500px square thumbnail. It handles a whole
+   batch now rather than a single file.
+
+   One bad picture in a batch of twenty must not lose the other nineteen, so
+   each is dealt with on its own and the failures are counted rather than
+   thrown. And they go through one after another, not all at once: forty phone
+   photographs through sharp in parallel is a memory spike on a small box, and
+   nobody minds waiting a moment for forty pictures. */
+async function shrinkPhoto(req,res,next){
+  var files=req.files ? req.files.slice() : (req.file ? [req.file] : []);
+  req.shots=[]; req.photoDropped=0;
+  for(var n=0;n<files.length;n++){
+    var f=files[n], input;
+    try{ input=fs.readFileSync(f.path); }
+    catch(e){ req.photoDropped++; continue; }
+    try{
+      var full=await sharp(input).rotate().resize(1600,1600,{fit:"inside",withoutEnlargement:true})
+        .jpeg({quality:78,mozjpeg:true}).toBuffer();
+      fs.writeFileSync(f.path,full);
+      var thumb=await sharp(input).rotate().resize(500,500,{fit:"cover",position:sharp.strategy.attention})
         .jpeg({quality:72,mozjpeg:true}).toBuffer();
-    })
-    .then(function(thumb){ fs.writeFileSync(p+'t',thumb); req.thumbName=req.file.filename+'t'; next(); })
-    .catch(function(e){
-      // Not something sharp could open, whatever it claimed to be. Throw it
-      // away rather than leave an unprocessed file sitting in uploads.
-      try{ fs.unlinkSync(p); }catch(x){}
-      req.file=null; req.photoBad='was not a picture we could read';
-      next();
-    });
+      fs.writeFileSync(f.path+"t",thumb);
+      req.shots.push({file:f.filename,thumb:f.filename+"t"});
+    }catch(e){
+      // Not something sharp could open, whatever it claimed to be. Thrown away
+      // rather than left sitting unprocessed in uploads.
+      try{ fs.unlinkSync(f.path); }catch(x){}
+      req.photoDropped++;
+    }
+  }
+  // The single-file uploads elsewhere — an avatar, a picture for your own page
+  // — still read req.file and req.thumbName, so those keep working unchanged.
+  if(req.shots.length) req.thumbName=req.shots[0].thumb;
+  else if(req.file){ req.file=null; req.photoBad="was not a picture we could read"; }
+  next();
 }
 function galleryWall(){
   return (db.photos||[]).slice().sort(function(a,b){return b.ts-a.ts;}).map(function(ph){
@@ -684,14 +700,41 @@ app.get('/gallery',(req,res)=>{
   res.render('gallery',{i:i,photos:galleryWall(),q:req.query,
     leader:!!(i&&i.leader),canAdd:!!i,max:PHOTO_MAX});
 });
-app.post('/gallery/add',canPost,up.single('photo'),shrinkPhoto,(req,res)=>{
+/* Up to twenty at a press. Twenty because it is an evening's worth from a
+   phone, and because the whole batch is one request that has to finish before
+   the page comes back — forty at a time on a bad connection is a form that
+   looks broken while it is working.
+
+   The caption goes on all of them, which is what a batch from one moment
+   actually wants: "Saturday by the fire" written once across the nine
+   pictures of it. */
+app.post('/gallery/add',canPost,up.array('photo',20),shrinkPhoto,(req,res)=>{
   const i=ident(req);
-  if(req.photoBad||!req.file)return res.redirect('/gallery?e='+encodeURIComponent('That '+(req.photoBad||'did not come through')+'. Try another.'));
-  if((db.photos||[]).length>=PHOTO_MAX)return res.redirect('/gallery?e='+encodeURIComponent('The wall is full. Ask the Guild Leader to clear some space.'));
-  db.photos.push({id:nid(),byT:i.t,byId:i.id,byName:i.name,byAvatar:i.avatar||'',
-    file:'/uploads/'+req.file.filename, thumb:'/uploads/'+(req.thumbName||req.file.filename),
-    caption:String(req.body.caption||'').trim().slice(0,140), ts:Date.now()});
-  save();res.redirect('/gallery?added=1');
+  const room=PHOTO_MAX-(db.photos||[]).length;
+  if(room<=0)return res.redirect('/gallery?e='+encodeURIComponent('The wall is full. Ask the Guild Leader to clear some space.'));
+  if(!req.shots.length)
+    return res.redirect('/gallery?e='+encodeURIComponent(req.photoDropped
+      ? 'Nothing there was a picture we could read. Try another.'
+      : 'Nothing came through. Pick a picture and try again.'));
+
+  // If more were picked than the wall can hold, the ones that fit still go up
+  // and the rest are said out loud rather than silently dropped.
+  const going=req.shots.slice(0,room), noRoom=req.shots.slice(room);
+  const caption=String(req.body.caption||'').trim().slice(0,140);
+  going.forEach(function(sh){
+    db.photos.push({id:nid(),byT:i.t,byId:i.id,byName:i.name,byAvatar:i.avatar||'',
+      file:'/uploads/'+sh.file, thumb:'/uploads/'+sh.thumb,
+      caption:caption, ts:Date.now()});
+  });
+  // Anything that could not be hung does not get left lying in uploads.
+  noRoom.forEach(function(sh){
+    try{ fs.unlinkSync(path.join(__dirname,"uploads",sh.file)); }catch(e){}
+    try{ fs.unlinkSync(path.join(__dirname,"uploads",sh.thumb)); }catch(e){}
+  });
+  save();
+  res.redirect('/gallery?added='+going.length+
+    (req.photoDropped?'&skipped='+req.photoDropped:'')+
+    (noRoom.length?'&full='+noRoom.length:''));
 });
 /* Add a picture from your own page rather than trekking to the photo wall.
    Same store and the same path through shrinkPhoto, so it is shrunk and has
