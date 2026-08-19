@@ -1142,6 +1142,178 @@ app.get('/members/admin/backup',al,(req,res)=>{
 });
 app.post('/members/admin/promote',al,(req,res)=>{const u=db.users.find(x=>x.id===parseInt(req.body.id));if(u&&u.pledge){u.pledge=false;notify('member',u.id,'You have been accepted into the House of Card and Coin. You are a Guildmate now — the camp bunks are yours to claim.');save();}res.redirect('/members#admin');});
 app.post('/members/admin/demote',al,(req,res)=>{const u=db.users.find(x=>x.id===parseInt(req.body.id));if(u&&u.role!=='leader'){u.pledge=true;save();}res.redirect('/members#admin');});
+
+/* Handing somebody the keys.
+
+   Every other thing about a member could be set from this panel — title,
+   faires, berth, password, whether they are a pledge — except the one field
+   that actually grants administration. Doing it meant stopping the app and
+   editing the data file by hand, which is no way to run a guild.
+
+   Two guards, and they are the ones that matter. Nobody may change their own
+   role, which removes the whole class of accident where somebody clicks the
+   wrong button and locks themselves out of their own House. And the last
+   leader can never be taken off, so there is always somebody holding a key. */
+app.post('/members/admin/role',al,(req,res)=>{
+  const me=cur(req);
+  const u=db.users.find(x=>x.id===parseInt(req.body.id,10));
+  const make=req.body.make==='leader'?'leader':'member';
+  const bounce=m=>res.redirect('/members?e='+encodeURIComponent(m)+'#admin');
+  if(!u)return res.redirect('/members#admin');
+  if(u.id===me.id)return bounce('Change somebody else’s role, not your own.');
+  if(make==='leader'&&u.pledge)return bounce('Accept them into the guild first — a pledge cannot hold the keys.');
+  if(make==='member'&&db.users.filter(x=>x.role==='leader').length<=1)
+    return bounce('That is the only leader left. Give somebody else the keys before taking these.');
+  if(u.role===make)return res.redirect('/members#admin');
+  u.role=make;
+  notify('member',u.id,make==='leader'
+    ? 'You have been given the keys to the House. Administration now appears in your Guild Hall.'
+    : 'Your administrator access has been withdrawn. Nothing else about your account has changed.');
+  save();
+  res.redirect('/members?role='+encodeURIComponent(u.name+(make==='leader'?' now holds the keys':' no longer holds the keys'))+'#admin');
+});
+
+/* Folding two accounts into one.
+
+   It happens when somebody cannot get into their account and simply signs up
+   again: two records, one holding the history and one holding the password
+   they actually know. Done by hand twice now, and it will happen again.
+
+   The shape is always the same, and this is it. The record you keep holds who
+   they are to the guild — their name, their faires, their berth, their title.
+   The record being retired gives up its login, so afterwards they sign in with
+   the password that already works for them.
+
+   The role is never inherited. A merge cannot hand out administration by
+   accident, whichever account was which.
+
+   Everything either of them ever did is repointed at the survivor before the
+   other record goes: bunks, bring-list claims, notes and replies and the
+   reactions on them, poll votes, photographs, signatures on scrolls, vouches,
+   whispers, notices, and the hands written into rounds already closed. Where
+   repointing would leave a person doing something twice — two claims on one
+   bunk, two places in one queue, the same reaction twice — it collapses to
+   one. */
+function mergeMembers(keepId,retireId){
+  const keep=db.users.find(x=>x.id===keepId), gone=db.users.find(x=>x.id===retireId);
+  if(!keep||!gone||keep.id===gone.id)return null;
+  const report={kept:keep.name,retired:gone.name,moved:[],repointed:0,collapsed:0};
+
+  keep.email=gone.email; keep.passhash=gone.passhash;
+  report.moved.push('the login');
+
+  // Purses add up — nobody loses coin they turned up for.
+  const coins=(keep.coins||0)+(gone.coins||0);
+  if(coins||gone.earned){
+    keep.coins=coins;
+    keep.earned=(keep.earned||0)+(gone.earned||0);
+    keep.spent=(keep.spent||0)+(gone.spent||0);
+    keep.purse=[].concat(keep.purse||[],gone.purse||[])
+      .sort(function(a,b){return (a.ts||0)-(b.ts||0);}).slice(-PURSE_KEEP);
+    report.moved.push(coins+' coins');
+  }
+  // Two hands cannot be shuffled into one, so the fuller hand wins outright
+  // and brings its deck and its streak with it.
+  if((gone.hand||[]).length>(keep.hand||[]).length){
+    ['hand','deck','lastCard','lastRation','streak','pending','bought'].forEach(function(k){ keep[k]=gone[k]; });
+    report.moved.push((gone.hand||[]).length+'-card hand');
+  }
+  // Blanks filled in from the retired record; nothing already set is overwritten.
+  ['avatar','class','berth','contactEmail','phone','motto','about','title'].forEach(function(k){
+    if(!keep[k]&&gone[k]){ keep[k]=gone[k]; report.moved.push(k); }
+  });
+  keep.faires=Math.max(keep.faires||0,gone.faires||0);
+  keep.rsvp=!!(keep.rsvp||gone.rsvp);
+  if(keep.pledge&&!gone.pledge)keep.pledge=false;   // accepted under either name is accepted
+
+  const swap=function(id){ if(id===retireId){ report.repointed++; return keepId; } return id; };
+  (db.bunks||[]).forEach(function(b){ b.userId=swap(b.userId); });
+  (db.waitlist||[]).forEach(function(w){ w.userId=swap(w.userId); });
+  (db.claims||[]).forEach(function(c){ c.userId=swap(c.userId); });
+  (db.photos||[]).forEach(function(p){ if(p.byT==='member')p.byId=swap(p.byId); });
+  (db.wall||[]).forEach(function(w){ w.toId=swap(w.toId); if(w.fromT==='member')w.fromId=swap(w.fromId); });
+  (db.vouches||[]).forEach(function(v){ v.forId=swap(v.forId); v.byId=swap(v.byId); });
+  (db.notices||[]).forEach(function(n){ if(n.toT==='member')n.toId=swap(n.toId); });
+  (db.whispers||[]).forEach(function(w){
+    if(w.fromT==='member')w.fromId=swap(w.fromId);
+    if(w.toT==='member')w.toId=swap(w.toId);
+  });
+  (db.rounds||[]).forEach(function(r){ (r.hands||[]).forEach(function(h){ if(h.kind==='member')h.id=swap(h.id); }); });
+
+  function once(list){
+    const seen={};
+    return (list||[]).filter(function(v){
+      const k=(v&&v.t)+':'+(v&&v.id);
+      if(seen[k]){ report.collapsed++; return false; }
+      seen[k]=1; return true;
+    });
+  }
+  function fixReacts(o){
+    Object.keys(o.reacts||{}).forEach(function(e){
+      o.reacts[e]=once((o.reacts[e]||[]).map(function(v){
+        return (v&&v.t==='member'&&v.id===retireId)?(report.repointed++,{t:'member',id:keepId}):v;
+      }));
+    });
+  }
+  function fixVotes(host){
+    (host.options||[]).forEach(function(o){
+      o.votes=once((o.votes||[]).map(function(v){
+        return (v&&v.t==='member'&&v.id===retireId)?(report.repointed++,{t:'member',id:keepId}):v;
+      }));
+    });
+  }
+  (db.threads||[]).forEach(function(t){
+    if(t.authorType==='member')t.authorId=swap(t.authorId);
+    fixReacts(t); fixVotes(t);
+    (t.replies||[]).forEach(function(r){
+      if(r.authorType==='member')r.authorId=swap(r.authorId);
+      fixReacts(r);
+    });
+  });
+  (db.polls||[]).forEach(fixVotes);
+
+  function dedupe(list,key){
+    const seen={};
+    return (list||[]).filter(function(x){
+      const k=key(x);
+      if(seen[k]){ report.collapsed++; return false; }
+      seen[k]=1; return true;
+    });
+  }
+  // One bed per person per night, one place in a queue, one claim per item,
+  // and nobody vouching for themselves.
+  db.bunks=dedupe(db.bunks,function(b){return b.night+'|'+b.userId;});
+  db.waitlist=dedupe(db.waitlist,function(w){return w.night+'|'+w.userId;});
+  db.claims=dedupe(db.claims,function(c){return c.itemId+'|'+c.userId;});
+  db.vouches=dedupe((db.vouches||[]).filter(function(v){
+    if(v.forId===v.byId){ report.collapsed++; return false; }
+    return true;
+  }),function(v){return v.forId+'|'+v.byId;});
+
+  db.users=db.users.filter(function(x){ return x.id!==retireId; });
+  save();
+  return report;
+}
+
+app.post('/members/admin/merge',al,(req,res)=>{
+  const keepId=parseInt(req.body.keep,10), retireId=parseInt(req.body.retire,10);
+  const bounce=m=>res.redirect('/members?e='+encodeURIComponent(m)+'#admin');
+  if(!keepId||!retireId)return bounce('Pick both accounts.');
+  if(keepId===retireId)return bounce('Those are the same account.');
+  const keep=db.users.find(x=>x.id===keepId), gone=db.users.find(x=>x.id===retireId);
+  if(!keep||!gone)return res.redirect('/members#admin');
+  if(gone.role==='leader')
+    return bounce('Take the keys off '+gone.name+' before retiring that account.');
+  if(gone.id===cur(req).id)
+    return bounce('That is the account you are signed in with. Sign in as the other one first.');
+  const r=mergeMembers(keepId,retireId);
+  if(!r)return res.redirect('/members#admin');
+  res.redirect('/members?merged='+encodeURIComponent(
+    r.retired+' folded into '+r.kept+' — '+r.moved.join(', ')+' carried across, '+
+    r.repointed+' record'+(r.repointed===1?'':'s')+' repointed'+
+    (r.collapsed?', '+r.collapsed+' duplicate'+(r.collapsed===1?'':'s')+' collapsed':'')
+  )+'#admin');
+});
 // Someone taps Claim, realises they don't need the night, and never releases
 // it — the bunk then sits dead. The Guild Leader can free any of them, and it
 // passes to the waitlist exactly as a voluntary release does.
