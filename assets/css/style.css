@@ -1294,3 +1294,36 @@ footer :where(a,button):focus-visible{
    ever added back. */
 .bunkgrid{display:grid;gap:22px;grid-template-columns:repeat(auto-fit,minmax(260px,1fr))}
 @media(max-width:620px){.bunkgrid{gap:16px;grid-template-columns:1fr}}
+
+/* ── The forecast for the weekend ───────────────────────────────────────────
+   Sits above the twenty-six years of history on the camp page and hides itself
+   entirely until there is a real forecast to show — the source only looks
+   sixteen days out, so for most of the year there is nothing true to say. */
+.fc[hidden]{display:none}
+.fc{
+  margin:14px 0 16px;padding:14px 16px;border-radius:4px;
+  background:linear-gradient(180deg,rgba(226,199,127,.16),rgba(226,199,127,.06));
+  border:1px solid var(--gold-d);
+}
+.fc__lede{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin:0 0 10px}
+.fc__lede b{font-family:var(--display);font-size:.72rem;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--wine)}
+.fc__note{font-size:.72rem;color:var(--muted);font-style:italic}
+.fc__days{list-style:none;margin:0;padding:0;display:grid;gap:8px;
+  grid-template-columns:repeat(auto-fit,minmax(170px,1fr))}
+.fc__day{
+  display:flex;flex-direction:column;gap:2px;
+  background:var(--ivory);border:1px solid var(--line);border-radius:3px;padding:10px 12px;
+}
+.fc__when{font-family:var(--display);font-size:.66rem;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--muted)}
+.fc__temp{display:flex;align-items:baseline;gap:8px}
+.fc__temp b{font-family:var(--display);font-size:1.5rem;color:var(--wine);
+  font-variant-numeric:tabular-nums;line-height:1.1}
+.fc__temp small{font-size:.76rem;color:var(--muted);font-variant-numeric:tabular-nums}
+.fc__sky{font-size:.86rem;color:var(--ink2);display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
+.fc__rain{color:var(--wine);font-size:.78rem;font-weight:600}
+.fc__says{margin:11px 0 0;font-size:.92rem;line-height:1.62;color:var(--ink2)}
+.fc__says b{color:var(--wine)}
+/* On the weekend page the block sits on the dark parchment of its neighbours. */
+.wk-block.fc{background:linear-gradient(180deg,rgba(226,199,127,.2),rgba(226,199,127,.07))}

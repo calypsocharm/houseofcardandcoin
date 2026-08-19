@@ -212,7 +212,7 @@ app.use((req,res,next)=>BLOCKED.test(req.path)?res.status(404).send('Not found')
 // to reach their own profile. So the stamp is rewritten here at serve time from
 // the real file mtimes, and never has to be remembered again.
 const ASSET_FILES=['assets/css/style.css','assets/css/tavern.css','assets/css/profile.css','assets/css/gallery.css','assets/css/weekend.css','assets/css/pigeon.css','assets/css/map.css',
-  'assets/js/nav.js','assets/js/countdown.js','assets/js/hero-video.js','assets/js/avatar-crop.js','assets/js/dress.js','assets/js/gallery.js','assets/js/player.js','assets/js/pigeon.js','assets/js/map-live.js','assets/js/map-sound.js'];
+  'assets/js/nav.js','assets/js/countdown.js','assets/js/hero-video.js','assets/js/avatar-crop.js','assets/js/dress.js','assets/js/gallery.js','assets/js/player.js','assets/js/pigeon.js','assets/js/map-live.js','assets/js/map-sound.js','assets/js/forecast.js'];
 function assetVersion(){
   let newest=0;
   ASSET_FILES.forEach(function(f){
@@ -2233,6 +2233,65 @@ app.get('/board/notices',canPost,(req,res)=>{var i=ident(req);var mine=(db.notic
 app.get('/board/whispers',canPost,(req,res)=>{var i=ident(req);var mine=(db.whispers||[]).filter(function(w){return (w.fromT===i.t&&w.fromId===i.id)||(w.toT===i.t&&w.toId===i.id);});var conv={};mine.forEach(function(w){var other=(w.fromT===i.t&&w.fromId===i.id)?{t:w.toT,id:w.toId}:{t:w.fromT,id:w.fromId};var k=other.t+':'+other.id;if(!conv[k]||w.ts>conv[k].last.ts)conv[k]={other:other,last:w};});var list=Object.keys(conv).map(function(k){var c=conv[k];var p=party(c.other.t,c.other.id)||{name:'A stranger',avatar:''};var unread=mine.filter(function(w){return w.toT===i.t&&w.toId===i.id&&w.fromT===c.other.t&&w.fromId===c.other.id&&!w.read;}).length;return {other:c.other,last:c.last,name:p.name,avatar:p.avatar,unread:unread};}).sort(function(a,b){return b.last.ts-a.last.ts;});res.render('whispers',{i:i,conv:list});});
 app.get('/board/whisper/:t/:id',canPost,(req,res)=>{var i=ident(req);var ot=req.params.t,oid=parseInt(req.params.id);if(ot===i.t&&oid===i.id)return res.redirect('/board/whispers');if(ot!=='member'&&ot!=='patron')return res.redirect('/board/whispers');var p=party(ot,oid);if(!p)return res.redirect('/board/whispers');var msgs=(db.whispers||[]).filter(function(w){return ((w.fromT===i.t&&w.fromId===i.id&&w.toT===ot&&w.toId===oid)||(w.fromT===ot&&w.fromId===oid&&w.toT===i.t&&w.toId===i.id));}).sort(function(a,b){return a.ts-b.ts;});db.whispers.forEach(function(w){if(w.fromT===ot&&w.fromId===oid&&w.toT===i.t&&w.toId===i.id)w.read=true;});save();res.render('whisper',{i:i,other:{t:ot,id:oid,name:p.name,avatar:p.avatar},msgs:msgs});});
 app.post('/board/whisper/:t/:id',canPost,(req,res)=>{var i=ident(req);var ot=req.params.t,oid=parseInt(req.params.id);if(ot===i.t&&oid===i.id)return res.redirect('/board/whispers');var body=(req.body.body||'').trim();if(!body)return res.redirect('/board/whisper/'+ot+'/'+oid);if(!Array.isArray(db.whispers))db.whispers=[];db.whispers.push({id:nid(),fromT:i.t,fromId:i.id,toT:ot,toId:oid,body:body,ts:Date.now(),read:false});notify(ot,oid,i.name+' whispered you');save();res.redirect('/board/whisper/'+ot+'/'+oid);});
+
+/* ── The forecast, once there is one ────────────────────────────────────────
+   The camp page has twenty-six years of history on it — that weekend has run
+   78°F to 97°F — which is the honest answer in August and the wrong one on the
+   6th of October, when there is a real forecast to be had and everybody is
+   deciding what to pack.
+
+   Same source as the history: Open-Meteo, no key, over the middle of Sunset
+   Park. It only looks sixteen days ahead, so this says nothing at all until
+   late September and the history stands alone until then. Nothing is ever
+   asked of it more than once every three hours, and if it cannot be reached
+   the page simply carries on without it — a forecast is a nicety and must
+   never be a reason a page fails to draw. */
+const PARK={lat:36.070,lon:-115.110};
+const FAIRE_DAYS=['2026-10-09','2026-10-10','2026-10-11'];
+const SKY={0:'clear',1:'mostly clear',2:'partly cloudy',3:'overcast',
+  45:'fog',48:'freezing fog',51:'light drizzle',53:'drizzle',55:'heavy drizzle',
+  61:'light rain',63:'rain',65:'heavy rain',66:'freezing rain',67:'freezing rain',
+  71:'light snow',73:'snow',75:'heavy snow',77:'snow grains',
+  80:'light showers',81:'showers',82:'heavy showers',
+  95:'thunderstorms',96:'thunderstorms with hail',99:'thunderstorms with hail'};
+let skyCache={at:0,data:null};
+async function faireForecast(){
+  if(skyCache.data&&Date.now()-skyCache.at<3*3600*1000)return skyCache.data;
+  const url='https://api.open-meteo.com/v1/forecast'+
+    '?latitude='+PARK.lat+'&longitude='+PARK.lon+
+    '&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max,weather_code'+
+    '&temperature_unit=fahrenheit&timezone=America%2FLos_Angeles&forecast_days=16';
+  let out={ok:true,inRange:false,days:[]};
+  try{
+    const r=await fetch(url,{headers:{'User-Agent':'houseofcardandcoin.com camp page'}});
+    if(!r.ok)throw new Error('open-meteo '+r.status);
+    const j=await r.json();
+    const t=(j.daily&&j.daily.time)||[];
+    FAIRE_DAYS.forEach(function(d){
+      const n=t.indexOf(d);
+      if(n<0)return;
+      out.days.push({
+        date:d,
+        high:Math.round(j.daily.temperature_2m_max[n]),
+        low:Math.round(j.daily.temperature_2m_min[n]),
+        rain:j.daily.precipitation_probability_max?j.daily.precipitation_probability_max[n]:null,
+        sky:SKY[j.daily.weather_code[n]]||''
+      });
+    });
+    out.inRange=out.days.length>0;
+  }catch(e){
+    console.log('forecast unavailable:',e.message);
+    out={ok:false,inRange:false,days:[]};
+  }
+  // A failure is cached too, briefly, so a source that is down is not hammered
+  // by every visitor who opens the camp page.
+  skyCache={at:Date.now(),data:out};
+  return out;
+}
+app.get('/api/weather',async(req,res)=>{
+  res.set('Cache-Control','public, max-age=1800');
+  res.json(await faireForecast());
+});
 
 app.get('/api/map',(req,res)=>{res.set('Cache-Control','no-store');res.json(mapLive());});
 app.get('/health',(req,res)=>res.json({ok:true,t:Date.now()}));// A wrong URL used to hit Express's default and print "Cannot GET /whatever"

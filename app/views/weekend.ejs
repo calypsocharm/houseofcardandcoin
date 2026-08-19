@@ -102,6 +102,8 @@
     </ol>
   </div>
 
+  <div class="wk-block fc" data-forecast hidden></div>
+
   <!-- ── who sleeps where ──────────────────────────────────────────────── -->
   <div class="wk-block wk-block--bunk">
     <h2><i aria-hidden="true">🛏️</i> Who sleeps where</h2>
@@ -156,4 +158,5 @@
 
 </div></section>
 
+<script defer src="/assets/js/forecast.js?v=<%= typeof assetv!=='undefined'?assetv:'1' %>"></script>
 <%- include('_bot') %>
