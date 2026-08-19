@@ -815,6 +815,7 @@ app.post('/guild/:slug/vouch',au,(req,res)=>{
   notify('member',them.id,me.name+' has spoken for you to the House.');
   const leader=db.users.find(function(x){return x.role==='leader';});
   if(leader&&leader.id!==me.id)notify('member',leader.id,me.name+' vouched for '+them.name+' — a pledge awaiting your word.');
+  tellHer(me.name+' spoke for '+them.name+', a pledge waiting on your word.');
   save();res.redirect(back);
 });
 app.post('/guild/vouch/:id/withdraw',au,(req,res)=>{
@@ -1145,6 +1146,9 @@ app.get('/join',(req,res)=>res.render('login',{err:req.query.e||'',code:req.quer
    people who might know the newcomer are never told there is one. So every
    sworn guildmate hears about it, with the ask attached. */
 function tellTheHouse(newcomer){
+  /* And a word to the Guild Leader, because a pledge is hers to accept or
+     not and nothing else on the site would ever tell her they had arrived. */
+  tellHer(newcomer.name+' made an account and stands as a pledge. Accept them, or leave them be.');
   db.users.forEach(function(u){
     if(u.id===newcomer.id||u.pledge) return;
     notify("member",u.id,newcomer.name+" has pledged to the House. If you know them, speak for them on their page.");
@@ -1313,6 +1317,14 @@ app.post('/members/bunk/release',au,(req,res)=>{
   const had=db.bunks.find(x=>x.night===night&&x.bunk===bunk&&x.userId===u.id);
   db.bunks=db.bunks.filter(x=>!(x.night===night&&x.bunk===bunk&&x.userId===u.id));
   if(had)fillFromWaitlist(night,bunk,u.id);
+  /* Worth knowing at any time and worth knowing badly in the last fortnight,
+     when a freed bed is somebody else's weekend. Said either way; the count
+     of days does the explaining. */
+  if(had){
+    var _g=countdown();
+    tellHer(u.name+' gave back '+night+', bunk '+bunk+'.'+
+      (_g.days!=null?' '+_g.days+' days to go.':''));
+  }
   save();res.redirect('/members#bunks');
 });
 // Waiting for a bunk is only worth anything if you could hold one.
@@ -1384,6 +1396,68 @@ app.post('/members/admin/role',al,(req,res)=>{
   save();
   res.redirect('/members?role='+encodeURIComponent(u.name+(make==='leader'?' now holds the keys':' no longer holds the keys'))+'#admin');
 });
+
+/* ── Word to the Guild Leader ───────────────────────────────────────────────
+   The House tells the guild what they missed. It told her nothing: somebody
+   made an account, a guildmate whispered her, a bunk came free two days before
+   the faire — and she found out by happening to look.
+
+   It goes by the pigeon's own road. The contact form already posts to Formspree
+   and Formspree already emails her, so there is no new service, no new address
+   and nothing for her to set up. If that endpoint is ever unset, everything
+   below quietly queues and nothing is sent.
+
+   Not one email per event, though. Formspree's free tier counts submissions by
+   the month and the pigeon shares it, so lines are gathered and go out together
+   at most once an hour. A quiet week costs one message; a busy evening costs
+   one message. The queue is kept in the data, so a restart cannot lose it. */
+const TELL_GAP=60*60*1000;         // no more than one message an hour
+function tellHer(line){
+  if(!Array.isArray(db.outbox))db.outbox=[];
+  db.outbox.push({ts:Date.now(),line:String(line||'').slice(0,300)});
+  if(db.outbox.length>60)db.outbox=db.outbox.slice(-60);
+  save();
+  flushOutbox();
+}
+async function flushOutbox(){
+  if(!Array.isArray(db.outbox)||!db.outbox.length)return;
+  const ep=process.env.FORMSPREE_ENDPOINT;
+  if(!ep)return;                                   // nothing to send it down
+  if(Date.now()-(db.lastTold||0)<TELL_GAP)return;  // not yet
+  const lines=db.outbox.slice();
+  const when=function(t){ return new Date(t).toLocaleString('en-US',{timeZone:'America/Los_Angeles',
+    month:'short',day:'numeric',hour:'numeric',minute:'2-digit'}); };
+  const body=lines.map(function(x){ return when(x.ts)+' — '+x.line; }).join('\n');
+  try{
+    const r=await fetch(ep,{method:'POST',
+      headers:{'Content-Type':'application/json','Accept':'application/json'},
+      body:JSON.stringify({
+        _subject:'House of Card and Coin — '+lines.length+' thing'+(lines.length===1?'':'s')+' for you',
+        What:body,
+        Where:'https://houseofcardandcoin.com/members#admin'
+      })});
+    if(!r.ok)throw new Error('formspree '+r.status);
+    db.outbox=[]; db.lastTold=Date.now(); save();
+  }catch(e){
+    // Left in the queue to go with the next one rather than thrown away.
+    console.log('could not send word to the Guild Leader:',e.message);
+  }
+}
+/* The last line of a quiet spell would otherwise sit in the queue until the
+   next thing happened, which could be days. A quarter-hour check sends it.
+   Nothing here restarts or touches anything — it looks at a queue. */
+setInterval(function(){
+  flushOutbox();
+  // And the backup, which she would otherwise only see by opening the panel.
+  const b=backupHealth();
+  const today=dayKey();
+  if(b.known && !b.good && db.toldBackup!==today){
+    db.toldBackup=today;
+    tellHer(b.stale
+      ? 'The nightly backup has not run for '+b.hours+' hours. The job has stopped.'
+      : 'Last night’s backup failed: '+b.note+'. Nothing old was deleted, so the last good copy is still there.');
+  }
+},15*60*1000);
 
 /* Whether last night's backup happened, and whether it was any good.
 
@@ -2578,7 +2652,7 @@ function countdown(){
 app.get('/board/notices',canPost,(req,res)=>{var i=ident(req);var mine=(db.notices||[]).filter(function(n){return n.toT===i.t&&n.toId===i.id;}).sort(function(a,b){return b.ts-a.ts;});db.notices.forEach(function(n){if(n.toT===i.t&&n.toId===i.id)n.read=true;});save();res.render('notices',{i:i,notices:mine});});
 app.get('/board/whispers',canPost,(req,res)=>{var i=ident(req);var mine=(db.whispers||[]).filter(function(w){return (w.fromT===i.t&&w.fromId===i.id)||(w.toT===i.t&&w.toId===i.id);});var conv={};mine.forEach(function(w){var other=(w.fromT===i.t&&w.fromId===i.id)?{t:w.toT,id:w.toId}:{t:w.fromT,id:w.fromId};var k=other.t+':'+other.id;if(!conv[k]||w.ts>conv[k].last.ts)conv[k]={other:other,last:w};});var list=Object.keys(conv).map(function(k){var c=conv[k];var p=party(c.other.t,c.other.id)||{name:'A stranger',avatar:''};var unread=mine.filter(function(w){return w.toT===i.t&&w.toId===i.id&&w.fromT===c.other.t&&w.fromId===c.other.id&&!w.read;}).length;return {other:c.other,last:c.last,name:p.name,avatar:p.avatar,unread:unread};}).sort(function(a,b){return b.last.ts-a.last.ts;});res.render('whispers',{i:i,conv:list});});
 app.get('/board/whisper/:t/:id',canPost,(req,res)=>{var i=ident(req);var ot=req.params.t,oid=parseInt(req.params.id);if(ot===i.t&&oid===i.id)return res.redirect('/board/whispers');if(ot!=='member'&&ot!=='patron')return res.redirect('/board/whispers');var p=party(ot,oid);if(!p)return res.redirect('/board/whispers');var msgs=(db.whispers||[]).filter(function(w){return ((w.fromT===i.t&&w.fromId===i.id&&w.toT===ot&&w.toId===oid)||(w.fromT===ot&&w.fromId===oid&&w.toT===i.t&&w.toId===i.id));}).sort(function(a,b){return a.ts-b.ts;});db.whispers.forEach(function(w){if(w.fromT===ot&&w.fromId===oid&&w.toT===i.t&&w.toId===i.id)w.read=true;});save();res.render('whisper',{i:i,other:{t:ot,id:oid,name:p.name,avatar:p.avatar},msgs:msgs});});
-app.post('/board/whisper/:t/:id',canPost,(req,res)=>{var i=ident(req);var ot=req.params.t,oid=parseInt(req.params.id);if(ot===i.t&&oid===i.id)return res.redirect('/board/whispers');var body=(req.body.body||'').trim();if(!body)return res.redirect('/board/whisper/'+ot+'/'+oid);if(!Array.isArray(db.whispers))db.whispers=[];db.whispers.push({id:nid(),fromT:i.t,fromId:i.id,toT:ot,toId:oid,body:body,ts:Date.now(),read:false});notify(ot,oid,i.name+' whispered you');save();res.redirect('/board/whisper/'+ot+'/'+oid);});
+app.post('/board/whisper/:t/:id',canPost,(req,res)=>{var i=ident(req);var ot=req.params.t,oid=parseInt(req.params.id);if(ot===i.t&&oid===i.id)return res.redirect('/board/whispers');var body=(req.body.body||'').trim();if(!body)return res.redirect('/board/whisper/'+ot+'/'+oid);if(!Array.isArray(db.whispers))db.whispers=[];db.whispers.push({id:nid(),fromT:i.t,fromId:i.id,toT:ot,toId:oid,body:body,ts:Date.now(),read:false});notify(ot,oid,i.name+' whispered you');var _to=ot==='member'?db.users.find(function(x){return x.id===oid;}):null;if(_to&&_to.role==='leader'&&!(i.t==='member'&&i.id===_to.id))tellHer(i.name+' whispered '+_to.name+': \u201c'+body.slice(0,120)+(body.length>120?'\u2026':'')+'\u201d');save();res.redirect('/board/whisper/'+ot+'/'+oid);});
 
 /* ── The forecast, once there is one ────────────────────────────────────────
    The camp page has twenty-six years of history on it — that weekend has run
