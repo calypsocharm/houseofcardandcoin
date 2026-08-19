@@ -20,39 +20,7 @@ if(!Array.isArray(db.waitlist))db.waitlist=[];
 const nid=()=>{db.seq++;save();return db.seq;};
 // Sunday night is not offered. The faire closes at 5 on Sunday and camp comes
 // down that evening — nobody sleeps in the rig that night.
-//
-// Thursday is the setup night and is not a night on its own. See SETUP_NIGHT.
-const NIGHTS=['Thursday, Oct 8','Friday, Oct 9','Saturday, Oct 10'];
-
-/* Thursday is when the spot is claimed and camp goes up, and the House has
-   always asked people to come early because it goes up faster with hands on
-   it. It then gave those hands nowhere to sleep, which meant driving home and
-   coming back.
-
-   It is not offered as a night by itself, though, and the reason is the
-   wristband. The faire issues one band per camper against our campground code,
-   and every camping attendee needs their own festival pass — so somebody
-   sleeping only Thursday spends a whole pass on a night before the gates even
-   open. Anyone already down for Friday or Saturday is already a camper, and
-   for them Thursday costs nothing at all.
-
-   Hence the gate: you may add Thursday, you may not take only Thursday. */
-const SETUP_NIGHT='Thursday, Oct 8';
-// A word on the board, because a bunk on setup night is not the same offer as
-// a bunk on the Friday.
-const NIGHT_NOTES={'Thursday, Oct 8':'setup night &mdash; camp is still going up'};
-// Does this member hold a bunk on some night other than the setup night? That
-// is the whole test.
-function holdsAFaireNight(userId){
-  return (db.bunks||[]).some(function(b){ return b.userId===userId && b.night!==SETUP_NIGHT; });
-}
-// Empty string when they may take it, the reason when they may not.
-function setupNightBlock(userId,night){
-  if(night!==SETUP_NIGHT)return '';
-  if(holdsAFaireNight(userId))return '';
-  return 'Thursday is setup night and cannot be taken on its own — the wristband it uses '+
-         'is a whole festival pass. Claim your Friday or Saturday bunk first and Thursday opens up.';
-}
+const NIGHTS=['Friday, Oct 9','Saturday, Oct 10'];
 // The three that can be claimed. The House's rig sleeps more than this — the
 // main bunk is the Guild Elder's and another is the Guild Leader's, both theirs
 // for the whole weekend rather than booked a night at a time. Those are held on
@@ -1031,11 +999,6 @@ app.get('/members',au,(req,res)=>{
     const myIdx=queue.findIndex(w=>w.userId===u.id);
     return{
       night:n, bunks:bunks,
-      note:NIGHT_NOTES[n]||"",
-      // Why this night is shut to them, if it is. Said on the board rather
-      // than only when they press — a locked button with no reason reads as
-      // a fault.
-      shut:setupNightBlock(u.id,n),
       open:bunks.filter(x=>!x.taken).length,
       full:bunks.every(x=>x.taken),
       iHaveOne:bunks.some(x=>x.mine),
@@ -1108,8 +1071,6 @@ app.post('/members/profile',au,up.single('avatar'),shrinkAvatar,(req,res)=>{cons
   if(req.file)u.avatar='/uploads/'+req.file.filename;save();res.redirect('/members#profile');});
 app.post('/members/bunk',au,sworn,(req,res)=>{const u=cur(req);const{night,bunk}=req.body;b=parseInt(bunk);
   if(!NIGHTS.includes(night)||!BUNKS.includes(b))return res.redirect('/members#bunks');
-  const bar=setupNightBlock(u.id,night);
-  if(bar)return res.redirect('/members?e='+encodeURIComponent(bar)+'#bunks');
   if(db.bunks.find(x=>x.night===night&&x.bunk===b))return res.redirect('/members?e=taken#bunks');
   // limit a member to one bunk per night
   db.bunks=db.bunks.filter(x=>!(x.night===night&&x.userId===u.id));
@@ -1127,10 +1088,6 @@ function fillFromWaitlist(night,bunk,exceptUserId){
     if(db.bunks.find(x=>x.night===night&&x.userId===cand.id)){ // already bunked that night
       db.waitlist=db.waitlist.filter(x=>x.id!==w.id); continue;
     }
-    // Setup night still cannot be handed to somebody not staying for the
-    // faire. Their place in the queue is kept — they may claim a faire night
-    // later — so this skips them rather than dropping them.
-    if(setupNightBlock(cand.id,night))continue;
     db.bunks.push({id:nid(),night:night,bunk:bunk,userId:cand.id});
     db.waitlist=db.waitlist.filter(x=>x.id!==w.id);
     notify('member',cand.id,'A bunk opened up — '+night+', bunk '+bunk+' is yours. Release it in the Guild Hall if your plans have changed.');
@@ -1147,28 +1104,12 @@ app.post('/members/bunk/release',au,(req,res)=>{
   const had=db.bunks.find(x=>x.night===night&&x.bunk===bunk&&x.userId===u.id);
   db.bunks=db.bunks.filter(x=>!(x.night===night&&x.bunk===bunk&&x.userId===u.id));
   if(had)fillFromWaitlist(night,bunk,u.id);
-  // Letting the faire night go leaves the setup night with nothing to hang on
-  // — and a Thursday-only bunk is the one thing the gate exists to prevent. It
-  // goes back too, and straight to whoever was waiting for it.
-  var stranded=null;
-  if(had&&night!==SETUP_NIGHT&&!holdsAFaireNight(u.id)){
-    stranded=db.bunks.find(function(x){return x.night===SETUP_NIGHT&&x.userId===u.id;});
-    if(stranded){
-      db.bunks=db.bunks.filter(function(x){return x!==stranded;});
-      fillFromWaitlist(SETUP_NIGHT,stranded.bunk,u.id);
-    }
-  }
-  save();
-  res.redirect(stranded
-    ? '/members?e='+encodeURIComponent('Your Thursday bunk went back with it — setup night is only for guildmates staying on for the faire.')+'#bunks'
-    : '/members#bunks');
+  save();res.redirect('/members#bunks');
 });
 // Waiting for a bunk is only worth anything if you could hold one.
 app.post('/members/waitlist',au,sworn,(req,res)=>{
   const u=cur(req);const night=req.body.night;
   if(!NIGHTS.includes(night))return res.redirect('/members#bunks');
-  const bar=setupNightBlock(u.id,night);
-  if(bar)return res.redirect('/members?e='+encodeURIComponent(bar)+'#bunks');
   if(db.bunks.find(x=>x.night===night&&x.userId===u.id))return res.redirect('/members#bunks');
   if(!db.waitlist.find(w=>w.night===night&&w.userId===u.id))
     db.waitlist.push({id:nid(),night:night,userId:u.id,ts:Date.now()});
