@@ -2,10 +2,18 @@ const express=require('express'),session=require('express-session'),bcrypt=requi
 const app=express();
 app.disable('x-powered-by'); // stop advertising the stack
 const PORT=process.env.PORT||3000;
-// Set GUILD_INVITE_CODE='' (blank) to open registration to anyone — that is the
-// current setting. Put a code back in the env var to require one again; no code
-// change needed either way.
-const INVITE=process.env.GUILD_INVITE_CODE===undefined?'COIN-2026':process.env.GUILD_INVITE_CODE;
+/* The code that lets somebody make an account.
+
+   It used to be a constant here, with an environment override that was never
+   set — so the only way to change it was a deploy, and a code that has been
+   passed around beyond the guild is exactly the moment you cannot wait for
+   one. It lives in the data now and there is a field for it in the admin
+   panel; this is only the starting value for a House that has never set one.
+
+   Letters and numbers, no punctuation. A code gets read down a phone and
+   written on a hand — dashes get dropped, guessed at, or turned into spaces,
+   and every one of those is somebody locked out for nothing. */
+const INVITE_FALLBACK=process.env.GUILD_INVITE_CODE===undefined?'COIN2026':process.env.GUILD_INVITE_CODE;
 const DATA=path.join(__dirname,'data','guild.json');
 let db={users:[],bunks:[],items:[],claims:[],seq:1};
 try{db=JSON.parse(fs.readFileSync(DATA,'utf8'));}catch{}
@@ -489,8 +497,25 @@ if(!db.items.length){[
 // Invite codes are compared loosely — trimmed, spaces stripped, case-insensitive.
 // Phone keyboards autocapitalise and add trailing spaces, which silently rejected
 // guildies who had typed the right code.
+/* Anything that is not a letter or a number is thrown away before comparing,
+   so a code written with a dash, a space or in lower case still lets somebody
+   in. The House stores it tidily; the door is forgiving about how it arrives. */
 const normCode=s=>String(s||'').replace(/[^a-z0-9]/gi,'').toUpperCase();
-const INVITE_REQUIRED=normCode(INVITE)!=='';
+// Read from the data every time rather than held in a constant, because it can
+// now be changed from the admin panel while the app is running.
+function inviteCode(){
+  return typeof db.invite==='string' ? db.invite : normCode(INVITE_FALLBACK);
+}
+function inviteRequired(){ return inviteCode()!==''; }
+/* Caps and numbers only, and none of the pairs that get misread when a code is
+   said down a phone or written on the back of a hand: no O against 0, no I or
+   L against 1, no S against 5, no Z against 2. */
+const CODE_CHARS='ABCDEFGHJKMNPQRTUVWXY346789';
+function freshCode(){
+  var out='';
+  for(var i=0;i<8;i++)out+=CODE_CHARS[crypto.randomInt(CODE_CHARS.length)];
+  return out;
+}
 // The static marketing pages (index.html, camp.html…) have a header baked in at
 // build time, so they cannot know who you are. They ask here instead.
 app.get('/api/me',(req,res)=>{
@@ -1023,9 +1048,9 @@ app.get("/map",(req,res)=>{
 app.get('/faq',(req,res)=>res.render('faq',{day:dayContact(ident(req)),bunkFacts:bunkFacts(),
   game:{price:CARD_PRICE,redeal:REDEAL_PRICE,days:ROUND_DAYS,tiers:coinTiers(),ladder:coinLadder(),first:coinFirstRound(),
         titles:COIN_TITLES}}));
-app.get('/members/login',(req,res)=>res.render('login',{err:req.query.e||'',code:req.query.code||'',needCode:INVITE_REQUIRED}));
+app.get('/members/login',(req,res)=>res.render('login',{err:req.query.e||'',code:req.query.code||'',needCode:inviteRequired()}));
 // /join is the share link. If an invite code is required, ?code=XXXX pre-fills it.
-app.get('/join',(req,res)=>res.render('login',{err:req.query.e||'',code:req.query.code||'',needCode:INVITE_REQUIRED}));
+app.get('/join',(req,res)=>res.render('login',{err:req.query.e||'',code:req.query.code||'',needCode:inviteRequired()}));
 /* A pledge used to appear in silence — the only person who knew was the
    Guild Leader, and only if she went looking. Vouching cannot happen if the
    people who might know the newcomer are never told there is one. So every
@@ -1040,8 +1065,8 @@ app.post("/members/register",up.single("avatar"),shrinkAvatar,(req,res)=>{const{
   // honeypot: real people never fill this hidden field, bots do
   if(req.body.website)return res.redirect('/members/login');
   // keep a valid code in the URL on failure so they don't have to re-enter it
-  const keep=INVITE_REQUIRED&&normCode(invite)===normCode(INVITE)?'&code='+encodeURIComponent(invite):'';
-  if(INVITE_REQUIRED&&normCode(invite)!==normCode(INVITE))return res.redirect('/members/login?e='+encodeURIComponent('That invite code was not recognised — ask the Guild Leader'));
+  const keep=inviteRequired()&&normCode(invite)===inviteCode()?'&code='+encodeURIComponent(invite):'';
+  if(inviteRequired()&&normCode(invite)!==inviteCode())return res.redirect('/members/login?e='+encodeURIComponent('That invite code was not recognised — ask the Guild Leader'));
   if(!email||!password)return res.redirect('/members/login?e='+encodeURIComponent('Email and password are required')+keep);
   if(db.users.find(u=>String(u.email||'').toLowerCase()===String(email).toLowerCase()))return res.redirect('/members/login?e='+encodeURIComponent('That email is already registered')+keep);
   const first=db.users.length===0;
@@ -1119,7 +1144,7 @@ app.get('/members',au,(req,res)=>{
   })();
   const bunksLeft=NIGHTS.length*BUNKS.length-db.bunks.length;
   const items=db.items.map(it=>{const cl=db.claims.filter(c=>c.itemId===it.id);const claimed=cl.reduce((s,c)=>s+c.qty,0);return{...it,claimed,remaining:Math.max(0,it.need-claimed),claims:cl.map(c=>({qty:c.qty,who:db.users.find(y=>y.id===c.userId)})),mine:cl.find(c=>c.userId===u.id)};});
-  res.render('hall',{u,page:pageOf(u),mySlug:slugById()[u.id]||'',backdrops:BACKDROPS,layouts:LAYOUTS,fonts:FONTS,fontKeys:FONT_KEYS,sizeKeys:SIZE_KEYS,sizes:SIZES,charmKeys:CHARM_KEYS,charmSvg:charmSvg,charmMax:CHARM_MAX,rank:rank(u),classes:CLASSES,bunkBoard,bunksLeft,bunkFacts:bunkFacts(),since:since,away:away,cardWaiting:cardWaiting(u),over:countdown().ended===true,finest:highHand(),items,bringers,leader:u.role==='leader',users:u.role==='leader'?db.users.map(function(m){return{slug:slugById()[m.id]||'',berth:m.berth||'',vouches:vouchesFor(m.id),name:m.name,class:m.class,faires:m.faires,rank:rank(m),pledge:!!m.pledge,leader:m.role==='leader',dayContact:!!m.dayContact,title:m.title||'',avatar:m.avatar,id:m.id,contactEmail:m.contactEmail||'',phone:m.phone||'',bunks:db.bunks.filter(function(b){return b.userId===m.id}).map(function(b){return b.night+' \u00b7 Bunk '+b.bunk;})};}):[],announcements:db.announcements,mine:myWeekend(u),prizes:db.prizes||{first:"",second:"",shown:false},outreach:{emails:db.users.filter(function(x){return x.contactEmail;}).map(function(x){return x.contactEmail;}),phones:db.users.filter(function(x){return x.phone;}).map(function(x){return x.phone;})},invite:INVITE,err:req.query.e||"",q:req.query});
+  res.render('hall',{u,page:pageOf(u),mySlug:slugById()[u.id]||'',backdrops:BACKDROPS,layouts:LAYOUTS,fonts:FONTS,fontKeys:FONT_KEYS,sizeKeys:SIZE_KEYS,sizes:SIZES,charmKeys:CHARM_KEYS,charmSvg:charmSvg,charmMax:CHARM_MAX,rank:rank(u),classes:CLASSES,bunkBoard,bunksLeft,bunkFacts:bunkFacts(),since:since,away:away,cardWaiting:cardWaiting(u),over:countdown().ended===true,finest:highHand(),items,bringers,leader:u.role==='leader',users:u.role==='leader'?db.users.map(function(m){return{slug:slugById()[m.id]||'',berth:m.berth||'',vouches:vouchesFor(m.id),name:m.name,class:m.class,faires:m.faires,rank:rank(m),pledge:!!m.pledge,leader:m.role==='leader',dayContact:!!m.dayContact,title:m.title||'',avatar:m.avatar,id:m.id,contactEmail:m.contactEmail||'',phone:m.phone||'',bunks:db.bunks.filter(function(b){return b.userId===m.id}).map(function(b){return b.night+' \u00b7 Bunk '+b.bunk;})};}):[],announcements:db.announcements,mine:myWeekend(u),prizes:db.prizes||{first:"",second:"",shown:false},outreach:{emails:db.users.filter(function(x){return x.contactEmail;}).map(function(x){return x.contactEmail;}),phones:db.users.filter(function(x){return x.phone;}).map(function(x){return x.phone;})},invite:inviteCode(),err:req.query.e||"",q:req.query});
 });
 // How your page looks. Separate from the details form above because these are
 // about presentation and those are about the guild — and because this one
@@ -1274,6 +1299,23 @@ app.post('/members/admin/role',al,(req,res)=>{
 /* Which number the FAQ hands out on the day. Exactly one person carries it, so
    setting it on somebody takes it off whoever had it. A number nobody chose is
    how you end up giving out the wrong one. */
+
+/* Changing the code that lets people in.
+
+   Punctuation is stripped and the rest folded to caps before it is stored, so
+   whatever gets typed here ends up as the letters and numbers the door will
+   actually compare. Blank is a real answer and means the door is open to
+   anyone, which is why it is spelled out rather than treated as a mistake. */
+app.post('/members/admin/invite',al,(req,res)=>{
+  var want=req.body.roll ? freshCode() : normCode(req.body.code);
+  if(want.length && want.length<4)
+    return res.redirect('/members?e='+encodeURIComponent('An invite code wants at least four letters or numbers.')+'#admin');
+  db.invite=want;
+  save();
+  res.redirect('/members?role='+encodeURIComponent(want
+    ? 'The invite code is now '+want
+    : 'The invite code is off — anybody can make an account')+'#admin');
+});
 app.post('/members/admin/daycontact',al,(req,res)=>{
   const u=db.users.find(x=>x.id===parseInt(req.body.id,10));
   if(!u)return res.redirect('/members#admin');
