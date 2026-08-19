@@ -1327,3 +1327,49 @@ footer :where(a,button):focus-visible{
 .fc__says b{color:var(--wine)}
 /* On the weekend page the block sits on the dark parchment of its neighbours. */
 .wk-block.fc{background:linear-gradient(180deg,rgba(226,199,127,.2),rgba(226,199,127,.07))}
+
+/* ── While you were away ────────────────────────────────────────────────────
+   The first thing in the Guild Hall, and only there when something has
+   actually happened. Each item is a door, not a statistic — the number is the
+   hook, the words say where it goes, and the whole thing is the link. */
+.since{padding:104px 0 0}
+.since__box{
+  max-width:760px;margin:0 auto;padding:16px 20px;border-radius:4px;
+  background:linear-gradient(180deg,rgba(226,199,127,.15),rgba(226,199,127,.05));
+  border:1px solid var(--gold-d);
+}
+.since__h{
+  margin:0 0 11px;font-family:var(--display);font-size:.68rem;letter-spacing:.18em;
+  text-transform:uppercase;color:var(--wine);
+}
+.since__h span{color:var(--muted);letter-spacing:.06em;font-style:italic;text-transform:none}
+.since__list{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:9px}
+.since__item{
+  display:inline-flex;align-items:baseline;gap:8px;
+  padding:7px 14px;border-radius:2px;
+  background:var(--ivory);border:1px solid var(--line2);
+  color:var(--ink2);font-size:.9rem;line-height:1.3;
+  transition:background .16s,border-color .16s,color .16s;
+}
+.since__item b{
+  font-family:var(--display);font-size:1.06rem;color:var(--ink);
+  font-variant-numeric:tabular-nums;
+}
+.since__item:hover,.since__item:focus-visible{
+  background:var(--gold-d);border-color:var(--gold-d);color:#1a120b}
+.since__item:hover b,.since__item:focus-visible b{color:#1a120b}
+.since__item:focus-visible{outline:2px solid var(--gold-l);outline-offset:2px}
+/* The ones addressed to you personally, and the card, wear the House's red. */
+.since__item.is-gold{border-color:var(--wine)}
+.since__item.is-gold b{color:var(--wine)}
+.since__item.is-card{background:var(--wine);border-color:var(--wine);color:#f6e7c4}
+.since__item.is-card b{color:var(--gold-l)}
+.since__item.is-card:hover{background:var(--wine-l);color:#fff}
+@media(max-width:620px){
+  .since{padding-top:92px}
+  .since__box{padding:14px 15px}
+  .since__list{gap:7px}
+  .since__item{font-size:.84rem;padding:6px 11px}
+}
+/* Where You Stand normally carries the top padding; it does not need it twice. */
+.since + .mine{padding-top:26px}

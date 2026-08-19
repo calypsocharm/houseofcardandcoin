@@ -33,6 +33,36 @@
   </div>
 </div></section>
 <% } %>
+<%
+  /* What has happened since you last stood here. Drawn only when there is
+     something to say — a line reading "nothing new" every day teaches people
+     to stop reading the line. The card prompt rides along with it, because on
+     a quiet day that is the one thing still worth doing. */
+  var _away = "";
+  if(away > 0){
+    var _h = Math.floor(away/3600000), _d = Math.floor(_h/24);
+    _away = _d >= 1 ? (_d === 1 ? "since yesterday" : "in the last " + _d + " days")
+          : _h >= 1 ? (_h === 1 ? "in the last hour" : "in the last " + _h + " hours")
+          : "just now";
+  }
+%>
+<% if(since.length || cardWaiting){ %>
+<section class="section since"><div class="container">
+  <div class="since__box">
+    <p class="since__h">While you were away<% if(_away && since.length){ %> <span><%= _away %></span><% } %></p>
+    <ul class="since__list">
+      <% since.forEach(function(s){ %>
+        <li><a class="since__item<%= s.gold ? " is-gold" : "" %>" href="<%= s.go %>">
+          <b><%= s.n %></b><span><%= s.say %></span></a></li>
+      <% }) %>
+      <% if(cardWaiting){ %>
+        <li><a class="since__item is-card" href="/board#hand">
+          <b>&#127183;</b><span>tonight&rsquo;s card is waiting</span></a></li>
+      <% } %>
+    </ul>
+  </div>
+</div></section>
+<% } %>
 <%- include("_myweekend",{mine:mine}) %>
 <section class="section section--parch2" style="padding-top:120px"><div class="container"><div class="bannerhead"><span class="eyebrow">Your Profile</span><h2>Welcome, <%= u.name %></h2><div class="rule"></div></div>
 <div style="display:flex;gap:18px;align-items:center;flex-wrap:wrap;justify-content:center"><a href="/guild/<%= mySlug %>" title="Your page" class="facelink"><% if(u.avatar){ %><img src="<%= u.avatar %>" style="width:96px;height:96px;border-radius:50%;border:3px solid var(--gold);object-fit:cover"><% } else { %><div class="member" style="padding:0;background:transparent;border:0;box-shadow:none"><div class="avatar"><%= u.name.slice(0,2).toUpperCase() %></div></div><% } %></a><div style="text-align:center"><div style="font-family:var(--display);font-size:1.2rem;color:var(--wine)"><%= rank %></div><div class="muted"><% if(u.class){ %>Class: <b><%= u.class %></b> &middot; <% } %>Faires with the guild: <b><%= u.faires %></b></div></div></div>

@@ -1063,6 +1063,30 @@ app.post('/members/login',throttleLogin,(req,res)=>{const{email,password}=req.bo
 app.post('/members/logout',(req,res)=>{req.session.destroy(()=>res.redirect('/'));});
 app.get('/members',au,(req,res)=>{
   const u=cur(req);
+
+  /* The anchor for "since you were last here".
+
+     Held in the session as well as on the record, because the mark has to
+     survive a refresh. Reading the page moves the record forward, so without
+     this the summary would be complete on the first load and empty on the
+     second — which reads as a page that lost something rather than one that
+     told you. The session keeps the same anchor for a quarter of an hour, so
+     coming back to the tab shows the same news; after that it re-anchors to
+     the real last visit. */
+  const now=Date.now();
+  if(!req.session.hallSince || now-(req.session.hallSinceAt||0) > 15*60*1000){
+    req.session.hallSince=u.lastSeen||0;
+    req.session.hallSinceAt=now;
+  }
+  /* Nothing is claimed on somebody's first visit. With no mark to measure from
+     the summary would reach back to the beginning of the House and greet a
+     newcomer with every notice ever written — which is not news, it is an
+     archive, and it is a poor welcome. The mark is set instead, and the line
+     starts telling them things the next time they come. */
+  const firstEver=!u.lastSeen;
+  const since=firstEver ? [] : sinceYouWere(u, req.session.hallSince);
+  const away=(!firstEver && req.session.hallSince) ? now-req.session.hallSince : 0;
+  u.lastSeen=now; save();
   const bunkBoard=NIGHTS.map(n=>{
     const bunks=BUNKS.map(b=>{const o=db.bunks.find(x=>x.night===n&&x.bunk===b);return{bunk:b,note:BUNK_NOTES[b]||"",taken:!!o,who:o?db.users.find(y=>y.id===o.userId):null,mine:o&&o.userId===u.id};});
     const queue=db.waitlist.filter(w=>w.night===n).sort((a,b)=>a.ts-b.ts);
@@ -1095,7 +1119,7 @@ app.get('/members',au,(req,res)=>{
   })();
   const bunksLeft=NIGHTS.length*BUNKS.length-db.bunks.length;
   const items=db.items.map(it=>{const cl=db.claims.filter(c=>c.itemId===it.id);const claimed=cl.reduce((s,c)=>s+c.qty,0);return{...it,claimed,remaining:Math.max(0,it.need-claimed),claims:cl.map(c=>({qty:c.qty,who:db.users.find(y=>y.id===c.userId)})),mine:cl.find(c=>c.userId===u.id)};});
-  res.render('hall',{u,page:pageOf(u),mySlug:slugById()[u.id]||'',backdrops:BACKDROPS,layouts:LAYOUTS,fonts:FONTS,fontKeys:FONT_KEYS,sizeKeys:SIZE_KEYS,sizes:SIZES,charmKeys:CHARM_KEYS,charmSvg:charmSvg,charmMax:CHARM_MAX,rank:rank(u),classes:CLASSES,bunkBoard,bunksLeft,bunkFacts:bunkFacts(),items,bringers,leader:u.role==='leader',users:u.role==='leader'?db.users.map(function(m){return{slug:slugById()[m.id]||'',berth:m.berth||'',vouches:vouchesFor(m.id),name:m.name,class:m.class,faires:m.faires,rank:rank(m),pledge:!!m.pledge,leader:m.role==='leader',dayContact:!!m.dayContact,title:m.title||'',avatar:m.avatar,id:m.id,contactEmail:m.contactEmail||'',phone:m.phone||'',bunks:db.bunks.filter(function(b){return b.userId===m.id}).map(function(b){return b.night+' \u00b7 Bunk '+b.bunk;})};}):[],announcements:db.announcements,mine:myWeekend(u),prizes:db.prizes||{first:"",second:"",shown:false},outreach:{emails:db.users.filter(function(x){return x.contactEmail;}).map(function(x){return x.contactEmail;}),phones:db.users.filter(function(x){return x.phone;}).map(function(x){return x.phone;})},invite:INVITE,err:req.query.e||"",q:req.query});
+  res.render('hall',{u,page:pageOf(u),mySlug:slugById()[u.id]||'',backdrops:BACKDROPS,layouts:LAYOUTS,fonts:FONTS,fontKeys:FONT_KEYS,sizeKeys:SIZE_KEYS,sizes:SIZES,charmKeys:CHARM_KEYS,charmSvg:charmSvg,charmMax:CHARM_MAX,rank:rank(u),classes:CLASSES,bunkBoard,bunksLeft,bunkFacts:bunkFacts(),since:since,away:away,cardWaiting:cardWaiting(u),items,bringers,leader:u.role==='leader',users:u.role==='leader'?db.users.map(function(m){return{slug:slugById()[m.id]||'',berth:m.berth||'',vouches:vouchesFor(m.id),name:m.name,class:m.class,faires:m.faires,rank:rank(m),pledge:!!m.pledge,leader:m.role==='leader',dayContact:!!m.dayContact,title:m.title||'',avatar:m.avatar,id:m.id,contactEmail:m.contactEmail||'',phone:m.phone||'',bunks:db.bunks.filter(function(b){return b.userId===m.id}).map(function(b){return b.night+' \u00b7 Bunk '+b.bunk;})};}):[],announcements:db.announcements,mine:myWeekend(u),prizes:db.prizes||{first:"",second:"",shown:false},outreach:{emails:db.users.filter(function(x){return x.contactEmail;}).map(function(x){return x.contactEmail;}),phones:db.users.filter(function(x){return x.phone;}).map(function(x){return x.phone;})},invite:INVITE,err:req.query.e||"",q:req.query});
 });
 // How your page looks. Separate from the details form above because these are
 // about presentation and those are about the guild — and because this one
@@ -1495,6 +1519,67 @@ function myWeekend(u){
     purseHref:'/guild/'+(slugById()[u.id]||'')+'#purse',
     next:nextEvent(), gates:countdown()
   };
+}
+
+/* ── What happened while you were away ──────────────────────────────────────
+   Everything this House does is silent. A round closes, somebody makes a
+   better hand, a card is waiting, a photograph goes up, somebody signs your
+   scroll — and none of it reaches anybody who does not happen to open the
+   right page on the right day. There are no emails to send and no addresses to
+   send them to, so the fix is not a notification: it is making the visit worth
+   making the moment you arrive.
+
+   Nothing here is new data. It is the same threads, notices, rounds and
+   photographs the rest of the site already keeps, asked one question they were
+   never asked before: what of this is newer than the last time this person
+   stood here.
+
+   Says nothing at all when nothing has happened. A line reading "nothing new"
+   every day teaches people to stop reading the line. */
+function sinceYouWere(u,anchor){
+  if(!u)return [];
+  var out=[];
+  var mine=function(t,id){ return t==='member'&&id===u.id; };
+
+  var said=0;
+  (db.threads||[]).forEach(function(t){
+    if(t.ts>anchor&&!mine(t.authorType,t.authorId))said++;
+    (t.replies||[]).forEach(function(r){ if(r.ts>anchor&&!mine(r.authorType,r.authorId))said++; });
+  });
+  if(said)out.push({n:said,say:said===1?'new line by the fire':'new lines by the fire',go:'/board'});
+
+  var closed=(db.rounds||[]).filter(function(r){return r.ended>anchor;});
+  if(closed.length)out.push({
+    n:closed.length,
+    say:closed.length===1?'round closed':'rounds closed',
+    go:'/board/roll', gold:true});
+
+  var notices=(db.notices||[]).filter(function(n){return n.toT==='member'&&n.toId===u.id&&n.ts>anchor;}).length;
+  if(notices)out.push({n:notices,say:notices===1?'notice for you':'notices for you',go:'/board/notices',gold:true});
+
+  var whispers=(db.whispers||[]).filter(function(w){
+    return w.toT==='member'&&w.toId===u.id&&!w.read;}).length;
+  if(whispers)out.push({n:whispers,say:whispers===1?'whisper waiting':'whispers waiting',go:'/board/whispers',gold:true});
+
+  var shots=(db.photos||[]).filter(function(p){return p.ts>anchor&&!mine(p.byT,p.byId);}).length;
+  if(shots)out.push({n:shots,say:shots===1?'new picture':'new pictures',go:'/gallery'});
+
+  var signed=(db.wall||[]).filter(function(w){return w.toId===u.id&&w.ts>anchor;}).length;
+  if(signed)out.push({n:signed,say:signed===1?'signature on your scroll':'signatures on your scroll',
+    go:'/guild/'+(slugById()[u.id]||'')+'#wall',gold:true});
+
+  if(u.pledge){
+    var spoke=(db.vouches||[]).filter(function(v){return v.forId===u.id;}).length;
+    if(spoke)out.push({n:spoke,say:spoke===1?'guildmate has spoken for you':'guildmates have spoken for you',
+      go:'/guild/'+(slugById()[u.id]||'')+'#vouch',gold:true});
+  }
+  return out;
+}
+// Not a thing that happened, but the thing most worth doing — said in the same
+// breath so the line is useful even on a quiet day.
+function cardWaiting(u){
+  if(!u||u.pledge===undefined)return false;
+  return (u.hand||[]).length<5 && u.lastRation!==dayKey();
 }
 
 function mapLive(){
