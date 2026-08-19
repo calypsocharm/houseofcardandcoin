@@ -194,6 +194,52 @@ function highHand(){
           names:held.map(function(h){return h.name;}), when:held.length?held[0].when:''};
 }
 
+
+/* The Scroll of Events, drawn from the live schedule.
+
+   The page is still the hand-made one — its hero, its video, everything under
+   the columns. Only the three day-columns are replaced, with exactly the markup
+   the build script writes, so the page cannot drift from what a rebuild would
+   have produced. Registered before the static-HTML middleware, because that one
+   would happily serve the file with last month's times baked into it. */
+// The schedule is typed by a person into a form and printed into a page, so it
+// is escaped on the way out — the same guard the build script had.
+function esc(x){
+  return String(x==null?'':x).replace(/&/g,'&amp;').replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function scheduleColumns(){
+  const cfg=guildEvents();
+  return (cfg.days||[]).map(function(d){
+    const rows=(cfg.events||[]).filter(function(e){return e.date===d.date;})
+      .sort(function(a,b){return String(a.at||'').localeCompare(String(b.at||''));})
+      .map(function(e){
+        return '<div class="event"><span class="t">'+esc(e.when)+'</span>'+
+               '<span class="b"><b>'+esc(e.title)+'</b><br>'+esc(e.body)+'</span></div>';
+      }).join('');
+    return '<div class="day"><div class="day__hd"><span class="d">'+esc(d.name)+'</span>'+
+           '<span class="h">'+esc(d.gates||'')+'</span></div><div class="day__bd">'+
+           (rows||'<p class="muted" style="padding:10px 0">Nothing set for this day yet.</p>')+
+           '</div></div>';
+  }).join('');
+}
+app.get('/events.html',(req,res,next)=>{
+  const file=path.join(__dirname,'..','events.html');
+  let html; try{ html=fs.readFileSync(file,'utf8'); }catch(e){ return next(); }
+  const a=html.indexOf('<!-- EVENTS:START'), tag='<!-- EVENTS:END -->', b=html.indexOf(tag);
+  if(a>-1&&b>-1){
+    html=html.slice(0,a)+
+      '<!-- The three columns below come from the live schedule, not from this file. -->'+
+      '<div class="grid grid--3">'+scheduleColumns()+'</div>'+
+      html.slice(b+tag.length);
+  }
+  const v=assetVersion();
+  html=html.replace(/(\/assets\/(?:css|js)\/[a-z0-9._-]+)(\?v=[^"']*)?/gi,'$1?v='+v);
+  html=stampMedia(html);
+  res.set('Content-Type','text/html; charset=utf-8');
+  res.set('Cache-Control','public, max-age=0');
+  res.send(html);
+});
 app.get('/guild.html',(req,res)=>{
   // The badge below reads off the round in play as well as the closed ones,
   // so the round has to be current before it is drawn.
@@ -1144,7 +1190,7 @@ app.get('/members',au,(req,res)=>{
   })();
   const bunksLeft=NIGHTS.length*BUNKS.length-db.bunks.length;
   const items=db.items.map(it=>{const cl=db.claims.filter(c=>c.itemId===it.id);const claimed=cl.reduce((s,c)=>s+c.qty,0);return{...it,claimed,remaining:Math.max(0,it.need-claimed),claims:cl.map(c=>({qty:c.qty,who:db.users.find(y=>y.id===c.userId)})),mine:cl.find(c=>c.userId===u.id)};});
-  res.render('hall',{u,page:pageOf(u),mySlug:slugById()[u.id]||'',backdrops:BACKDROPS,layouts:LAYOUTS,fonts:FONTS,fontKeys:FONT_KEYS,sizeKeys:SIZE_KEYS,sizes:SIZES,charmKeys:CHARM_KEYS,charmSvg:charmSvg,charmMax:CHARM_MAX,rank:rank(u),classes:CLASSES,bunkBoard,bunksLeft,bunkFacts:bunkFacts(),since:since,away:away,cardWaiting:cardWaiting(u),over:countdown().ended===true,finest:highHand(),items,bringers,leader:u.role==='leader',users:u.role==='leader'?db.users.map(function(m){return{slug:slugById()[m.id]||'',berth:m.berth||'',vouches:vouchesFor(m.id),name:m.name,class:m.class,faires:m.faires,rank:rank(m),pledge:!!m.pledge,leader:m.role==='leader',dayContact:!!m.dayContact,title:m.title||'',avatar:m.avatar,id:m.id,contactEmail:m.contactEmail||'',phone:m.phone||'',bunks:db.bunks.filter(function(b){return b.userId===m.id}).map(function(b){return b.night+' \u00b7 Bunk '+b.bunk;})};}):[],announcements:db.announcements,mine:myWeekend(u),prizes:db.prizes||{first:"",second:"",shown:false},outreach:{emails:db.users.filter(function(x){return x.contactEmail;}).map(function(x){return x.contactEmail;}),phones:db.users.filter(function(x){return x.phone;}).map(function(x){return x.phone;})},invite:inviteCode(),err:req.query.e||"",q:req.query});
+  res.render('hall',{u,pack:packFor(u),schedule:guildEvents(),page:pageOf(u),mySlug:slugById()[u.id]||'',backdrops:BACKDROPS,layouts:LAYOUTS,fonts:FONTS,fontKeys:FONT_KEYS,sizeKeys:SIZE_KEYS,sizes:SIZES,charmKeys:CHARM_KEYS,charmSvg:charmSvg,charmMax:CHARM_MAX,rank:rank(u),classes:CLASSES,bunkBoard,bunksLeft,bunkFacts:bunkFacts(),since:since,away:away,cardWaiting:cardWaiting(u),over:countdown().ended===true,finest:highHand(),items,bringers,leader:u.role==='leader',users:u.role==='leader'?db.users.map(function(m){return{slug:slugById()[m.id]||'',berth:m.berth||'',vouches:vouchesFor(m.id),name:m.name,class:m.class,faires:m.faires,rank:rank(m),pledge:!!m.pledge,leader:m.role==='leader',dayContact:!!m.dayContact,title:m.title||'',avatar:m.avatar,id:m.id,contactEmail:m.contactEmail||'',phone:m.phone||'',bunks:db.bunks.filter(function(b){return b.userId===m.id}).map(function(b){return b.night+' \u00b7 Bunk '+b.bunk;})};}):[],announcements:db.announcements,mine:myWeekend(u),prizes:db.prizes||{first:"",second:"",shown:false},outreach:{emails:db.users.filter(function(x){return x.contactEmail;}).map(function(x){return x.contactEmail;}),phones:db.users.filter(function(x){return x.phone;}).map(function(x){return x.phone;})},invite:inviteCode(),err:req.query.e||"",q:req.query});
 });
 // How your page looks. Separate from the details form above because these are
 // about presentation and those are about the guild — and because this one
@@ -1306,6 +1352,86 @@ app.post('/members/admin/role',al,(req,res)=>{
    whatever gets typed here ends up as the letters and numbers the door will
    actually compare. Blank is a real answer and means the door is open to
    anyone, which is why it is spelled out rather than treated as a mistake. */
+
+/* Changing the schedule from the Hall.
+
+   The Scroll reads whatever is here on the next page load, so a fire that
+   moves an hour on the Saturday is an edit on a phone rather than a deploy.
+
+   `when` is what people read — "At dusk", "High noon" — and `at` is only a
+   rough hour used to work out which event is next. Both are kept: the words
+   are the point, the hour is the machinery. */
+app.post('/members/admin/event',al,(req,res)=>{
+  const cfg=guildEvents();
+  const id=req.body.id, date=String(req.body.date||'').trim();
+  const title=String(req.body.title||'').trim().slice(0,80);
+  const when=String(req.body.when||'').trim().slice(0,40);
+  const body=String(req.body.body||'').trim().slice(0,240);
+  const at=/^\d{1,2}:\d{2}$/.test(String(req.body.at||'').trim()) ? String(req.body.at).trim() : '';
+  const bounce=m=>res.redirect('/members?e='+encodeURIComponent(m)+'#schedule');
+
+  if(req.body.remove){
+    cfg.events=(cfg.events||[]).filter(function(e){return String(e.id)!==String(id);});
+    db.schedule=cfg; save();
+    return res.redirect('/members?role='+encodeURIComponent('Taken off the Scroll')+'#schedule');
+  }
+  if(!title) return bounce('An event wants a name at least.');
+  if(!(cfg.days||[]).some(function(d){return d.date===date;})) return bounce('Pick one of the three days.');
+
+  const found=id?(cfg.events||[]).find(function(e){return String(e.id)===String(id);}):null;
+  if(found){ Object.assign(found,{date:date,at:at,when:when||found.when,title:title,body:body}); }
+  else{ cfg.events.push({id:nid(),date:date,at:at,when:when||'',title:title,body:body}); }
+  db.schedule=cfg; save();
+  res.redirect('/members?role='+encodeURIComponent(found?'\u201c'+title+'\u201d changed on the Scroll':'\u201c'+title+'\u201d added to the Scroll')+'#schedule');
+});
+
+/* ── What to pack ───────────────────────────────────────────────────────────
+   The bring-list is the guild's: firewood, ice, a dish for the potluck. It has
+   never said a word about what a person needs for themselves, and the one
+   thing people actually forget is bedding — which is mentioned once, in the
+   FAQ, where you only find it if you go looking. Bunk 3 is a cot.
+
+   The list starts as the House's advice and becomes yours the moment you touch
+   it: tick what is packed, strike what does not apply, add what is only yours. */
+const PACK_START=[
+  {what:'Sleeping bag or bedding', why:'None is provided, and bunk 3 is likely a cot'},
+  {what:'Your pillow', why:''},
+  {what:'Garb for each day', why:''},
+  {what:'Shade — canopy, tarp, rope', why:'Our spot is pavement with none of its own'},
+  {what:'More water than you think', why:''},
+  {what:'Sunscreen and a hat', why:''},
+  {what:'A torch for after dark', why:''},
+  {what:'Something warm for the night', why:'The desert drops once the sun is off it'},
+  {what:'Shower at home before you come', why:'There is no water on site'},
+  {what:'Your own drink', why:''},
+  {what:'A dish for the potluck', why:''}
+];
+function packFor(u){
+  if(!Array.isArray(u.pack)){
+    u.pack=PACK_START.map(function(x){ return {id:nid(),what:x.what,why:x.why,done:false,house:true}; });
+    save();
+  }
+  return u.pack;
+}
+app.post('/members/pack',au,(req,res)=>{
+  const u=cur(req); if(!u)return res.redirect('/members/login');
+  const list=packFor(u);
+  const id=String(req.body.id||'');
+
+  if(req.body.add){
+    const what=String(req.body.add).trim().slice(0,80);
+    if(what) u.pack.push({id:nid(),what:what,why:'',done:false,house:false});
+  } else if(req.body.remove){
+    u.pack=list.filter(function(x){return String(x.id)!==id;});
+  } else if(req.body.reset){
+    delete u.pack; packFor(u);
+  } else {
+    const it=list.find(function(x){return String(x.id)===id;});
+    if(it) it.done=!it.done;
+  }
+  save();
+  res.redirect('/members#pack');
+});
 app.post('/members/admin/invite',al,(req,res)=>{
   var want=req.body.roll ? freshCode() : normCode(req.body.code);
   if(want.length && want.length<4)
@@ -1518,10 +1644,33 @@ function mayPin(u){
   return !!u && (u.role==="leader" || u.title==="Guild Leader" || u.title==="Guild Elder");
 }
 
-/* The guild's own schedule, read from tools/events.json rather than the Scroll
-   of Events page, which is hand-written HTML that nothing could read. Read per
-   request so editing the JSON shows up on a refresh. */
+/* The schedule lives in the data now, not in a file in the repo.
+
+   It was read from tools/events.json, and the Scroll of Events was generated
+   from the same file by a build script. Which meant that if the Saturday fire
+   moved an hour, changing what the site said took an edit, a build and a
+   deploy — on the Saturday, from me. An announcement could be posted over the
+   top, but the Scroll went on saying the old time underneath it.
+
+   The file is still where the schedule starts: it is read once, the first time
+   a House has no schedule of its own, and copied in. After that the file is
+   only history and the Guild Leader edits the real thing from the Hall. */
 function guildEvents(){
+  if(!(db.schedule && Array.isArray(db.schedule.days) && Array.isArray(db.schedule.events))){
+    const seed=guildEventsFile();
+    if(!(seed && seed.days))return seed;
+    db.schedule={tz:seed.tz,days:seed.days,events:seed.events};
+  }
+  /* Every event needs a name the forms can refer to. The file never had ids —
+     it was only ever read, never edited — so without this the first press of
+     Save on a seeded event would find nothing to change and add a second copy
+     of it instead. Stamped once, here, on whatever has none. */
+  let stamped=false;
+  db.schedule.events.forEach(function(e){ if(e.id===undefined){ e.id=nid(); stamped=true; } });
+  if(stamped)save();
+  return db.schedule;
+}
+function guildEventsFile(){
   try{ return JSON.parse(fs.readFileSync(path.join(__dirname,"..","tools","events.json"),"utf8")); }
   catch(e){ return {days:[],events:[]}; }
 }

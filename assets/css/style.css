@@ -1424,3 +1424,55 @@ footer :where(a,button):focus-visible{
 }
 /* Whatever follows the panel does not need its own top clearance as well. */
 .after + .since,.after + .mine,.after + .section{padding-top:26px}
+
+/* ── What to pack ───────────────────────────────────────────────────────────
+   Yours, and nobody else can see it. A tick box, the thing, and a way to take
+   it off — the three controls a list needs and no more. Packed items dim and
+   rule through rather than vanishing, so the list keeps its shape as it fills. */
+.pack__lead{max-width:600px;margin:0 auto 6px}
+.pack__count{
+  text-align:center;margin:0 0 18px;font-family:var(--display);
+  font-size:.68rem;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);
+}
+.pack__count b{color:var(--wine);font-size:1.2rem;font-variant-numeric:tabular-nums}
+.pack__list{list-style:none;margin:0 auto;padding:0;max-width:600px;display:grid;gap:6px}
+.pack__item{
+  display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:center;
+  background:var(--ivory);border:1px solid var(--line);border-radius:3px;padding:9px 12px;
+}
+.pack__tick,.pack__x{margin:0;line-height:0}
+.pack__tick button{
+  width:26px;height:26px;border-radius:3px;cursor:pointer;padding:0;
+  border:1px solid var(--line2);background:var(--parchment);
+  color:var(--forest);font-size:.94rem;line-height:1;
+}
+.pack__tick button:hover{border-color:var(--forest)}
+.pack__tick button:focus-visible{outline:2px solid var(--gold-l);outline-offset:2px}
+.pack__what{font-size:.96rem;color:var(--ink);line-height:1.4}
+.pack__what small{display:block;font-size:.78rem;color:var(--muted);font-style:italic;margin-top:1px}
+.pack__x button{
+  border:0;background:transparent;color:var(--line2);cursor:pointer;
+  font-size:1.1rem;line-height:1;padding:2px 4px;
+}
+.pack__x button:hover{color:var(--wine)}
+.pack__x button:focus-visible{outline:2px solid var(--gold-l);outline-offset:2px}
+.pack__item.is-done{background:var(--parchment);border-color:var(--line2)}
+.pack__item.is-done .pack__what{color:var(--muted);text-decoration:line-through}
+.pack__item.is-done .pack__what small{text-decoration:none}
+.pack__item.is-done .pack__tick button{background:var(--forest);border-color:var(--forest);color:#f2ecd8}
+.pack__add{display:flex;gap:8px;max-width:600px;margin:16px auto 0}
+.pack__add input{
+  flex:1;padding:9px 12px;border:1px solid var(--line2);border-radius:3px;
+  background:var(--ivory);color:var(--ink);font-family:var(--serif);
+}
+.pack__add input:focus{outline:2px solid var(--gold-d);outline-offset:1px}
+.pack__reset{max-width:600px;margin:9px auto 0;text-align:right}
+.pack__reset button{
+  border:0;background:transparent;cursor:pointer;color:var(--muted);
+  font-size:.78rem;text-decoration:underline;padding:2px;
+}
+.pack__reset button:hover{color:var(--wine)}
+@media(max-width:560px){
+  .pack__item{gap:9px;padding:8px 10px}
+  .pack__what{font-size:.9rem}
+}
