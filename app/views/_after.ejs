@@ -1,0 +1,36 @@
+<%
+  /* What the House says once the gates have shut.
+
+     Rendered only when the faire is behind us, and only three things: the hand
+     that took the weekend, where the pictures are, and thank you. The rest of
+     the site goes quiet on its own — the bunks stop being offered, the
+     bring-list stops asking — and this is what stands in front of it.
+
+     It reads off the same high hand the roster's ribbon does, so the House
+     never names two different winners. */
+%>
+<% if(over){ %>
+<section class="section after"><div class="container">
+  <div class="after__box">
+    <p class="after__eyebrow">&#10022; The 31st Age of Chivalry &#10022;</p>
+    <h2>That was the weekend</h2>
+    <p class="after__lede">Thank you to everyone who camped, cooked, dealt a hand or simply
+      turned up. The House kept its corner of the faire because you were in it.</p>
+
+    <% if(finest && finest.rank){ %>
+      <div class="after__hand">
+        <p class="after__k">The finest hand of the run</p>
+        <p class="after__who"><b><%= finest.names.join(' & ') %></b>
+          <span><%= finest.rank %></span></p>
+      </div>
+    <% } %>
+
+    <p class="after__acts">
+      <a class="btn btn--gold" href="/gallery">See the pictures</a>
+      <a class="btn btn--ghost" href="/board/roll">The Roll of Hands</a>
+    </p>
+    <p class="after__note">Camp, bunks and the bring-list are closed until next year. Everything
+      written there is kept &mdash; it is the start of next year&rsquo;s planning.</p>
+  </div>
+</div></section>
+<% } %>

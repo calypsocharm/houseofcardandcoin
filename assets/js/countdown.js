@@ -75,6 +75,23 @@
     }
   }
 
+  /* Once the gates have shut, the site should stop reading as an invitation.
+
+     The clocks already knew — they say "the faire has ended" — but every other
+     word on the static pages still spoke in the future tense: a spot that is
+     secured, beds still on offer, a bring-list still asking for firewood.
+
+     One mark on <html> rather than a page of rewrites. Anything marked
+     data-before disappears when the faire is over and anything marked
+     data-after appears, so a page says which of its words belong to which side
+     of the weekend and the stylesheet does the rest. Set before first paint
+     where it can be, so nothing is offered for a moment and then withdrawn. */
+  function season() {
+    document.documentElement.classList.toggle('faire-over', new Date() >= close);
+  }
+  season();
+  setInterval(season, 60000);
+
   tick();
   setInterval(tick, 1000);
 })();

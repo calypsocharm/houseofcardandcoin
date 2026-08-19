@@ -1373,3 +1373,54 @@ footer :where(a,button):focus-visible{
 }
 /* Where You Stand normally carries the top padding; it does not need it twice. */
 .since + .mine{padding-top:26px}
+
+/* ── Which side of the weekend a line belongs to ────────────────────────────
+   countdown.js puts .faire-over on <html> once the gates have shut. Until
+   then the site reads as an invitation; afterwards the invitations go and the
+   record takes their place. Marking the words is all a page has to do. */
+[data-after]{display:none}
+.faire-over [data-before]{display:none}
+.faire-over [data-after]{display:revert}
+.afterbanner{
+  margin:0 0 26px;padding:14px 18px;border-radius:4px;
+  background:rgba(122,85,20,.1);border-left:3px solid var(--gold-d);
+}
+.afterbanner p{margin:0;color:var(--ink2);line-height:1.66}
+.afterbanner b{color:var(--wine)}
+.afterbanner a{color:var(--wine);font-weight:600}
+
+/* ── After the gates have shut ──────────────────────────────────────────────
+   Three things and no more: who took the weekend, where the pictures are, and
+   thank you. Warmer than the rest of the parchment, because it is the one
+   panel on the site that exists to say something rather than ask for it. */
+.after{padding:104px 0 0}
+.after__box{
+  max-width:760px;margin:0 auto;padding:26px 28px;border-radius:4px;text-align:center;
+  background:linear-gradient(180deg,var(--ivory),rgba(226,199,127,.14));
+  border:1px solid var(--gold-d);box-shadow:0 20px 44px -34px rgba(60,40,15,.9);
+}
+.after__eyebrow{
+  margin:0 0 6px;font-family:var(--display);font-size:.66rem;letter-spacing:.22em;
+  text-transform:uppercase;color:var(--gold-d);
+}
+.after__box h2{margin:0 0 10px;color:var(--wine)}
+.after__lede{margin:0 auto;max-width:52ch;color:var(--ink2);line-height:1.7}
+.after__hand{
+  margin:18px auto 0;max-width:420px;padding:12px 16px;border-radius:3px;
+  background:var(--parchment);border:1px solid var(--line2);
+}
+.after__k{
+  margin:0 0 4px;font-family:var(--display);font-size:.6rem;letter-spacing:.2em;
+  text-transform:uppercase;color:var(--muted);
+}
+.after__who{margin:0;display:flex;flex-direction:column;gap:2px}
+.after__who b{font-family:var(--display);font-size:1.16rem;color:var(--ink)}
+.after__who span{font-size:.9rem;color:var(--wine);font-style:italic}
+.after__acts{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin:20px 0 0}
+.after__note{margin:14px 0 0;font-size:.86rem;color:var(--muted);line-height:1.6}
+@media(max-width:620px){
+  .after{padding-top:92px}
+  .after__box{padding:20px 18px}
+}
+/* Whatever follows the panel does not need its own top clearance as well. */
+.after + .since,.after + .mine,.after + .section{padding-top:26px}

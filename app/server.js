@@ -560,7 +560,7 @@ app.get('/weekend',(req,res)=>{
     })};
   });
   const list=bringList();
-  res.render('weekend',{
+  res.render('weekend',{over:countdown().ended===true,finest:highHand(),
     i:i, gates:countdown(), coming:coming, board:board, berths:heldBerths(), day:dayContact(i),
     wanted:list.filter(function(x){return x.remaining>0;}).sort(function(a,b){return b.remaining-a.remaining;}),
     covered:list.filter(function(x){return x.remaining===0;}).length,
@@ -1119,7 +1119,7 @@ app.get('/members',au,(req,res)=>{
   })();
   const bunksLeft=NIGHTS.length*BUNKS.length-db.bunks.length;
   const items=db.items.map(it=>{const cl=db.claims.filter(c=>c.itemId===it.id);const claimed=cl.reduce((s,c)=>s+c.qty,0);return{...it,claimed,remaining:Math.max(0,it.need-claimed),claims:cl.map(c=>({qty:c.qty,who:db.users.find(y=>y.id===c.userId)})),mine:cl.find(c=>c.userId===u.id)};});
-  res.render('hall',{u,page:pageOf(u),mySlug:slugById()[u.id]||'',backdrops:BACKDROPS,layouts:LAYOUTS,fonts:FONTS,fontKeys:FONT_KEYS,sizeKeys:SIZE_KEYS,sizes:SIZES,charmKeys:CHARM_KEYS,charmSvg:charmSvg,charmMax:CHARM_MAX,rank:rank(u),classes:CLASSES,bunkBoard,bunksLeft,bunkFacts:bunkFacts(),since:since,away:away,cardWaiting:cardWaiting(u),items,bringers,leader:u.role==='leader',users:u.role==='leader'?db.users.map(function(m){return{slug:slugById()[m.id]||'',berth:m.berth||'',vouches:vouchesFor(m.id),name:m.name,class:m.class,faires:m.faires,rank:rank(m),pledge:!!m.pledge,leader:m.role==='leader',dayContact:!!m.dayContact,title:m.title||'',avatar:m.avatar,id:m.id,contactEmail:m.contactEmail||'',phone:m.phone||'',bunks:db.bunks.filter(function(b){return b.userId===m.id}).map(function(b){return b.night+' \u00b7 Bunk '+b.bunk;})};}):[],announcements:db.announcements,mine:myWeekend(u),prizes:db.prizes||{first:"",second:"",shown:false},outreach:{emails:db.users.filter(function(x){return x.contactEmail;}).map(function(x){return x.contactEmail;}),phones:db.users.filter(function(x){return x.phone;}).map(function(x){return x.phone;})},invite:INVITE,err:req.query.e||"",q:req.query});
+  res.render('hall',{u,page:pageOf(u),mySlug:slugById()[u.id]||'',backdrops:BACKDROPS,layouts:LAYOUTS,fonts:FONTS,fontKeys:FONT_KEYS,sizeKeys:SIZE_KEYS,sizes:SIZES,charmKeys:CHARM_KEYS,charmSvg:charmSvg,charmMax:CHARM_MAX,rank:rank(u),classes:CLASSES,bunkBoard,bunksLeft,bunkFacts:bunkFacts(),since:since,away:away,cardWaiting:cardWaiting(u),over:countdown().ended===true,finest:highHand(),items,bringers,leader:u.role==='leader',users:u.role==='leader'?db.users.map(function(m){return{slug:slugById()[m.id]||'',berth:m.berth||'',vouches:vouchesFor(m.id),name:m.name,class:m.class,faires:m.faires,rank:rank(m),pledge:!!m.pledge,leader:m.role==='leader',dayContact:!!m.dayContact,title:m.title||'',avatar:m.avatar,id:m.id,contactEmail:m.contactEmail||'',phone:m.phone||'',bunks:db.bunks.filter(function(b){return b.userId===m.id}).map(function(b){return b.night+' \u00b7 Bunk '+b.bunk;})};}):[],announcements:db.announcements,mine:myWeekend(u),prizes:db.prizes||{first:"",second:"",shown:false},outreach:{emails:db.users.filter(function(x){return x.contactEmail;}).map(function(x){return x.contactEmail;}),phones:db.users.filter(function(x){return x.phone;}).map(function(x){return x.phone;})},invite:INVITE,err:req.query.e||"",q:req.query});
 });
 // How your page looks. Separate from the details form above because these are
 // about presentation and those are about the guild — and because this one
@@ -1164,6 +1164,7 @@ app.post('/members/profile',au,up.single('avatar'),shrinkAvatar,(req,res)=>{cons
   }
   if(req.file)u.avatar='/uploads/'+req.file.filename;save();res.redirect('/members#profile');});
 app.post('/members/bunk',au,sworn,(req,res)=>{const u=cur(req);const{night,bunk}=req.body;b=parseInt(bunk);
+  if(countdown().ended)return res.redirect('/members?e='+encodeURIComponent('The faire is over — camp is closed until next year.')+'#bunks');
   if(!NIGHTS.includes(night)||!BUNKS.includes(b))return res.redirect('/members#bunks');
   if(db.bunks.find(x=>x.night===night&&x.bunk===b))return res.redirect('/members?e=taken#bunks');
   // limit a member to one bunk per night
@@ -1203,6 +1204,7 @@ app.post('/members/bunk/release',au,(req,res)=>{
 // Waiting for a bunk is only worth anything if you could hold one.
 app.post('/members/waitlist',au,sworn,(req,res)=>{
   const u=cur(req);const night=req.body.night;
+  if(countdown().ended)return res.redirect('/members?e='+encodeURIComponent('The faire is over — camp is closed until next year.')+'#bunks');
   if(!NIGHTS.includes(night))return res.redirect('/members#bunks');
   if(db.bunks.find(x=>x.night===night&&x.userId===u.id))return res.redirect('/members#bunks');
   if(!db.waitlist.find(w=>w.night===night&&w.userId===u.id))
@@ -1214,7 +1216,9 @@ app.post('/members/waitlist/leave',au,(req,res)=>{
   db.waitlist=db.waitlist.filter(w=>!(w.night===req.body.night&&w.userId===u.id));
   save();res.redirect('/members#bunks');
 });
-app.post('/members/bring/claim',au,(req,res)=>{const u=cur(req);const itemId=parseInt(req.body.itemId);const it=db.items.find(x=>x.id===itemId);if(!it)return res.redirect('/members#bring');
+app.post('/members/bring/claim',au,(req,res)=>{
+  if(countdown().ended)return res.redirect('/members?e='+encodeURIComponent('The faire is over — camp is closed until next year.')+'#bring');
+  const u=cur(req);const itemId=parseInt(req.body.itemId);const it=db.items.find(x=>x.id===itemId);if(!it)return res.redirect('/members#bring');
   const qty=Math.max(1,parseInt(req.body.qty||1));const existing=db.claims.find(c=>c.itemId===itemId&&c.userId===u.id);
   if(existing)existing.qty=qty;else db.claims.push({id:nid(),itemId,userId:u.id,qty});save();res.redirect('/members#bring');});
 app.post('/members/bring/unclaim',au,(req,res)=>{const u=cur(req);const itemId=parseInt(req.body.itemId);db.claims=db.claims.filter(c=>!(c.itemId===itemId&&c.userId===u.id));save();res.redirect('/members#bring');});
