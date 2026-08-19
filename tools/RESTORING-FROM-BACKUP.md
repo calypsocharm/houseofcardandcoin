@@ -2,15 +2,15 @@
 
 These are nightly copies of the House of Card and Coin's guild data — every
 member, their hands, the bunks, the talk in the Tavern, the Roll, and everyone's
-uploaded faces. One file per night, seven nights kept.
+uploaded faces. One file per night, kept on the VPS in two places.
 
 Each one holds `app/data/guild.json` and the whole `app/uploads` folder. Nothing
 else in the site matters: the code is all in the git repo, only this is
 irreplaceable.
 
-**Verified working on 19 August 2026** — a copy was extracted on the server and
-again on this machine, and the restored file was checked: 11 members, every one
-with a login, 4 threads, 1 round, 17 notices, 9 avatars.
+**Verified working on 19 August 2026** — an archive was written, read back,
+and extracted, and the restored file checked: 10 members, every one with a
+login, 4 threads, the 9-event schedule, 9 avatars.
 
 ## Restoring onto a working server
 
