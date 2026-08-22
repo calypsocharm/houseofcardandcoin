@@ -254,6 +254,26 @@
     <button class="btn btn--gold" style="padding:8px 18px;font-size:.62rem">Save the prizes</button>
   </form>
   <% if(typeof q!=="undefined" && q.prizes){ %><p class="bringers__none" style="color:var(--gold-l);margin-top:10px">Saved.</p><% } %>
+<p class="bringers__none" style="margin-top:16px;color:#cdb98f"><b>A picture of each, if you have one.</b> It stays behind the seal with the words &mdash; nothing shows until you break it.</p>
+<div style="display:flex;gap:14px;flex-wrap:wrap;margin-top:10px">
+  <% ["first","second"].forEach(function(w){ var img=prizes&&prizes[w+"Img"]; %>
+    <div style="flex:1;min-width:210px">
+      <p style="font-family:var(--display);font-size:.62rem;letter-spacing:.16em;text-transform:uppercase;color:var(--gold-l);margin-bottom:6px"><%= w==="first"?"First prize":"Runner-up" %></p>
+      <% if(img){ %>
+        <img src="<%= img %>" alt="" style="width:100%;max-width:150px;border-radius:4px;border:1px solid var(--gold-d);display:block;margin-bottom:7px">
+        <form method="post" action="/members/admin/prize-pic" style="display:inline">
+          <input type="hidden" name="which" value="<%= w %>">
+          <button name="remove" value="1" class="btn btn--ghost" style="padding:4px 9px;font-size:.56rem">Take it down</button>
+        </form>
+      <% } %>
+      <form method="post" action="/members/admin/prize-pic" enctype="multipart/form-data" style="margin-top:6px">
+        <input type="hidden" name="which" value="<%= w %>">
+        <input type="file" name="pic" accept="image/*" required aria-label="A picture of the <%= w==="first"?"first prize":"runner-up prize" %>" style="width:100%;font-size:.72rem;color:#cdb98f">
+        <button class="btn btn--ghost" style="padding:5px 10px;font-size:.58rem;margin-top:6px"><%= img?"Replace it":"Put one up" %></button>
+      </form>
+    </div>
+  <% }) %>
+</div>
 </div>
 <div class="bringers" id="safekeeping" style="margin-bottom:18px">
   <h3>Keep a copy safe</h3>

@@ -92,8 +92,11 @@
       <div class="prizes">
         <div class="prize prize--first">
           <span class="prize__rank">First hand of the faire</span>
-          <% if(prizes.shown && prizes.first){ %>
-            <span class="prize__what">🎁 <%= prizes.first %></span>
+          <% if(prizes.shown && (prizes.first || prizes.firstImg)){ %>
+            <% if(prizes.firstImg){ %>
+              <img class="prize__pic" src="<%= prizes.firstImg %>" alt="<%= prizes.first || "The prize" %>" width="760" height="760" loading="lazy">
+            <% } %>
+            <% if(prizes.first){ %><span class="prize__what">🎁 <%= prizes.first %></span><% } %>
           <% } else { %>
             <span class="prize__sealed" aria-label="Sealed until the faire">🎁</span>
             <span class="prize__hint">Sealed until the faire</span>
@@ -101,8 +104,11 @@
         </div>
         <div class="prize prize--second">
           <span class="prize__rank">Runner-up</span>
-          <% if(prizes.shown && prizes.second){ %>
-            <span class="prize__what">🎁 <%= prizes.second %></span>
+          <% if(prizes.shown && (prizes.second || prizes.secondImg)){ %>
+            <% if(prizes.secondImg){ %>
+              <img class="prize__pic" src="<%= prizes.secondImg %>" alt="<%= prizes.second || "The prize" %>" width="760" height="760" loading="lazy">
+            <% } %>
+            <% if(prizes.second){ %><span class="prize__what">🎁 <%= prizes.second %></span><% } %>
           <% } else { %>
             <span class="prize__sealed" aria-label="Sealed until the faire">🎁</span>
             <span class="prize__hint">Sealed until the faire</span>

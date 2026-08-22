@@ -1115,10 +1115,61 @@ app.get("/board/roll",(req,res)=>{maybeCloseRound();const i=ident(req);
   const atTop=(_top&&_top.rank)?_t.filter(function(h){return cmpHand(h.rank,_top.rank)===0;}).length:0;
   res.render("roll",{i:i,rounds:roll(),champions:champions(),table:_t,atTop:atTop,high:highHand(),roundEnds:roundEnds(),roundDays:ROUND_DAYS,roundNo:db.rounds.length+1,slugs:slugById(),q:req.query,leader:!!(i&&i.leader),gates:countdown(),prizes:db.prizes||{first:"",second:"",shown:false}});});
 app.post("/members/admin/prizes",al,(req,res)=>{
+  // Keeps whatever pictures are already attached — this form only carries the
+  // words and the seal, and rebuilding the record from scratch used to throw
+  // the rest of it away.
+  var keep=db.prizes||{};
   db.prizes={first:String(req.body.first||"").trim().slice(0,140),
              second:String(req.body.second||"").trim().slice(0,140),
+             firstImg:keep.firstImg, secondImg:keep.secondImg,
              shown:!!req.body.shown};
+  if(!db.prizes.firstImg)delete db.prizes.firstImg;
+  if(!db.prizes.secondImg)delete db.prizes.secondImg;
   save();res.redirect("/members?prizes=1#prizes");
+});
+/* A picture of the prize itself.
+
+   The Roll promised "something worth the walk" and showed a wax seal, which
+   is the right amount of mystery for a thing nobody had chosen yet. Now that
+   there is an actual object to win, a photograph of it does the persuading —
+   and it stays behind the seal with the words until the seal is broken, so
+   nothing is given away early.
+
+   Kept square and small: it sits in a card beside its own name, not on a wall
+   of its own. */
+function shrinkPrize(req,res,next){
+  if(!req.file)return next();
+  var f=req.file, input;
+  try{ input=fs.readFileSync(f.path); }
+  catch(e){ req.file=null; return next(); }
+  sharp(input).rotate().resize(760,760,{fit:"cover",position:sharp.strategy.attention})
+    .jpeg({quality:80,mozjpeg:true}).toBuffer()
+    .then(function(out){ fs.writeFileSync(f.path,out); next(); })
+    .catch(function(){ try{ fs.unlinkSync(f.path); }catch(x){} req.file=null; next(); });
+}
+app.post('/members/admin/prize-pic',al,up.single('pic'),shrinkPrize,(req,res)=>{
+  var which=req.body.which==='first'?'first':'second';
+  if(!db.prizes)db.prizes={first:"",second:"",shown:false};
+  var key=which+"Img";
+
+  // Taking one down. The file goes with it rather than lingering in uploads.
+  if(req.body.remove){
+    var had=db.prizes[key];
+    if(had)try{ fs.unlinkSync(path.join(__dirname,"uploads",had.replace("/uploads/",""))); }catch(e){}
+    delete db.prizes[key];
+    save();
+    return res.redirect('/members?prizes=1#prizes');
+  }
+  if(!req.file)
+    return res.redirect('/members?e='+encodeURIComponent('That was not a picture we could read. Try another.')+'#prizes');
+
+  // The one it replaces is deleted, so swapping the prize does not leave the
+  // old one on disk forever.
+  var old=db.prizes[key];
+  if(old)try{ fs.unlinkSync(path.join(__dirname,"uploads",old.replace("/uploads/",""))); }catch(e){}
+  db.prizes[key]="/uploads/"+req.file.filename;
+  save();
+  res.redirect('/members?prizes=1#prizes');
 });
 /* One source of truth for the map hotspots — tools/map-spots.json. This page
    reads it live; the homepage gets the same spots written into it by

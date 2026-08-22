@@ -930,3 +930,12 @@
 /* No hover on a touch screen, so the handle is simply always there. */
 @media(hover:none){.pcard__redeal button{opacity:1;transform:scale(1)}}
 @media(prefers-reduced-motion:reduce){.pcard__redeal button{transition:none}}
+
+/* A picture of the prize itself, once the seal is broken. Square and modest —
+   it sits in the card beside its own name, not on a wall of its own. */
+.prize__pic{
+  display:block;width:100%;max-width:190px;height:auto;margin:0 auto 10px;
+  border-radius:4px;border:1px solid var(--gold-d);
+  box-shadow:0 14px 30px -22px rgba(0,0,0,.9);
+}
+@media(max-width:560px){.prize__pic{max-width:150px}}
