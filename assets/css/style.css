@@ -1489,3 +1489,21 @@ footer :where(a,button):focus-visible{
   margin-top:8px;font-family:var(--serif);font-style:italic;
   font-size:.88rem;color:var(--muted);
 }
+
+/* The inside of the rig, under the outside of it. Two side by side on a wide
+   screen, stacked on a phone — a picture of the couch you might be sleeping on
+   is worth more than the sentence saying there is one. */
+.rig-inside{
+  display:grid;gap:14px;margin-top:14px;
+  grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
+}
+.rig-inside figure{margin:0}
+.rig-inside img{
+  display:block;width:100%;height:auto;border-radius:4px;
+  border:1px solid var(--line2);
+  box-shadow:0 14px 32px -28px rgba(60,40,15,.9);
+}
+.rig-inside figcaption{
+  margin-top:7px;font-family:var(--serif);font-style:italic;
+  font-size:.84rem;color:var(--muted);line-height:1.5;
+}

@@ -56,10 +56,15 @@ function bunkFacts(){
     totalWord:NUMWORD[total]||String(total)
   };
 }
-// What you are actually claiming. Bunk 3 is likely to be a cot rather than a
-// bed in the rig — said where the bunk is claimed rather than buried on the
-// camp page, so nobody finds out on the Friday night.
-const BUNK_NOTES={3:"likely a cot"};
+/* A word beside a bunk where one is wanted.
+
+   Bunk 3 used to carry "likely a cot", which was true when nobody had
+   looked properly. It is a bed — the couch or the dinette made up — so the
+   warning is gone rather than softened. There is nothing to say about any
+   of the three now, and an empty table is the honest way to say so.
+
+   It still feeds all three boards, so putting a note back is one line here. */
+const BUNK_NOTES={};
 function heldBerths(){
   return db.users.filter(function(u){return u.berth;})
     .map(function(u){return {who:u.name,berth:u.berth,avatar:u.avatar||'',slug:slugById()[u.id]||''};});
@@ -1580,12 +1585,12 @@ app.post('/members/admin/event',al,(req,res)=>{
    The bring-list is the guild's: firewood, ice, a dish for the potluck. It has
    never said a word about what a person needs for themselves, and the one
    thing people actually forget is bedding — which is mentioned once, in the
-   FAQ, where you only find it if you go looking. Bunk 3 is a cot.
+   FAQ, where you only find it if you go looking.
 
    The list starts as the House's advice and becomes yours the moment you touch
    it: tick what is packed, strike what does not apply, add what is only yours. */
 const PACK_START=[
-  {what:'Sleeping bag or bedding', why:'None is provided, and bunk 3 is likely a cot'},
+  {what:'Sleeping bag or bedding', why:'None is provided, whichever bunk you hold'},
   {what:'Your pillow', why:''},
   {what:'Garb for each day', why:''},
   {what:'Shade — canopy, tarp, rope', why:'Our spot is pavement with none of its own'},
