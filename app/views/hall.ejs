@@ -70,6 +70,54 @@
      this is what you need, and it is the one nobody is told about. */
   var _packed = pack.filter(function(x){ return x.done; }).length;
 %>
+<%
+  /* Yours alone, and only drawn for a leader. Most of these are questions, so
+     each one takes an answer as well as a tick — it is not settled when it is
+     ticked, it is settled when it says a name. */
+%>
+<% if(chores){ %>
+<section class="section sort" id="sort"><div class="container">
+  <div class="bannerhead">
+    <span class="eyebrow">&#9884; The Elder&rsquo;s Own &#9884;</span>
+    <h2>Still to Sort</h2>
+    <div class="rule"></div>
+  </div>
+  <p class="lead center sort__lead">The things nobody else can answer. Nobody else can see this
+    either &mdash; not the guild, not the other leader.</p>
+  <p class="sort__count"><b><%= chores.filter(function(x){return x.done;}).length %></b> of <%= chores.length %> settled</p>
+
+  <ul class="sort__list">
+    <% chores.forEach(function(it){ %>
+      <li class="sort__item<%= it.done ? " is-done" : "" %>">
+        <form method="post" action="/members/chores" class="sort__tick">
+          <input type="hidden" name="id" value="<%= it.id %>">
+          <button type="submit" aria-label="<%= it.done ? "Mark unsettled" : "Mark settled" %>: <%= it.what %>"><%- it.done ? "&#10003;" : "&nbsp;" %></button>
+        </form>
+        <div class="sort__body">
+          <p class="sort__what"><%= it.what %>
+            <% if(it.why){ %><small><%= it.why %></small><% } %></p>
+          <form method="post" action="/members/chores" class="sort__answer">
+            <input type="hidden" name="id" value="<%= it.id %>">
+            <input name="answer" value="<%= it.answer || "" %>" maxlength="160"
+                   placeholder="the answer, when you have it&hellip;"
+                   aria-label="Answer for: <%= it.what %>">
+            <button type="submit">Note it</button>
+          </form>
+        </div>
+        <form method="post" action="/members/chores" class="sort__x">
+          <input type="hidden" name="id" value="<%= it.id %>">
+          <button type="submit" name="remove" value="1" title="Take it off the list" aria-label="Remove <%= it.what %>">&times;</button>
+        </form>
+      </li>
+    <% }) %>
+  </ul>
+
+  <form method="post" action="/members/chores" class="sort__add">
+    <input name="add" maxlength="120" placeholder="Something else you have to sort&hellip;" aria-label="Add something to your list">
+    <button class="btn btn--gold" type="submit">Add</button>
+  </form>
+</div></section>
+<% } %>
 <section class="section section--parch2 pack" id="pack"><div class="container">
   <div class="bannerhead">
     <span class="eyebrow">&#9884; Yours to Bring &#9884;</span>

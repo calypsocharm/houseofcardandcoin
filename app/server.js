@@ -1331,7 +1331,7 @@ app.get('/members',au,(req,res)=>{
   })();
   const bunksLeft=NIGHTS.length*BUNKS.length-db.bunks.length;
   const items=db.items.map(it=>{const cl=db.claims.filter(c=>c.itemId===it.id);const claimed=cl.reduce((s,c)=>s+c.qty,0);return{...it,claimed,remaining:Math.max(0,it.need-claimed),claims:cl.map(c=>({qty:c.qty,who:db.users.find(y=>y.id===c.userId)})),mine:cl.find(c=>c.userId===u.id)};});
-  res.render('hall',{u,pack:packFor(u),schedule:guildEvents(),backups:backupHealth(),page:pageOf(u),mySlug:slugById()[u.id]||'',backdrops:BACKDROPS,layouts:LAYOUTS,fonts:FONTS,fontKeys:FONT_KEYS,sizeKeys:SIZE_KEYS,sizes:SIZES,charmKeys:CHARM_KEYS,charmSvg:charmSvg,charmMax:CHARM_MAX,rank:rank(u),classes:CLASSES,bunkBoard,bunksLeft,bunkFacts:bunkFacts(),since:since,away:away,cardWaiting:cardWaiting(u),over:countdown().ended===true,finest:highHand(),items,bringers,leader:u.role==='leader',users:u.role==='leader'?db.users.map(function(m){return{slug:slugById()[m.id]||'',berth:m.berth||'',vouches:vouchesFor(m.id),name:m.name,class:m.class,faires:m.faires,rank:rank(m),pledge:!!m.pledge,leader:m.role==='leader',dayContact:!!m.dayContact,title:m.title||'',avatar:m.avatar,id:m.id,contactEmail:m.contactEmail||'',phone:m.phone||'',bunks:db.bunks.filter(function(b){return b.userId===m.id}).map(function(b){return b.night+' \u00b7 Bunk '+b.bunk;})};}):[],announcements:db.announcements,mine:myWeekend(u),prizes:db.prizes||{first:"",second:"",shown:false},outreach:{emails:db.users.filter(function(x){return x.contactEmail;}).map(function(x){return x.contactEmail;}),phones:db.users.filter(function(x){return x.phone;}).map(function(x){return x.phone;})},invite:inviteCode(),err:req.query.e||"",q:req.query});
+  res.render('hall',{u,pack:packFor(u),chores:u.role==='leader'?choresFor(u):null,schedule:guildEvents(),backups:backupHealth(),page:pageOf(u),mySlug:slugById()[u.id]||'',backdrops:BACKDROPS,layouts:LAYOUTS,fonts:FONTS,fontKeys:FONT_KEYS,sizeKeys:SIZE_KEYS,sizes:SIZES,charmKeys:CHARM_KEYS,charmSvg:charmSvg,charmMax:CHARM_MAX,rank:rank(u),classes:CLASSES,bunkBoard,bunksLeft,bunkFacts:bunkFacts(),since:since,away:away,cardWaiting:cardWaiting(u),over:countdown().ended===true,finest:highHand(),items,bringers,leader:u.role==='leader',users:u.role==='leader'?db.users.map(function(m){return{slug:slugById()[m.id]||'',berth:m.berth||'',vouches:vouchesFor(m.id),name:m.name,class:m.class,faires:m.faires,rank:rank(m),pledge:!!m.pledge,leader:m.role==='leader',dayContact:!!m.dayContact,title:m.title||'',avatar:m.avatar,id:m.id,contactEmail:m.contactEmail||'',phone:m.phone||'',bunks:db.bunks.filter(function(b){return b.userId===m.id}).map(function(b){return b.night+' \u00b7 Bunk '+b.bunk;})};}):[],announcements:db.announcements,mine:myWeekend(u),prizes:db.prizes||{first:"",second:"",shown:false},outreach:{emails:db.users.filter(function(x){return x.contactEmail;}).map(function(x){return x.contactEmail;}),phones:db.users.filter(function(x){return x.phone;}).map(function(x){return x.phone;})},invite:inviteCode(),err:req.query.e||"",q:req.query});
 });
 // How your page looks. Separate from the details form above because these are
 // about presentation and those are about the guild — and because this one
@@ -1665,6 +1665,56 @@ app.post('/members/pack',au,(req,res)=>{
   }
   save();
   res.redirect('/members#pack');
+});
+
+/* ── Still to sort ──────────────────────────────────────────────────────────
+   The packing list is what every guildmate needs. This is the other kind: the
+   half-dozen things that are the Guild Leader's alone, and most of them are
+   questions rather than tasks — who is meeting the trailer, whether anyone has
+   booked the room, whether we are driving.
+
+   So each line takes an answer as well as a tick. "Who meets the trailer at
+   six on the Thursday?" is not done when it is ticked; it is done when it says
+   a name. The tick is for afterwards.
+
+   Leader-only, and each leader keeps their own. Nobody else sees it. */
+const CHORES_START=[
+  {what:'The camper comes with FULL water', why:'Confirm it before it leaves — a dry camp means what is in the tank is all there is'},
+  {what:'Who meets the trailer at 6pm Thursday?', why:'To park it and take the keys'},
+  {what:'Who is there Sunday night when they collect it?', why:''},
+  {what:'Hotel for Sunday night — booked?', why:'After camp comes down'},
+  {what:'Flying or driving?', why:'And who is riding with whom'}
+];
+function choresFor(u){
+  if(!Array.isArray(u.chores)){
+    u.chores=CHORES_START.map(function(x){
+      return {id:nid(),what:x.what,why:x.why,answer:"",done:false,house:true};
+    });
+    save();
+  }
+  return u.chores;
+}
+app.post('/members/chores',au,al,(req,res)=>{
+  const u=cur(req); if(!u)return res.redirect('/members/login');
+  const list=choresFor(u);
+  const id=String(req.body.id||'');
+
+  if(req.body.add){
+    const what=String(req.body.add).trim().slice(0,120);
+    if(what) u.chores.push({id:nid(),what:what,why:"",answer:"",done:false,house:false});
+  } else if(req.body.remove){
+    u.chores=list.filter(function(x){return String(x.id)!==id;});
+  } else if(req.body.reset){
+    delete u.chores; choresFor(u);
+  } else if(req.body.answer!==undefined){
+    const it=list.find(function(x){return String(x.id)===id;});
+    if(it) it.answer=String(req.body.answer).trim().slice(0,160);
+  } else {
+    const it=list.find(function(x){return String(x.id)===id;});
+    if(it) it.done=!it.done;
+  }
+  save();
+  res.redirect('/members#sort');
 });
 app.post('/members/admin/invite',al,(req,res)=>{
   var want=req.body.roll ? freshCode() : normCode(req.body.code);
