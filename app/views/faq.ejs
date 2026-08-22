@@ -155,16 +155,21 @@
       %>
       <% if(locals.day && day.phone){ %>
         <details class="faq-hide">
-          <summary><span aria-hidden="true">📞</span> Show the Guild Elder&rsquo;s number</summary>
+          <summary><span aria-hidden="true">&#9742;</span> The Guild Elder&rsquo;s emergency number</summary>
           <a class="faq-hide__n" href="sms:<%= day.tel %>"><%= day.phone %></a>
-          <p><b>Text it, do not ring it.</b> She is not answering the phone during the faire, and a
-            call is a last resort. Guildmates only — keep it in the House.</p>
+          <p><b>For something that will not wait.</b> Text it if you can &mdash; ring it if you
+            must. She is not watching the phone all weekend, but she will see a message.</p>
+          <p style="margin-top:8px">Anything that is not an emergency &mdash; a question, a change
+            of plan, running late &mdash; goes by <a href="/board/whispers">whisper</a> or
+            <a href="/pigeon.html">pigeon</a>. That is what she will actually read.</p>
+          <p style="margin-top:8px"><b>Sworn guildmates only.</b> Keep it in the House.</p>
         </details>
       <% } else if(locals.day && !day.sworn){ %>
-        <p class="faq-note">Sworn guildmates also get a number for the day itself. Pledges, send a
-          pigeon and she will answer.</p>
+        <p class="faq-note">Sworn guildmates get the Elder&rsquo;s emergency number here. Pledges,
+          send a pigeon and she will answer.</p>
       <% } else if(!locals.day){ %>
-        <p class="faq-note">Guildmates: sign in and a number for the day appears here.</p>
+        <p class="faq-note">Guildmates: sign in and the Elder&rsquo;s emergency number appears
+          here.</p>
       <% } %>
     </div>
   </div>
