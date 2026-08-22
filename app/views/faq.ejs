@@ -8,6 +8,47 @@
 
 <section class="section"><div class="container" style="max-width:820px">
 
+<%
+  /* Only over the weekend, and only the handful of things somebody actually
+     needs while stood in the park. Everything else is still below. */
+%>
+<% if(today){ %>
+<div class="today">
+  <p class="today__k">&#9884; On the day &#9884;</p>
+  <h2 class="today__h"><%= today.open ? "The gates are open" : "Camp goes up today" %></h2>
+
+  <ul class="today__list">
+    <li><b>Where we are</b><span>Our spot is marked on the
+      <a href="/camp.html#parking">park map</a> &mdash;
+      <a class="today__go" href="<%= today.maps %>" rel="noopener">take me there &rarr;</a></span></li>
+
+    <li><b>Getting in</b><span>Your wristband is your way through the <b>RV campsite gate</b>.
+      Do not buy a ticket you already have. The band belongs to the bunk &mdash; hand it on if
+      you only hold tonight.</span></li>
+
+    <% if(today.next.length){ %>
+      <li><b>What is next</b><span>
+        <% today.next.forEach(function(e,n){ %>
+          <%- n?" &middot; ":"" %><b class="today__when"><%= e.when %></b> <%= e.title %>
+        <% }) %>
+        <br><a href="/events.html">the whole scroll &rarr;</a></span></li>
+    <% } %>
+
+    <% if(today.wanted.length){ %>
+      <li><b>Still wanted</b><span>
+        <%= today.wanted.map(function(x){ return x.name+" ×"+x.remaining; }).join(", ") %>
+        <% if(today.stillWanted>today.wanted.length){ %> and <%= today.stillWanted-today.wanted.length %> more<% } %>
+        &mdash; <a href="/members#bring">claim one</a></span></li>
+    <% } %>
+
+    <li><b>Something wrong</b><span>A real emergency is <b>911</b> first.
+      Anything else &mdash; <a href="#reaching">how to reach the House</a>, and the Elder&rsquo;s
+      number is with it.</span></li>
+  </ul>
+  <p class="today__note">Everything else the House gets asked is below, where it always is.</p>
+</div>
+<% } %>
+
   <div class="faq-group">
     <h2>Arriving &amp; staying</h2>
 

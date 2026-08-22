@@ -1507,3 +1507,39 @@ footer :where(a,button):focus-visible{
   margin-top:7px;font-family:var(--serif);font-style:italic;
   font-size:.84rem;color:var(--muted);line-height:1.5;
 }
+
+/* ── On the day ─────────────────────────────────────────────────────────────
+   At the top of the FAQ for the faire weekend and nowhere else. Somebody stood
+   in a car park wants five things; the thirty-one questions are still below
+   for everyone else, and this costs the page nothing but words. */
+.today{
+  margin:0 0 34px;padding:20px 22px;border-radius:4px;
+  background:linear-gradient(180deg,rgba(110,26,26,.09),rgba(226,199,127,.09));
+  border:1px solid var(--wine);
+}
+.today__k{
+  margin:0 0 4px;font-family:var(--display);font-size:.64rem;letter-spacing:.22em;
+  text-transform:uppercase;color:var(--gold-d);
+}
+.today__h{margin:0 0 14px;color:var(--wine);font-size:1.5rem}
+.today__list{list-style:none;margin:0;padding:0;display:grid;gap:12px}
+.today__list li{
+  display:grid;grid-template-columns:8.5em 1fr;gap:14px;align-items:baseline;
+  padding-bottom:11px;border-bottom:1px dotted var(--line);
+}
+.today__list li:last-child{border-bottom:0;padding-bottom:0}
+.today__list b{
+  font-family:var(--display);font-size:.68rem;letter-spacing:.13em;
+  text-transform:uppercase;color:var(--wine);
+}
+.today__list span{color:var(--ink2);line-height:1.62;font-size:.95rem}
+.today__list span b{font-size:inherit;letter-spacing:0;text-transform:none;color:var(--ink)}
+.today__when{color:var(--wine)!important;font-style:italic}
+.today__list a{color:var(--wine);font-weight:600}
+.today__go{white-space:nowrap}
+.today__note{margin:14px 0 0;font-size:.84rem;color:var(--muted);font-style:italic}
+@media(max-width:560px){
+  .today{padding:16px 15px}
+  .today__list li{grid-template-columns:1fr;gap:2px}
+  .today__list b{font-size:.62rem}
+}

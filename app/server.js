@@ -1191,7 +1191,45 @@ app.get("/map",(req,res)=>{
 });
 // The card game's rules are explained on the FAQ from the constants that run
 // it, so the page cannot quietly disagree with the game.
-app.get('/faq',(req,res)=>res.render('faq',{day:dayContact(ident(req)),bunkFacts:bunkFacts(),
+
+/* ── The weekend itself ─────────────────────────────────────────────────────
+   The FAQ answers thirty-one questions in seven groups, which is right for
+   somebody deciding in September whether to come and wrong for somebody stood
+   in a car park at seven on the Friday. They want five things and none of them
+   are pictures.
+
+   So the same page grows a short block at the top, for the weekend only. No
+   second page to keep in step, and no extra weight — it is words, and the FAQ
+   is already the lightest page on the site.
+
+   It opens the evening before the gates, because camp goes up on the Thursday,
+   and closes when the faire does. */
+const CAMP_AT={lat:36.067409,lon:-115.116975};   // the middle of our lot, off the park map
+function onTheDay(){
+  const open=Date.UTC(2026,9,9,17,0,0), close=Date.UTC(2026,9,12,0,0,0), now=Date.now();
+  if(now<open-24*3600*1000 || now>=close)return null;
+
+  // What is on next, and anything else still to come today.
+  const cfg=guildEvents();
+  const soon=(cfg.events||[]).map(function(e){
+      return {when:e.when,title:e.title,body:e.body,
+              ts:Date.parse(e.date+"T"+(e.at||"12:00")+":00-07:00")};
+    }).filter(function(e){ return e.ts && e.ts>now; })
+    .sort(function(a,b){ return a.ts-b.ts; }).slice(0,3);
+
+  // What the camp is still short of.
+  const wanted=bringList().filter(function(x){ return x.remaining>0; })
+    .sort(function(a,b){ return b.remaining-a.remaining; }).slice(0,6);
+
+  return {
+    open: now>=open,
+    maps: "https://maps.google.com/?q="+CAMP_AT.lat+","+CAMP_AT.lon,
+    next: soon,
+    wanted: wanted,
+    stillWanted: bringList().filter(function(x){ return x.remaining>0; }).length
+  };
+}
+app.get('/faq',(req,res)=>res.render('faq',{day:dayContact(ident(req)),bunkFacts:bunkFacts(),today:onTheDay(),
   game:{price:CARD_PRICE,redeal:REDEAL_PRICE,days:ROUND_DAYS,tiers:coinTiers(),ladder:coinLadder(),first:coinFirstRound(),
         titles:COIN_TITLES}}));
 app.get('/members/login',(req,res)=>res.render('login',{err:req.query.e||'',code:req.query.code||'',needCode:inviteRequired()}));
