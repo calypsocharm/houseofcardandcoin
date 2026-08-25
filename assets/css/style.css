@@ -1637,3 +1637,38 @@ footer :where(a,button):focus-visible{
 }
 /* Once it is running as an app there is no bar to draw. */
 @media(display-mode:standalone){.installbar{display:none}}
+
+/* A badge that is a word rather than a count — "waiting", beside tonight's
+   card. Gold instead of the notices' wine, because it is an invitation and not
+   a pile of things unread. */
+.navdrawer__count--gold{background:var(--gold-d);border-color:var(--gold-l);color:#1a120b;font-weight:600}
+
+/* ── Into the card game, from the front door ────────────────────────────────
+   The nightly card is the thing that brings people back between now and
+   October, and until this button it sat three taps deep behind a hamburger.
+
+   Third in the hero on purpose: the Guild is who we are and the login is the
+   door, but this is the thing to actually do tonight. Dark with a gold edge so
+   it is plainly its own offer rather than a third shade of the same one.
+
+   It reads the visitor — signed out it invites, signed in with a card still on
+   the deck it turns gold and grows a pip, signed in and already drawn it goes
+   quiet and simply offers the hand back. nav.js does the reading; the markup
+   ships with the signed-out wording so it is right with scripting off too. */
+.hero__deal{background:rgba(20,14,8,.55);color:var(--gold-l);border-color:var(--gold);
+  box-shadow:inset 0 1px 0 rgba(226,199,127,.18);position:relative}
+.hero__deal:hover{background:rgba(20,14,8,.82);color:#fdf3d6;border-color:var(--gold-l);transform:translateY(-2px)}
+.hero__deal span[aria-hidden]{font-size:1.2em;line-height:1;margin:-2px 0}
+/* There is a card waiting. Gold, and a pip that catches the eye once in a while
+   rather than blinking at it. */
+/* Brighter than .btn--gold on purpose, with a halo: "Enter the Guild" is
+   already gold, and two gold buttons side by side say nothing about which one
+   matters tonight. This one reads as lit rather than merely coloured. */
+.hero__deal.is-waiting{background:linear-gradient(180deg,#f9e3ad,var(--gold-l));color:#2a1c08;
+  border-color:#fdf3d6;box-shadow:0 0 0 3px rgba(226,199,127,.26), 0 12px 28px -12px rgba(0,0,0,.75)}
+.hero__deal.is-waiting:hover{background:linear-gradient(180deg,#fdf0cd,#f2d79c);color:#2a1c08;border-color:#fff}
+.hero__deal.is-waiting::after{content:"";position:absolute;top:-6px;right:-6px;width:13px;height:13px;
+  border-radius:50%;background:var(--wine);border:2px solid #f8edd1;
+  animation:dealpip 3.2s var(--ease) infinite}
+@keyframes dealpip{0%,74%,100%{transform:scale(1)}82%{transform:scale(1.3)}}
+@media(prefers-reduced-motion:reduce){.hero__deal.is-waiting::after{animation:none}}

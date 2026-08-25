@@ -293,7 +293,7 @@
               <p class="pro-empty purse-more">The <%= purse.log.length-12 %> older lines have been let go; the totals above still count them.</p>
             <% } %>
           <% } else { %>
-            <p class="pro-empty">Not a coin yet. The House deals a card a night and pays for it &mdash; <a href="/board#hand">start tonight</a>.</p>
+            <p class="pro-empty">Not a coin yet. The House deals a card a night and pays for it &mdash; <a href="/card">start tonight</a>.</p>
           <% } %>
 
           <h3 class="purse-h">How to fill it</h3>
@@ -322,7 +322,7 @@
             </div>
             <p class="pro-empty" style="margin-top:12px">Five nights, five cards. Shown at the faire for the finest hand of the weekend.</p>
           <% } else { %>
-            <p class="pro-empty">No cards drawn yet.<% if(isMe){ %> <a href="/board#hand">Take tonight’s card</a>.<% } else { %> The House deals one a night to anyone who comes by the Tavern.<% } %></p>
+            <p class="pro-empty">No cards drawn yet.<% if(isMe){ %> <a href="/card">Take tonight’s card</a>.<% } else { %> The House deals one a night to anyone who comes by the Tavern.<% } %></p>
           <% } %>
         </div>
 

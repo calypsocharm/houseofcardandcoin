@@ -49,14 +49,17 @@
     return n;
   }
 
-  function link(label, href, count) {
+  function link(label, href, count, badgeCls) {
     var a = el('a', null, null);
     a.href = href;
     a.appendChild(el('span', null, label));
-    if (count) a.appendChild(el('span', 'navdrawer__count', String(count)));
-    // "Your hand" points at /board#hand and the Tavern at /board, so matching
-    // on the path alone lit both of them at once. An entry carrying a fragment
-    // has to match the fragment too.
+    // A badge is usually a number of unread things. It can also be a word —
+    // "waiting" beside tonight's card, where a count of one would be silly.
+    if (count) a.appendChild(el('span',
+      'navdrawer__count' + (badgeCls ? ' ' + badgeCls : ''), String(count)));
+    // Administration points at /members#admin and Profile at /members, so
+    // matching on the path alone lit both of them at once. An entry carrying a
+    // fragment has to match the fragment too.
     var hit = href.indexOf('#') > -1
       ? href === here + location.hash
       : href === here;
@@ -67,6 +70,41 @@
     return a;
   }
 
+  /* The card game, offered from the front door.
+
+     The landing page is generated static HTML and cannot know who is looking,
+     so its button ships with the signed-out invitation and this corrects it
+     from the answer the menu is already built on — no second request, and
+     nothing to correct at all on the pages that have no such button.
+
+     Three states, because there are three honest things to say: come and
+     play, there is one waiting for you, and here is the hand you hold. */
+  function dealButton(me) {
+    var a = document.querySelector('[data-cardcta]');
+    if (!a) return;
+    var label = a.querySelector('[data-cardcta-label]') || a;
+    var inside = !!(me && me.signedIn);
+    a.classList.toggle('is-waiting', inside && !!me.card);
+    if (!inside) {
+      a.href = '/members/login?next=%2Fcard';
+      label.textContent = 'Join the Card Game';
+      a.title = 'The House deals a card a night — see how it works';
+    } else {
+      a.href = '/card';
+      label.textContent = me.card ? 'Take Tonight’s Card' : 'Your Hand';
+      a.title = me.card ? 'There is a card waiting for you'
+                        : 'The hand you are building for the faire';
+    }
+
+    /* And when there is one waiting it leads the row rather than trailing it.
+       The markup ships it last because that is the right order for a stranger
+       — meet the guild, then the door, then the game. For somebody who has a
+       card on the deck the order is exactly backwards, and on a phone, where
+       the three buttons stack, trailing means a screenful further down. */
+    var row = a.parentElement;
+    if (inside && me.card) { if (row.firstElementChild !== a) row.insertBefore(a, row.firstElementChild); }
+    else if (row.lastElementChild !== a) row.appendChild(a);
+  }
   function build(me) {
     var wasOpen = panel.classList.contains('open');
     panel.className = 'nav-links navdrawer' + (wasOpen ? ' open' : '');
@@ -101,13 +139,21 @@
 
       // The Tavern is left out of a patron's own section — it is already down
       // in The House, and listing a room twice makes the menu look padded.
+      /* The card first, and named for the thing itself. This line used to read
+         "Your hand" and point at /board#hand — which meant loading the whole
+         Tavern and then scrolling to find it. The card has a door of its own
+         now, and when there is one waiting the menu says so rather than making
+         anybody go and look. */
       var mine = patron
-        ? [['Your hand', '/board#hand'], ['Notices', '/board/notices']]
-        : [['Profile', '/members'], ['Your hand', '/board#hand'], ['Notices', '/board/notices']];
+        ? [['Tonight’s card', '/card'], ['Notices', '/board/notices']]
+        : [['Profile', '/members'], ['Tonight’s card', '/card'], ['Notices', '/board/notices']];
       if (me.leader) mine.push(['Administration', '/members#admin']);
 
       mine.forEach(function (x) {
-        panel.appendChild(link(x[0], x[1], x[1] === '/board/notices' ? me.unread : 0));
+        if (x[1] === '/board/notices') panel.appendChild(link(x[0], x[1], me.unread));
+        else if (x[1] === '/card') panel.appendChild(
+          link(x[0], x[1], me.card ? 'waiting' : 0, 'navdrawer__count--gold'));
+        else panel.appendChild(link(x[0], x[1], 0));
       });
     }
 
@@ -133,12 +179,17 @@
     }
     panel.appendChild(foot);
 
-    // A mark on the button, so unread notices show without opening anything.
-    var waiting = inside && me.unread > 0;
-    btn.classList.toggle('menu-toggle--dot', waiting);
-    btn.setAttribute('aria-label', waiting
-      ? 'Menu — ' + me.unread + ' unread notice' + (me.unread === 1 ? '' : 's')
-      : 'Menu');
+    // A mark on the button, so a thing worth doing shows without opening
+    // anything — an unread notice, or the night's card still on the deck.
+    var news = inside && me.unread > 0;
+    var card = inside && !!me.card;
+    btn.classList.toggle('menu-toggle--dot', news || card);
+    var said = [];
+    if (news) said.push(me.unread + ' unread notice' + (me.unread === 1 ? '' : 's'));
+    if (card) said.push('a card waiting');
+    btn.setAttribute('aria-label', said.length ? 'Menu — ' + said.join(', ') : 'Menu');
+
+    dealButton(me);
   }
 
   // moveFocus only when the menu was opened from the keyboard. Doing it on a

@@ -1,12 +1,40 @@
 <%- include('_top',{title:'Guild Login'}) %>
-<style>body{background:#1a120b !important}body::before{display:none !important}.login-backdrop{position:fixed;inset:0;z-index:0;background-image:url('/assets/img/login-bg.jpg');background-size:cover;background-position:center}.login-veil{position:fixed;inset:0;z-index:0;background:linear-gradient(105deg,rgba(20,14,8,.86) 0%,rgba(20,14,8,.5) 55%,rgba(20,14,8,.78) 100%)}main{position:relative;z-index:1}footer{position:relative;z-index:1}.login-card{background:rgba(251,246,233,.96);backdrop-filter:blur(3px)}</style>
+<style>body{background:#1a120b !important}body::before{display:none !important}.login-backdrop{position:fixed;inset:0;z-index:0;background-image:url('/assets/img/login-bg.jpg');background-size:cover;background-position:center}.login-veil{position:fixed;inset:0;z-index:0;background:linear-gradient(105deg,rgba(20,14,8,.86) 0%,rgba(20,14,8,.5) 55%,rgba(20,14,8,.78) 100%)}main{position:relative;z-index:1}footer{position:relative;z-index:1}.login-card{background:rgba(251,246,233,.96);backdrop-filter:blur(3px)}.cardwelcome{border-color:var(--gold)}.cardwelcome__how{list-style:none;padding:0;margin:14px 0}.cardwelcome__how li{position:relative;padding-left:26px;margin:9px 0;font-size:.94rem;color:var(--ink2);line-height:1.55}.cardwelcome__how li::before{content:"◆";position:absolute;left:6px;top:0;color:var(--wine);font-size:.9rem}</style>
 <div class="login-backdrop"></div>
 <div class="login-veil"></div>
 <section class="section" style="padding-top:120px"><div class="container" style="max-width:540px">
-<div class="bannerhead"><span class="eyebrow" style="color:var(--gold-l)">Members Only</span><h2 style="color:#f8edd1">Your Place in the House</h2><div class="rule"></div></div>
+<%
+  /* Somebody who tapped "Join the Card Game" is not here to admire a members
+     door — they are here to play. Greeting them with "Members Only" is the
+     wrong first word, so when the House knows where they were headed it says
+     what the game is and then gets out of the way.
+
+     Everything below is the same two forms as always. Only the welcome
+     changes. */
+  var forCard = (locals.next === '/card');
+%>
+<% if(forCard){ %>
+  <div class="bannerhead"><span class="eyebrow" style="color:var(--gold-l)">&#127137; The Cardsharp&rsquo;s Hand &#127137;</span><h2 style="color:#f8edd1">Pull up a stool</h2><div class="rule"></div></div>
+  <div class="login-card scroll cardwelcome" style="margin-bottom:18px">
+    <p style="margin:0;color:var(--ink2)">The House deals <b>one card a night</b>, free, to anyone who turns up.
+      Five of them make a hand &mdash; and the best hand anyone is holding when the gates open
+      in October wins what the House has kept behind the seal.</p>
+    <ul class="cardwelcome__how">
+      <li>A card a night, just for showing up. It takes about five seconds.</li>
+      <li>Every card pays a little coin, and turning up two nights running pays more.
+        Spend the coin on a card you did not wait for, or throw one back and take another.</li>
+      <li>Bring your hand to Sunset Park in October and show it to the Dealer.</li>
+    </ul>
+    <p class="muted" style="margin:0;font-size:.9rem">Sign in below and we&rsquo;ll take you straight to your hand.
+      New here? Take the Oath underneath &mdash; it is an email and a password, and you can add
+      your name and your face once you are inside.</p>
+  </div>
+<% } else { %>
+  <div class="bannerhead"><span class="eyebrow" style="color:var(--gold-l)">Members Only</span><h2 style="color:#f8edd1">Your Place in the House</h2><div class="rule"></div></div>
+<% } %>
 <% if(err){ %><div class="login-card scroll" style="border-color:var(--wine);margin-bottom:18px;color:var(--wine)"><%= err %></div><% } %>
 <% var code = (typeof code !== 'undefined' && code) ? code : ''; var needCode = (typeof needCode === 'undefined') ? true : needCode; %>
-<div class="login-card scroll"><h3 style="color:var(--wine)">Sign In</h3><form method="post" action="/members/login"><div class="field"><label for="liEmail">Username or Email</label><input id="liEmail" type="text" name="email" autocomplete="username" autocapitalize="none" autocorrect="off" spellcheck="false" required></div><div class="field"><label for="liPass">Password</label><input id="liPass" type="password" name="password" autocomplete="current-password" required></div><button class="btn btn--gold" style="width:100%;justify-content:center">Enter the Hall</button></form><p class="muted" style="margin:12px 0 0;font-size:.86rem;text-align:center">Forgotten your password? <a href="/pigeon.html?reason=Locked%20out%20of%20my%20account" style="color:var(--wine);font-weight:600">Send a pigeon</a> and the Guild Leader will set you a new one.</p></div>
+<div class="login-card scroll"><h3 style="color:var(--wine)">Sign In</h3><form method="post" action="/members/login"><% if(locals.next){ %><input type="hidden" name="next" value="<%= next %>"><% } %><div class="field"><label for="liEmail">Username or Email</label><input id="liEmail" type="text" name="email" autocomplete="username" autocapitalize="none" autocorrect="off" spellcheck="false" required></div><div class="field"><label for="liPass">Password</label><input id="liPass" type="password" name="password" autocomplete="current-password" required></div><button class="btn btn--gold" style="width:100%;justify-content:center">Enter the Hall</button></form><p class="muted" style="margin:12px 0 0;font-size:.86rem;text-align:center">Forgotten your password? <a href="/pigeon.html?reason=Locked%20out%20of%20my%20account" style="color:var(--wine);font-weight:600">Send a pigeon</a> and the Guild Leader will set you a new one.</p></div>
 <div class="login-card scroll" style="margin-top:18px"><h3 style="color:var(--wine)">Join the House</h3>
 <% if(!needCode){ %><p class="muted" style="font-size:.96rem">All are welcome — just an email and a password. You can add your name, your face, and your class once you're inside.</p><% } else if(code){ %><p class="muted" style="font-size:.96rem">Your invite code is filled in below — just an email and a password and you're in.</p><% } else { %><p class="muted" style="font-size:.96rem">New guildmates need the invite code from the Guild Leader.</p><% } %>
 <form method="post" action="/members/register"><div class="field"><label for="joEmail">Email</label><input id="joEmail" type="email" name="email" autocomplete="email" autocapitalize="none" autocorrect="off" spellcheck="false" required></div><div class="field"><label for="joPass">Password</label><input id="joPass" type="password" name="password" autocomplete="new-password" required></div><% if(needCode){ %><div class="field"><label for="joInvite">Guild Invite Code</label><input id="joInvite" name="invite" value="<%= code %>" autocapitalize="characters" autocorrect="off" spellcheck="false" required placeholder="Ask the Guild Leader"></div><% } %><input type="text" name="website" style="display:none" tabindex="-1" autocomplete="off" aria-hidden="true"><button class="btn btn--wine" style="width:100%;justify-content:center">Take the Oath</button></form></div>

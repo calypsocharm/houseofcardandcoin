@@ -1,0 +1,183 @@
+/* ── The card, at its own door ───────────────────────────────────────────────
+   Self-contained on purpose. The Tavern's stylesheet is 45 KB of a whole room
+   — a hearth that brightens as the faire nears, a search field, depth on old
+   posts — and none of that is on this page. The few rules genuinely shared
+   (the face of a playing card) are restated here rather than pulled in, so
+   opening the card costs a fraction of what opening the Tavern does.
+
+   If you change the look of a card face, change it in both places. That is the
+   price of the small page, and it is worth paying: this is the one address
+   people will open every night for a month. */
+
+/* A table under a lantern: the ground goes dark, one warm pool of light falls
+   where the hand is, and nothing else on the page competes with it. */
+body.card-page{
+  background:
+    radial-gradient(90% 60% at 50% 8%, rgba(196,150,60,.16), transparent 62%),
+    radial-gradient(120% 90% at 50% 120%, rgba(60,20,10,.5), transparent 70%),
+    var(--dark);
+  color:#e9dcc2;
+}
+body.card-page::before{display:none}
+
+.cardpage{padding:52px 0 74px}
+.cardpage .container{max-width:720px}
+
+/* ── the head ─────────────────────────────────────────────────────────────── */
+.cardpage__head{text-align:center;margin-bottom:30px}
+.cardpage__eyebrow{
+  display:block;font-family:var(--display);font-size:.66rem;letter-spacing:.24em;
+  text-transform:uppercase;color:var(--gold);margin-bottom:12px;
+}
+.cardpage h1{
+  color:#f8edd1;font-size:clamp(1.5rem,5vw,2.1rem);text-wrap:balance;
+}
+.cardpage__rule{
+  height:2px;margin:16px auto 0;max-width:190px;
+  background:linear-gradient(90deg,transparent,var(--gold) 22%,var(--gold-l) 50%,var(--gold) 78%,transparent);
+}
+
+.cardpage__warn{
+  margin:0 0 22px;padding:12px 16px;border-radius:4px;text-align:center;
+  background:rgba(110,26,26,.28);border:1px solid var(--wine-l);color:#f3ddc0;font-size:.94rem;
+}
+
+/* ── the hand ─────────────────────────────────────────────────────────────── */
+.cardpage__hand{
+  display:flex;gap:11px;justify-content:center;flex-wrap:wrap;margin-bottom:14px;
+}
+.pcard{
+  position:relative;width:66px;height:94px;flex-shrink:0;display:block;
+  background:linear-gradient(160deg,#fffdf6,#f0e7d2);
+  border:1px solid #b9a271;border-radius:5px;color:#241a10;
+  box-shadow:0 10px 20px -10px rgba(0,0,0,.85), 0 1px 0 rgba(255,255,255,.7) inset;
+}
+.pcard__r{position:absolute;top:6px;left:8px;font-family:var(--display);font-size:1.18rem;line-height:1;font-weight:700}
+.pcard__s{position:absolute;bottom:7px;right:9px;font-size:1.6rem;line-height:1}
+.pcard.is-red{color:#9c1f1f}
+/* cards still to come, face down — the same back the Tavern uses */
+.pcard.is-empty{
+  background:
+    linear-gradient(rgba(20,10,4,.34),rgba(20,10,4,.34)),
+    url("/assets/img/card-back.jpg") center/cover no-repeat;
+  border:1px solid rgba(138,109,42,.7);box-shadow:none;opacity:.62;
+}
+.pcard.is-empty::after{
+  content:"";position:absolute;inset:3px;border:1px solid rgba(226,190,110,.3);border-radius:3px;
+}
+/* the card that arrived just now, still crooked from the deal */
+.pcard--new{box-shadow:0 0 0 2px var(--gold), 0 12px 24px -10px #000;transform:rotate(-3deg)}
+
+/* Throwing one back. On a touch screen there is no hover to reveal it, so
+   there it simply stays visible. */
+.pcard__redeal{position:absolute;bottom:-8px;right:-8px;margin:0;line-height:0}
+.pcard__redeal button{
+  width:24px;height:24px;border-radius:50%;cursor:pointer;padding:0;
+  border:1px solid var(--gold-d);background:#3b2a12;color:var(--gold-l);
+  font-size:.82rem;line-height:1;
+  opacity:0;transform:scale(.8);transition:opacity .15s,transform .15s,background .15s;
+  box-shadow:0 3px 8px -3px rgba(0,0,0,.8);
+}
+.pcard:hover .pcard__redeal button,
+.pcard__redeal button:focus-visible{opacity:1;transform:scale(1)}
+.pcard__redeal button:hover{background:var(--wine);color:#f8edd1}
+.pcard__redeal button:focus-visible{outline:2px solid var(--gold-l);outline-offset:2px}
+@media(hover:none){.pcard__redeal button{opacity:1;transform:scale(1)}}
+@media(prefers-reduced-motion:reduce){.pcard__redeal button{transition:none}}
+
+.cardpage__rank{
+  text-align:center;margin:0 0 26px;font-family:var(--display);
+  font-size:1.16rem;color:var(--gold-l);letter-spacing:.03em;
+}
+.cardpage__rank small{
+  display:block;font-family:var(--serif);font-size:.8rem;letter-spacing:0;
+  color:#b09c74;font-style:italic;margin-top:3px;
+}
+
+/* ── the one thing to do ──────────────────────────────────────────────────── */
+.cardpage__act{text-align:center;margin-bottom:34px}
+.cardpage__draw{
+  position:relative;width:132px;height:132px;border-radius:50%;cursor:pointer;
+  border:0;padding:0;
+  background:radial-gradient(circle at 34% 28%, var(--wine-l), #4d1010 68%);
+  color:#f8edd1;font-family:var(--display);font-size:.8rem;font-weight:700;
+  letter-spacing:.1em;text-transform:uppercase;line-height:1.5;
+  box-shadow:0 0 0 3px rgba(226,199,127,.34), 0 18px 34px -14px rgba(0,0,0,.9);
+  transition:transform .18s var(--ease), box-shadow .18s var(--ease);
+}
+.cardpage__draw::before{
+  content:"";position:absolute;inset:9px;border-radius:50%;
+  border:1px solid rgba(226,199,127,.45);
+}
+.cardpage__draw:hover{transform:translateY(-3px) scale(1.03);box-shadow:0 0 0 3px var(--gold-l), 0 24px 40px -14px rgba(0,0,0,.95)}
+.cardpage__draw:focus-visible{outline:3px solid var(--gold-l);outline-offset:4px}
+@media(prefers-reduced-motion:reduce){.cardpage__draw{transition:none}.cardpage__draw:hover{transform:none}}
+
+.cardpage__note{margin:16px auto 0;max-width:44ch;color:#cdb98f;font-size:.98rem}
+.cardpage__note b{color:var(--gold-l)}
+.cardpage__done{margin:0 auto;max-width:44ch;color:#e9dcc2;font-size:1.02rem}
+.cardpage__done b{font-family:var(--display);color:var(--gold-l)}
+
+.cardpage__drew{
+  margin:0 auto 26px;max-width:36ch;padding:11px 16px;text-align:center;
+  background:rgba(226,199,127,.09);border:1px dashed var(--gold-d);border-radius:5px;
+  color:#e9dcc2;font-size:.94rem;
+}
+.cardpage__drew b{font-family:var(--display);color:var(--gold-l)}
+
+/* ── the three chits ──────────────────────────────────────────────────────── */
+.cardpage__side{display:grid;gap:14px;grid-template-columns:repeat(3,1fr);margin-bottom:26px}
+@media(max-width:680px){.cardpage__side{grid-template-columns:1fr}}
+.cardpage__box{
+  padding:16px 17px;border-radius:4px;
+  background:rgba(244,234,210,.05);border:1px solid rgba(194,161,77,.32);
+}
+.cardpage__k{
+  margin:0 0 7px;font-family:var(--display);font-size:.6rem;letter-spacing:.17em;
+  text-transform:uppercase;color:var(--gold);
+}
+.cardpage__big{
+  margin:0;font-family:var(--display);font-size:1.7rem;line-height:1.1;color:#f8edd1;
+  font-variant-numeric:tabular-nums;
+}
+.cardpage__big small{font-size:.62rem;letter-spacing:.13em;text-transform:uppercase;color:var(--gold)}
+.cardpage__big--sm{font-size:1.06rem;line-height:1.3}
+.cardpage__small{margin:7px 0 0;font-size:.84rem;color:#c2ad7e;line-height:1.55}
+.cardpage__small b{color:var(--gold-l)}
+.cardpage__small a{color:var(--gold-l);text-decoration:underline;text-underline-offset:2px}
+.cardpage__buy{margin-top:10px;font-size:.62rem;padding:7px 12px}
+
+/* ── what it is all for ───────────────────────────────────────────────────── */
+.cardpage__prize{
+  margin:0 0 26px;padding:15px 18px;border-left:3px solid var(--gold);
+  background:rgba(255,255,255,.045);border-radius:0 4px 4px 0;
+  color:#e6d4a8;font-size:.96rem;
+}
+.cardpage__prize b{font-family:var(--display);color:var(--gold-l)}
+
+.cardpage__doors{
+  text-align:center;margin:0;font-family:var(--display);font-size:.68rem;
+  letter-spacing:.13em;text-transform:uppercase;color:#9d8a62;
+}
+.cardpage__doors a{color:var(--gold);border-bottom:1px solid rgba(194,161,77,.4);padding-bottom:1px}
+.cardpage__doors a:hover{color:var(--gold-l);border-bottom-color:var(--gold-l)}
+
+/* ── on a phone ───────────────────────────────────────────────────────────
+   Five cards have to sit on one line. Wrapped four-and-one reads as a mistake
+   — a hand is a row, and the fifth dangling underneath looks like a card that
+   went astray. So the faces shrink to fit rather than the row breaking. */
+@media(max-width:620px){
+  .cardpage{padding:40px 0 60px}
+  .cardpage__hand{gap:8px}
+  .pcard{width:54px;height:77px}
+  .pcard__r{top:5px;left:6px;font-size:1rem}
+  .pcard__s{bottom:5px;right:7px;font-size:1.3rem}
+}
+@media(max-width:400px){
+  .cardpage__hand{gap:6px}
+  .pcard{width:46px;height:66px}
+  .pcard__r{top:4px;left:5px;font-size:.85rem}
+  .pcard__s{bottom:4px;right:5px;font-size:1.1rem}
+  .pcard__redeal{bottom:-7px;right:-7px}
+  .pcard__redeal button{width:20px;height:20px;font-size:.7rem}
+}

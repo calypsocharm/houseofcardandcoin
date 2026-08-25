@@ -12,7 +12,7 @@
        first, and quietly replaced in the background when the network answers
      · a handful of public pages               — network first, so a change on
        the site always wins; the copy is only there for when there is no signal
-     · anything under /members, /board, /api,
+     · anything under /members, /board, /card, /api,
        /uploads, or any response the House has
        marked private                          — never kept, never served from
        a cache, no exceptions
@@ -22,14 +22,14 @@
    thrown away, so the copy on the phone is always the public one.
 
    Bumping CACHE retires everything from the version before it. */
-const CACHE = 'hocc-v2';
+const CACHE = 'hocc-v3';
 
 /* The pages worth having when there is no signal. Deliberately short — these
    are the ones somebody opens standing in the park. */
 const PAGES = ['/', '/camp.html', '/faq', '/events.html', '/weekend', '/map', '/offline'];
 
 /* Never touched by the cache, in either direction. */
-const PRIVATE = /^\/(members|board|api|uploads|tavern|guild\/|join)/;
+const PRIVATE = /^\/(members|board|card|api|uploads|tavern|guild\/|join)/;
 
 self.addEventListener('install', function (e) {
   // The offline page is the only thing fetched up front. Everything else

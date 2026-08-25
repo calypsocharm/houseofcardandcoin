@@ -1,0 +1,140 @@
+<%- include('_top',{title:'Tonight’s Card',active:'card',bodyClass:'card-page',desc:'Take your card for the night and see the hand you are building for the faire.',image:'/assets/img/og/index.jpg',url:'https://houseofcardandcoin.com/card'}) %>
+<link rel="stylesheet" href="/assets/css/card.css?v=<%= typeof cssv!=='undefined'?cssv:'1' %>">
+
+<%
+  /* The card, on its own.
+
+     It has always lived halfway down the Tavern, under the room and the talk —
+     right for somebody who has come in for the evening, wrong for somebody who
+     has one thing to do. This is the same card and the same hand at an address
+     that can be said out loud, with nothing on the page that is not about it.
+
+     Everything that acts here posts to the Tavern's own routes and is sent
+     home by backTo. There is one card game, not two. */
+  var left  = 5 - hand.length;
+  var newest = drew ? hand.length-1 : -1;   // the one that arrived just now, still crooked
+%>
+<section class="section cardpage"><div class="container">
+
+  <div class="cardpage__head">
+    <span class="cardpage__eyebrow">&#9884; The Cardsharp&rsquo;s Hand &#9884;</span>
+    <h1><%= (ration.canDraw && hand.length<5) ? 'There is a card here for you' : 'Your hand' %></h1>
+    <div class="cardpage__rule"></div>
+  </div>
+
+  <% if(err){ %><p class="cardpage__warn"><%= err %></p><% } %>
+
+  <div class="cardpage__hand">
+    <% for(var n=0;n<5;n++){ var c = hand[n]; %>
+      <% if(c){ %>
+        <span class="pcard<%= c.red?' is-red':'' %><%= n===newest?' pcard--new':'' %>">
+          <b class="pcard__r"><%= c.r==='T'?'10':c.r %></b>
+          <span class="pcard__s"><%= c.glyph %></span>
+          <% if((i.coins||0) >= redealPrice){ %>
+            <form class="pcard__redeal" method="post" action="/board/hand/redeal"
+                  onsubmit="return confirm(<%= JSON.stringify('Throw back the '+c.label+' of '+c.suitName+' and take the next card off your deck? It costs '+redealPrice+' coins, and the card you throw is gone for good.') %>)">
+              <input type="hidden" name="card" value="<%= c.code %>">
+              <input type="hidden" name="back" value="/card">
+              <button type="submit" aria-label="Throw the <%= c.label %> of <%= c.suitName %> back for another"
+                      title="Throw this back for another &mdash; <%= redealPrice %> coins">&#8635;</button>
+            </form>
+          <% } %>
+        </span>
+      <% } else { %>
+        <span class="pcard is-empty" aria-label="a card still to come"></span>
+      <% } %>
+    <% } %>
+  </div>
+
+  <% if(handRank){ %>
+    <p class="cardpage__rank"><%= handRank.name %><% if(hand.length<5){ %>
+      <small>on <%= hand.length %> &mdash; a straight or a flush needs all five</small><% } %></p>
+  <% } %>
+
+  <%
+    /* What just happened, said once. The card is already in the hand above,
+       but "the Queen of Hearts, and 4 for the streak" is the bit worth
+       reading — a purse that quietly went up by seven is not a story. */
+  %>
+  <% if(drew){ %>
+    <p class="cardpage__drew">You drew the <b><%= drew.label %> of <%= drew.suitName %></b><% if(drew.bonus){ %>
+      &mdash; and <%= drew.bonus %> coin<%= drew.bonus===1?'':'s' %> for turning up
+      <%= drew.streak %> night<%= drew.streak===1?'':'s' %> running<% } %>.</p>
+  <% } %>
+
+  <%
+    /* The one thing to do, as large as it deserves to be. Everything below it
+       is a note about it. */
+  %>
+  <div class="cardpage__act">
+    <% if(hand.length>=5){ %>
+      <p class="cardpage__done"><b>That is your five.</b> Bring them to the faire and see how they stack up
+        &mdash; or throw one back, if you fancy your luck.</p>
+    <% } else if(ration.canDraw){ %>
+      <form method="post" action="/board/ration">
+        <input type="hidden" name="back" value="/card">
+        <button class="cardpage__draw" type="submit"><span>Take<br>tonight&rsquo;s<br>card</span></button>
+      </form>
+      <p class="cardpage__note">One a night, just for stopping by.
+        <b><%= left %></b> more to go if you keep turning up.</p>
+    <% } else { %>
+      <p class="cardpage__note cardpage__note--taken">Come back tomorrow &mdash;
+        <b><%= left %></b> still to come.</p>
+    <% } %>
+  </div>
+
+  <div class="cardpage__side">
+    <div class="cardpage__box">
+      <p class="cardpage__k">Your purse</p>
+      <p class="cardpage__big"><%= i.coins||0 %> <small>coins</small></p>
+      <% if(hand.length<5){ %>
+        <% if((i.coins||0) >= cardPrice){ %>
+          <form method="post" action="/board/hand/buy">
+            <input type="hidden" name="back" value="/card">
+            <button class="btn btn--ghost cardpage__buy" type="submit">Buy the next card &mdash; <%= cardPrice %></button>
+          </form>
+        <% } else { %>
+          <p class="cardpage__small">A card off the House costs <b><%= cardPrice %></b>. Turn up each night
+            and the purse fills on its own.</p>
+        <% } %>
+      <% } else { %>
+        <p class="cardpage__small">A re-deal costs <b><%= redealPrice %></b>.</p>
+      <% } %>
+    </div>
+
+    <div class="cardpage__box">
+      <p class="cardpage__k">The hand to beat</p>
+      <% if(high && high.rank){ %>
+        <p class="cardpage__big cardpage__big--sm"><%= high.names.join(' & ') %></p>
+        <p class="cardpage__small"><%= high.rank %>, made in <%= high.when %>.
+          It stands until the gates open.</p>
+      <% } else { %>
+        <p class="cardpage__big cardpage__big--sm">Nobody yet</p>
+        <p class="cardpage__small">Two cards is enough to hold the high hand. It could be yours tonight.</p>
+      <% } %>
+    </div>
+
+    <div class="cardpage__box">
+      <p class="cardpage__k">This round</p>
+      <p class="cardpage__big cardpage__big--sm">Round <%= roundNo %></p>
+      <p class="cardpage__small">Closes
+        <b><%= new Date(roundEnds).toLocaleDateString('en-US',{month:'long',day:'numeric'}) %></b>,
+        or the moment every hand at the table is full. What you hold then goes to the
+        <a href="/board/roll">Roll</a>, and the deal starts over.</p>
+    </div>
+  </div>
+
+  <% if(handRank){ %>
+    <p class="cardpage__prize"><b>Show this hand at the faire</b> and <%= handPrizes[handRank.tier] %>.
+      Find the Dealer at the House of Card and Coin.</p>
+  <% } %>
+
+  <p class="cardpage__doors">
+    <a href="/board/roll">The Roll of Hands</a> &middot;
+    <a href="/board">The Tavern</a> &middot;
+    <a href="/faq#cards">How it works</a>
+  </p>
+
+</div></section>
+
+<%- include('_bot') %>

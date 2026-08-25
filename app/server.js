@@ -139,6 +139,11 @@ app.use(function(req,res,next){
   };
   next();
 });
+/* Is there a card waiting tonight? Asked of a member or a tavern regular —
+   they play the same game, so the menu answers the same way for both. */
+function handWaiting(rec){
+  return !!rec && (rec.hand||[]).length<5 && rec.lastRation!==dayKey();
+}
 app.use(function(req,res,next){
   res.locals.u = req.session.uid ? (db.users.find(function(x){return x.id===req.session.uid;})||null) : null;
   res.locals.patron = (!res.locals.u && req.session.pid) ? (db.patrons.find(function(x){return x.id===req.session.pid;})||null) : null;
@@ -152,9 +157,9 @@ app.use(function(req,res,next){
   // own name read back to you.
   var u=res.locals.u, p=res.locals.patron;
   res.locals.me = u
-    ? {signedIn:true,kind:'member',name:u.name,avatar:u.avatar||'',rank:rank(u),pledge:!!u.pledge,leader:u.role==='leader',slug:slugById()[u.id]||'',unread:res.locals.unread}
+    ? {signedIn:true,kind:'member',name:u.name,avatar:u.avatar||'',rank:rank(u),pledge:!!u.pledge,leader:u.role==='leader',slug:slugById()[u.id]||'',unread:res.locals.unread,card:handWaiting(u)}
     : (p&&!p.banned)
-      ? {signedIn:true,kind:'patron',name:p.name,avatar:p.avatar||'',rank:'Tavern guest',pledge:false,leader:false,unread:res.locals.unread}
+      ? {signedIn:true,kind:'patron',name:p.name,avatar:p.avatar||'',rank:'Tavern guest',pledge:false,leader:false,unread:res.locals.unread,card:handWaiting(p)}
       : {signedIn:false};
   next();
 });
@@ -270,7 +275,7 @@ app.use((req,res,next)=>BLOCKED.test(req.path)?res.status(404).send('Not found')
 // had not been bumped by hand — most recently leaving a signed-in member unable
 // to reach their own profile. So the stamp is rewritten here at serve time from
 // the real file mtimes, and never has to be remembered again.
-const ASSET_FILES=['assets/css/style.css','assets/css/tavern.css','assets/css/profile.css','assets/css/gallery.css','assets/css/weekend.css','assets/css/pigeon.css','assets/css/map.css',
+const ASSET_FILES=['assets/css/style.css','assets/css/tavern.css','assets/css/profile.css','assets/css/gallery.css','assets/css/weekend.css','assets/css/pigeon.css','assets/css/map.css','assets/css/card.css',
   'assets/js/nav.js','assets/js/countdown.js','assets/js/hero-video.js','assets/js/avatar-crop.js','assets/js/dress.js','assets/js/gallery.js','assets/js/player.js','assets/js/pigeon.js','assets/js/map-live.js','assets/js/map-sound.js','assets/js/forecast.js','assets/js/pwa.js'];
 function assetVersion(){
   let newest=0;
@@ -385,25 +390,87 @@ const up=multer({
 // Squash whatever anyone uploads down to a sane avatar. A phone photo arrives at
 // several megabytes and gets drawn as a 34px circle; this makes that ~30 KB.
 // .rotate() honours EXIF orientation so phone shots aren't sideways.
-function shrinkAvatar(req,res,next){
+
+/* ── Bringing a face out of the shade ───────────────────────────────
+   Guild portraits are taken outdoors, in costume, half of them under a hat
+   brim — and they come back with the face in shadow. Drawn as an 84px circle
+   on a cream card that reads as a dark smudge, which is what the site has
+   been doing to people.
+
+   So the House lifts them, and only the ones that need it: a picture already
+   well lit is handed back untouched, byte for byte. A dark one gets its
+   levels pulled out to the ends first — which is what actually rescues an
+   underexposed photograph — and then, if it is still gloomy, a hue-preserving
+   brightening on top, capped, so a photograph taken at night comes out
+   readable rather than grey and blown out. */
+const FACE_FLOOR  = 104;   // below this mean brightness, and only below, we act
+const FACE_TARGET = 118;   // roughly where a well-lit portrait sits
+const FACE_MOST   = 30;    // the most lightness we will ever add
+
+/* Mean brightness, measured off the pixels rather than off a histogram — the
+   number that decides whether a picture is in shadow. */
+async function faceLuma(buf){
+  try{
+    const d=await sharp(buf).removeAlpha().raw().toBuffer();
+    if(!d.length) return null;
+    let s=0;
+    for(let n=0;n<d.length;n+=3) s+=d[n]*0.299+d[n+1]*0.587+d[n+2]*0.114;
+    return s/(d.length/3);
+  }catch(e){ return null; }
+}
+
+/* Takes a finished avatar, gives one back. Never throws — a picture we cannot
+   read is a picture we leave alone.
+
+   The lift is added lightness, not multiplied brightness. Multiplying scales
+   the highlights along with everything else and turns a bright sky behind a
+   dark face into a white one; adding lightness in LCh raises the shadows and
+   leaves what is already bright roughly where it was. On the darkest portrait
+   on file that is the difference between 2% of the picture blown out and 24%.
+
+   The amount is found by bisection rather than by a formula, because how much
+   a photograph brightens per unit of lightness depends on the photograph.
+   Six trials, each starting from the original so nothing compounds, and the
+   smallest lift that reaches a normal exposure wins. */
+async function liftShade(buf){
+  const dark=await faceLuma(buf);
+  if(dark===null || dark>=FACE_FLOOR) return buf;
+  let lo=0, hi=FACE_MOST, best=buf;
+  try{
+    for(let n=0;n<6;n++){
+      const mid=(lo+hi)/2;
+      // A little colour back with the light: shade flattens a costume as well
+      // as darkening it. Gently — nobody should come out lurid.
+      const out=await sharp(buf)
+        .modulate({lightness:mid, saturation:1+Math.min(mid/FACE_MOST,1)*0.12})
+        .jpeg({quality:82,mozjpeg:true}).toBuffer();
+      const got=await faceLuma(out);
+      if(got===null) return best;
+      best=out;
+      if(got<FACE_TARGET) lo=mid; else hi=mid;
+    }
+  }catch(e){ return buf; }
+  return best;
+}
+async function shrinkAvatar(req,res,next){
   if(!req.file)return next();
-  var p=req.file.path;
-  var input;
+  var p=req.file.path, input;
   // Read through fs rather than handing sharp the path: multer has only just
   // finished writing it, and opening it again directly fails on Windows.
   try{ input=fs.readFileSync(p); }
   catch(e){ console.log('avatar read failed, keeping original:',e.message); return next(); }
-  sharp(input).rotate()
-    .resize(512,512,{fit:'cover',position:sharp.strategy.attention})
-    .jpeg({quality:82,mozjpeg:true})
-    .toBuffer()
-    .then(function(buf){
-      fs.writeFileSync(p,buf);
-      req.file.size=buf.length;
-      next();
-    })
-    .catch(function(e){ console.log('avatar resize failed, keeping original:',e.message); next(); });
+  try{
+    var buf=await sharp(input).rotate()
+      .resize(512,512,{fit:'cover',position:sharp.strategy.attention})
+      .jpeg({quality:82,mozjpeg:true})
+      .toBuffer();
+    buf=await liftShade(buf);   // and out of the shade, if it was in it
+    fs.writeFileSync(p,buf);
+    req.file.size=buf.length;
+  }catch(e){ console.log('avatar resize failed, keeping original:',e.message); }
+  next();
 }
+
 // Banners are wide, not square, and they sit behind a name — so a face-finding
 // crop is wrong here. Take the middle and let the picture speak.
 function shrinkBanner(req,res,next){
@@ -919,7 +986,7 @@ function coinWays(u) {
   } else if (!drewToday) {
     out.push({ pay: (1 + nextBonus) + '–' + (3 + nextBonus),
       say: 'Tonight’s card is still waiting. The card itself pays 1 to 3 by its rank, and turning up pays ' + nextBonus + ' on top.',
-      act: 'Take tonight’s card', go: '/board#hand' });
+      act: 'Take tonight’s card', go: '/card' });
   } else {
     out.push({ pay: (1 + nextBonus) + '–' + (3 + nextBonus),
       say: 'Tonight’s card is drawn. Come back tomorrow and the next one pays ' + nextBonus + ' for turning up, on top of the card.' });
@@ -1121,6 +1188,63 @@ app.post('/guild/wall/:id/remove',canPost,(req,res)=>{
    the game is not knowing. The Guild Leader writes them from Administration
    and can unseal them whenever she likes, so revealing at the faire needs no
    code change. Stored on db so they survive a restart. */
+
+/* ── The card, at its own door ─────────────────────────────────────
+   The nightly card has always lived halfway down the Tavern, under the room
+   and the evening’s talk. That is right for somebody who has come in for the
+   evening and wrong for somebody who has one thing to do — and one thing to
+   do is what most people have, most nights.
+
+   Same card, same hand, same buttons. What is different is that this address
+   can be said out loud, opens on the card rather than scrolling to it, and
+   carries none of the talk with it.
+
+   Everything that can act from here posts back to the Tavern’s own routes and
+   is sent home again by backTo — there is one card game, not two. */
+app.get('/card',(req,res)=>{
+  maybeCloseRound();   // before the hand is read, as everywhere else
+  const i=identRich(req);
+  if(!i)return res.redirect('/members/login?next='+encodeURIComponent('/card'));
+  // Your hand, your purse, your streak. Never kept on a phone.
+  keepOffThePhone(res);
+  const high=highHand();
+  res.render('card',{
+    i:i,
+    err:String(req.query.e||''),
+    hand:(i.hand||[]).map(cardInfo),
+    handRank:handRank(i.hand||[]),
+    ration:{canDraw:i.lastRation!==dayKey(), card:i.lastCard||null},
+    handPrizes:HAND_PRIZES, cardPrice:CARD_PRICE, redealPrice:REDEAL_PRICE,
+    roundEnds:roundEnds(), roundNo:db.rounds.length+1,
+    // The card taken tonight, already named — so the page can say what just
+    // happened without going looking for it.
+    drew:(i.lastRation===dayKey() && i.lastCard && i.lastCard.code!=null)
+      ? Object.assign({},cardInfo(i.lastCard.code),{bonus:i.lastCard.bonus||0,streak:i.lastCard.streak||0})
+      : null,
+    high:high
+  });
+});
+
+/* Where a card button sends you back to.
+
+   The draw, the buy and the re-deal are the Tavern’s routes, and they used to
+   end by dropping you at /board#hand whoever had pressed them. Now that the
+   card has a door of its own, a button pressed there has to come home there.
+
+   An allowlist rather than trusting the field: a form value that becomes a
+   redirect is an open redirect, and there are only ever two places this can
+   mean. */
+function backTo(req,fallback){
+  return String(req.body&&req.body.back||'')==='/card' ? '/card' : (fallback||'/board#hand');
+}
+/* And the same for a refusal — "you cannot afford that" has to be said on the
+   page you said it from. */
+function backErr(req,msg){
+  const to=backTo(req);
+  return to==='/card' ? '/card?e='+encodeURIComponent(msg)
+                      : '/board?e='+encodeURIComponent(msg)+'#hand';
+}
+
 app.get("/board/roll",(req,res)=>{maybeCloseRound();const i=ident(req);
   /* How many hands are level at the front. The table is sorted, so they are
      the first N. Only one tile used to be marked "leading", which disagreed
@@ -1264,7 +1388,18 @@ app.get('/faq',(req,res)=>{
     game:{price:CARD_PRICE,redeal:REDEAL_PRICE,days:ROUND_DAYS,tiers:coinTiers(),ladder:coinLadder(),first:coinFirstRound(),
           titles:COIN_TITLES}});
 });
-app.get('/members/login',(req,res)=>res.render('login',{err:req.query.e||'',code:req.query.code||'',needCode:inviteRequired()}));
+/* Coming in through a door you were sent to.
+
+   Tapping "Tonight’s card" on a phone that has been signed out lands here.
+   Without this you sign in, arrive at the Guild Hall, and have to go and find
+   the card again — which is the whole thing this was meant to stop.
+
+   One allowed destination, matched literally. A redirect built out of a form
+   field is an open redirect, and there is exactly one place this ever needs
+   to mean. */
+function wasHeadedFor(v){ return String(v||'')==='/card' ? '/card' : ''; }
+app.get('/members/login',(req,res)=>res.render('login',{err:req.query.e||'',code:req.query.code||'',
+  needCode:inviteRequired(),next:wasHeadedFor(req.query.next)}));
 // /join is the share link. If an invite code is required, ?code=XXXX pre-fills it.
 app.get('/join',(req,res)=>res.render('login',{err:req.query.e||'',code:req.query.code||'',needCode:inviteRequired()}));
 /* A pledge used to appear in silence — the only person who knew was the
@@ -1302,8 +1437,9 @@ app.post("/members/register",up.single("avatar"),shrinkAvatar,(req,res)=>{const{
   // happens next, rather than being dropped into the Hall unexplained.
   res.redirect(first?'/members':'/members?new=1');});
 app.post('/members/login',throttleLogin,(req,res)=>{const{email,password}=req.body;const u=db.users.find(x=>x.email===String(email||'').toLowerCase());
-  if(!u||!bcrypt.compareSync(password||'',u.passhash)){noteBadLogin(req);return res.redirect('/members/login?e='+encodeURIComponent('Bad email or password'));}
-  clearLoginTries(req);req.session.uid=u.id;res.redirect('/members');});
+  if(!u||!bcrypt.compareSync(password||'',u.passhash)){noteBadLogin(req);const on=wasHeadedFor(req.body.next);
+    return res.redirect('/members/login?e='+encodeURIComponent('Bad email or password')+(on?'&next='+encodeURIComponent(on):''));}
+  clearLoginTries(req);req.session.uid=u.id;res.redirect(wasHeadedFor(req.body.next)||'/members');});
 app.post('/members/logout',(req,res)=>{req.session.destroy(()=>res.redirect('/'));});
 app.get('/members',au,(req,res)=>{
   const u=cur(req);
@@ -2722,9 +2858,9 @@ app.post('/board/hand/buy',canPost,(req,res)=>{
   var i=ident(req);var rec=holder(i);
   if(!rec)return res.redirect('/board');
   if(!Array.isArray(rec.hand))rec.hand=[];
-  if(rec.hand.length>=5)return res.redirect('/board#hand');
+  if(rec.hand.length>=5)return res.redirect(backTo(req));
   if((rec.coins||0)<CARD_PRICE)
-    return res.redirect('/board?e='+encodeURIComponent('That costs '+CARD_PRICE+' coins and you have '+(rec.coins||0)+'. Come back tomorrow for a free one.')+'#hand');
+    return res.redirect(backErr(req,'That costs '+CARD_PRICE+' coins and you have '+(rec.coins||0)+'. Come back tomorrow for a free one.'));
   ensurePurse(rec);
   rec.coins=(rec.coins||0)-CARD_PRICE;
   var card=dealOne(rec);
@@ -2735,16 +2871,16 @@ app.post('/board/hand/buy',canPost,(req,res)=>{
   // turning up, and buying a card is not turning up.
   save();
   var done=maybeCloseRound();      // a bought card can fill the table too
-  res.redirect(done?('/board/roll?closed='+done.n):'/board#hand');
+  res.redirect(done?('/board/roll?closed='+done.n):backTo(req));
 });
 app.post('/board/hand/redeal',canPost,(req,res)=>{
   var i=ident(req);var rec=holder(i);
   if(!rec)return res.redirect('/board');
   var code=String(req.body.card||'');
   var at=(rec.hand||[]).indexOf(code);
-  if(at<0)return res.redirect('/board#hand');
+  if(at<0)return res.redirect(backTo(req));
   if((rec.coins||0)<REDEAL_PRICE)
-    return res.redirect('/board?e='+encodeURIComponent('A re-deal costs '+REDEAL_PRICE+' coins and you have '+(rec.coins||0)+'.')+'#hand');
+    return res.redirect(backErr(req,'A re-deal costs '+REDEAL_PRICE+' coins and you have '+(rec.coins||0)+'.'));
   // Nothing left to draw from would make this a way to pay for the same card
   // back, so it is refused rather than fudged.
   if(!Array.isArray(rec.deck)||!rec.deck.length){
@@ -2762,16 +2898,16 @@ app.post('/board/hand/redeal',canPost,(req,res)=>{
   // buying a card does not: the streak is for turning up.
   save();
   var done=maybeCloseRound();
-  res.redirect(done?('/board/roll?closed='+done.n):'/board#hand');
+  res.redirect(done?('/board/roll?closed='+done.n):backTo(req));
 });
 app.post('/board/ration',canPost,(req,res)=>{
   var i=ident(req);var rec=holder(i);
   if(!rec)return res.redirect('/board');
   if(!Array.isArray(rec.hand))rec.hand=[];
   // Five-card stud: five is the whole hand, and there is no sixth night.
-  if(rec.hand.length>=5)return res.redirect('/board#hand');
+  if(rec.hand.length>=5)return res.redirect(backTo(req));
   var today=dayKey();
-  if(rec.lastRation===today)return res.redirect('/board#hand');
+  if(rec.lastRation===today)return res.redirect(backTo(req));
   var yest=yesterdayKey();
   var streak=(rec.lastRation===yest)?(rec.streak||0)+1:1;
   rec.streak=streak;
@@ -2793,7 +2929,7 @@ app.post('/board/ration',canPost,(req,res)=>{
   // sent to the Roll, where the hand they just finished is waiting, instead of
   // back to a table that has silently emptied.
   var done=maybeCloseRound();
-  res.redirect(done?('/board/roll?closed='+done.n):'/board#hand');
+  res.redirect(done?('/board/roll?closed='+done.n):backTo(req));
 });
 app.post('/board/thread/:id/react',canPost,(req,res)=>{const t=db.threads.find(function(x){return x.id==req.params.id;});if(!t)return res.redirect('/board');doReact(req,res,t);});
 app.post('/board/thread/:tid/reply/:rid/react',canPost,(req,res)=>{const t=db.threads.find(function(x){return x.id==req.params.tid;});if(!t)return res.redirect('/board');const r=t.replies.find(function(x){return x.id==req.params.rid;});if(!r)return res.redirect('/board/thread/'+t.id);doReact(req,res,r);});
