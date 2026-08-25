@@ -1602,3 +1602,38 @@ footer :where(a,button):focus-visible{
   .sort__answer{flex-direction:column}
   .sort__answer button{padding:6px 11px}
 }
+
+/* ── The offer to keep the House on a phone ─────────────────────────────────
+   Asked once, at the foot of the page, and never again if the answer is no.
+   A browser buries "add to home screen" three menus deep and most people never
+   meet it, so the House says it in its own words instead. */
+.installbar{
+  position:fixed;left:12px;right:12px;bottom:12px;z-index:60;
+  display:flex;align-items:center;gap:12px;flex-wrap:wrap;
+  padding:13px 16px;border-radius:4px;
+  background:var(--dark);border:1px solid var(--gold-d);
+  box-shadow:0 18px 40px -18px rgba(0,0,0,.8);
+  animation:installin .3s var(--ease,ease) both;
+}
+@keyframes installin{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+@media(prefers-reduced-motion:reduce){.installbar{animation:none}}
+.installbar__say{margin:0;flex:1;min-width:200px;color:#e4d3ab;font-size:.9rem;line-height:1.55}
+.installbar__say b{color:var(--gold-l)}
+.installbar__yes,.installbar__no{
+  cursor:pointer;border-radius:3px;font-family:var(--display);
+  font-size:.62rem;letter-spacing:.12em;text-transform:uppercase;white-space:nowrap;
+}
+.installbar__yes{
+  padding:9px 18px;border:1px solid var(--gold-d);color:#1a120b;
+  background:linear-gradient(180deg,var(--gold-l),var(--gold));
+}
+.installbar__yes:hover{background:var(--gold-l)}
+.installbar__no{padding:9px 12px;border:1px solid #3a2c1a;background:transparent;color:#9d8a62}
+.installbar__no:hover{color:#e4d3ab;border-color:var(--gold-d)}
+.installbar__yes:focus-visible,.installbar__no:focus-visible{outline:2px solid var(--gold-l);outline-offset:2px}
+@media(max-width:520px){
+  .installbar{left:8px;right:8px;bottom:8px;padding:12px 13px}
+  .installbar__say{min-width:100%;font-size:.86rem}
+}
+/* Once it is running as an app there is no bar to draw. */
+@media(display-mode:standalone){.installbar{display:none}}

@@ -271,7 +271,7 @@ app.use((req,res,next)=>BLOCKED.test(req.path)?res.status(404).send('Not found')
 // to reach their own profile. So the stamp is rewritten here at serve time from
 // the real file mtimes, and never has to be remembered again.
 const ASSET_FILES=['assets/css/style.css','assets/css/tavern.css','assets/css/profile.css','assets/css/gallery.css','assets/css/weekend.css','assets/css/pigeon.css','assets/css/map.css',
-  'assets/js/nav.js','assets/js/countdown.js','assets/js/hero-video.js','assets/js/avatar-crop.js','assets/js/dress.js','assets/js/gallery.js','assets/js/player.js','assets/js/pigeon.js','assets/js/map-live.js','assets/js/map-sound.js','assets/js/forecast.js'];
+  'assets/js/nav.js','assets/js/countdown.js','assets/js/hero-video.js','assets/js/avatar-crop.js','assets/js/dress.js','assets/js/gallery.js','assets/js/player.js','assets/js/pigeon.js','assets/js/map-live.js','assets/js/map-sound.js','assets/js/forecast.js','assets/js/pwa.js'];
 function assetVersion(){
   let newest=0;
   ASSET_FILES.forEach(function(f){
@@ -358,6 +358,17 @@ app.use(function(req,res,next){
   res.set('Content-Type','text/html; charset=utf-8');
   res.set('Cache-Control','public, max-age=0');
   res.send(body);
+});
+/* The service worker and the manifest are asked for by name, from the root,
+   and both have to be served from there for the browser to accept them. */
+app.get('/sw.js',(req,res)=>{
+  res.set('Content-Type','application/javascript; charset=utf-8');
+  res.set('Cache-Control','no-cache');   // so a new worker is always noticed
+  res.sendFile(path.join(__dirname,'..','sw.js'));
+});
+app.get('/manifest.webmanifest',(req,res)=>{
+  res.set('Content-Type','application/manifest+json; charset=utf-8');
+  res.sendFile(path.join(__dirname,'..','manifest.webmanifest'));
 });
 app.use(express.static(path.join(__dirname,'..'))); // marketing site (index.html etc.)
 const sharp=require('sharp');
@@ -1229,9 +1240,30 @@ function onTheDay(){
     stillWanted: bringList().filter(function(x){ return x.remaining>0; }).length
   };
 }
-app.get('/faq',(req,res)=>res.render('faq',{day:dayContact(ident(req)),bunkFacts:bunkFacts(),today:onTheDay(),
-  game:{price:CARD_PRICE,redeal:REDEAL_PRICE,days:ROUND_DAYS,tiers:coinTiers(),ladder:coinLadder(),first:coinFirstRound(),
-        titles:COIN_TITLES}}));
+
+/* ── Kept on a phone ────────────────────────────────────────────────────────
+   The site can be installed now, and the worker that comes with it keeps a
+   copy of a few public pages so the camp page and the answers still open in a
+   park with no signal.
+
+   Which is only safe because of this: any page the House has written
+   something personal into says so on the way out, and the phone throws those
+   away rather than keeping them. The FAQ is the one that matters — signed in
+   it carries the Elder's emergency number, and a copy of that sitting on a
+   phone after somebody signs out is exactly the thing not to do. */
+function keepOffThePhone(res){ res.set('X-Private','1'); res.set('Cache-Control','private, no-store'); }
+
+/* What the phone shows when it has the House but not the tower. */
+app.get('/offline',(req,res)=>res.render('offline'));
+app.get('/faq',(req,res)=>{
+  const day=dayContact(ident(req));
+  // Signed in as a sworn guildmate, this page carries her number. That copy
+  // must never be kept.
+  if(day && day.phone) keepOffThePhone(res);
+  res.render('faq',{day:day,bunkFacts:bunkFacts(),today:onTheDay(),
+    game:{price:CARD_PRICE,redeal:REDEAL_PRICE,days:ROUND_DAYS,tiers:coinTiers(),ladder:coinLadder(),first:coinFirstRound(),
+          titles:COIN_TITLES}});
+});
 app.get('/members/login',(req,res)=>res.render('login',{err:req.query.e||'',code:req.query.code||'',needCode:inviteRequired()}));
 // /join is the share link. If an invite code is required, ?code=XXXX pre-fills it.
 app.get('/join',(req,res)=>res.render('login',{err:req.query.e||'',code:req.query.code||'',needCode:inviteRequired()}));
