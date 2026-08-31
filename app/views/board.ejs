@@ -420,7 +420,7 @@
   <!-- ── speak ──────────────────────────────────────────────────────────── -->
   <div class="tav-dock" id="compose">
     <% if(i){ %>
-      <form class="tav-bar" method="post" action="/board/thread">
+      <form class="tav-bar" method="post" action="/board/thread" data-jump><!-- a new note lands at the top of the board, so go and look at it -->
         <input class="tav-body-in" name="body" placeholder="Say something to the House…" aria-label="Your message" required>
         <select name="category" aria-label="Which corner of the tavern">
           <% cats.forEach(function(c){ %><option value="<%= c %>"><%= c %></option><% }); %>
@@ -429,7 +429,7 @@
       </form>
       <details class="tav-pollnew">
         <summary>Put a question to the House instead</summary>
-        <form method="post" action="/board/poll">
+        <form method="post" action="/board/poll" data-jump><!-- likewise a new poll -->
           <input name="question" placeholder="Your question" aria-label="Poll question" required>
           <input name="options" placeholder="Answer 1" aria-label="Answer 1" required>
           <input name="options" placeholder="Answer 2" aria-label="Answer 2" required>

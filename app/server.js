@@ -276,7 +276,7 @@ app.use((req,res,next)=>BLOCKED.test(req.path)?res.status(404).send('Not found')
 // to reach their own profile. So the stamp is rewritten here at serve time from
 // the real file mtimes, and never has to be remembered again.
 const ASSET_FILES=['assets/css/style.css','assets/css/tavern.css','assets/css/profile.css','assets/css/gallery.css','assets/css/weekend.css','assets/css/pigeon.css','assets/css/map.css','assets/css/card.css',
-  'assets/js/nav.js','assets/js/countdown.js','assets/js/hero-video.js','assets/js/avatar-crop.js','assets/js/dress.js','assets/js/gallery.js','assets/js/player.js','assets/js/pigeon.js','assets/js/map-live.js','assets/js/map-sound.js','assets/js/forecast.js','assets/js/pwa.js'];
+  'assets/js/nav.js','assets/js/keepplace.js','assets/js/countdown.js','assets/js/hero-video.js','assets/js/avatar-crop.js','assets/js/dress.js','assets/js/gallery.js','assets/js/player.js','assets/js/pigeon.js','assets/js/map-live.js','assets/js/map-sound.js','assets/js/forecast.js','assets/js/pwa.js'];
 function assetVersion(){
   let newest=0;
   ASSET_FILES.forEach(function(f){
@@ -2579,9 +2579,14 @@ app.get('/board/thread/:id',(req,res)=>{
 app.post('/board/thread/:id/reply',canPost,(req,res)=>{
   const t=db.threads.find(x=>x.id==req.params.id);if(!t)return res.redirect('/board');
   const i=ident(req);const body=(req.body.body||'').trim();if(!body)return res.redirect('/board/thread/'+t.id+'?e='+encodeURIComponent("Reply can't be empty"));
-  t.replies.push({id:nid(),body:body,authorType:i.t,authorId:i.id,authorName:i.name,authorAvatar:i.avatar,ts:Date.now()});
+  const rid=nid();
+  t.replies.push({id:rid,body:body,authorType:i.t,authorId:i.id,authorName:i.name,authorAvatar:i.avatar,ts:Date.now()});
   if(t.authorType!==i.t||t.authorId!==i.id)notify(t.authorType,t.authorId,i.name+' replied to your note \u201c'+t.title+'\u201d');
-  save();res.redirect('/board/thread/'+t.id);
+  save();
+  // Replying is the one action that really does move you to another page, so
+  // there is no place to be put back to. Land on the reply you just wrote,
+  // rather than at the top of somebody else’s note.
+  res.redirect('/board/thread/'+t.id+'#r'+rid);
 });
 app.post('/board/poll',canPost,(req,res)=>{
   const i=ident(req);const question=(req.body.question||'').trim();
