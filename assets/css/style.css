@@ -148,7 +148,12 @@ body.tavern-page::before{display:none}
 body.tavern-page h2{color:#f8edd1}
 body.tavern-page .lead{color:#e9dcc2;max-width:none}
 body.tavern-page .muted{color:#cdb98f}
-body.tavern-page a{color:var(--gold-l)}
+/* Pale gold, for links reading as links on the dark ground. NOT for buttons:
+   this rule out-specifies .btn--gold (0,2,1 against 0,1,0), so "Write a
+   letter" was pale gold text sitting on a pale gold button and all but
+   invisible. Every gold or wine button rendered as an <a> on one of these
+   pages had the same problem. */
+body.tavern-page a:not(.btn){color:var(--gold-l)}
 .note{background:var(--ivory);color:var(--ink);border:1px solid var(--line2);border-radius:4px;padding:24px;box-shadow:0 22px 44px -28px rgba(60,40,15,.5),inset 0 0 0 1px rgba(255,255,255,.4);position:relative}
 .note::before{content:"";position:absolute;inset:6px;border:1px solid rgba(194,161,77,.3);border-radius:2px;pointer-events:none}
 .postpic{width:54px;height:54px;border-radius:50%;object-fit:cover;border:2px solid var(--gold-d);flex-shrink:0}
@@ -1850,3 +1855,11 @@ footer :where(a,button):focus-visible{
   background:var(--post-d);border:1px solid var(--post);color:#eaf3ff;
   font-family:var(--serif);font-size:.66rem;letter-spacing:.03em;text-transform:none;
 }
+
+/* An outline button carries no fill of its own, so on the dark pages it needs
+   the light gold the page gives its links — the dark gold it wears by default
+   is meant for parchment, and on this ground it all but disappears. The rule
+   above deliberately stops giving buttons the link colour, so these have to
+   ask for it. */
+body.tavern-page a.btn--outline,
+body.guild-page a.btn--outline{color:var(--gold-l);border-color:var(--gold)}
