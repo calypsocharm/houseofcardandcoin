@@ -1777,3 +1777,76 @@ footer :where(a,button):focus-visible{
 }
 .writer__one.is-pledge .writer__who small{color:#9d8a62}
 .writer__foot{font-size:.84rem;margin-top:12px;color:#a8946c}
+
+/* ── A letter is waiting ───────────────────────────────────────────────────
+   An unread letter used to look exactly like everything else the House had to
+   say: an 8px gold dot on the corner of the menu button, the same mark whether
+   somebody had written to you or a round had closed.
+
+   A letter is a person waiting on an answer, so it gets its own mark and its
+   own colour — an envelope with the flag up, the way a mailbox says it. Blue
+   because nothing else on this site is blue: the House is gold and wine
+   throughout, so a blue flag can only mean one thing, and the eye finds it
+   without being taught.
+
+   The same blue runs through all three places you might meet it: the button,
+   the line in the menu, and the letter itself in the Pigeon Post. */
+:root{--post:#67a6ee;--post-d:#1d4c8c;--post-ink:#cfe3fb}
+
+.menu-toggle--post::after{
+  content:"";position:absolute;top:-11px;right:-13px;width:30px;height:21px;
+  background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 27 19' width='27' height='19'%3E%3Crect x='0.6' y='6.4' width='15.4' height='11.6' rx='1.8' fill='%23f7ecd0' stroke='%238a6d2a' stroke-width='1.2'/%3E%3Cpath d='M1.4 7.3 L8.3 12.3 L15.2 7.3' fill='none' stroke='%238a6d2a' stroke-width='1.2' stroke-linejoin='round' stroke-linecap='round'/%3E%3Crect x='16.6' y='0.6' width='2' height='17.4' rx='1' fill='%23241a10'/%3E%3Cpath d='M18.6 1.5 L26.4 4.6 L18.6 7.7 Z' fill='%2367a6ee' stroke='%231d4c8c' stroke-width='1.1' stroke-linejoin='round'/%3E%3C/svg%3E") center/contain no-repeat;
+  filter:drop-shadow(0 2px 3px rgba(0,0,0,.7));
+  transform-origin:80% 90%;
+  animation:postraise .5s var(--ease) both, postsway 5s var(--ease) 1.2s 3;
+  pointer-events:none;
+}
+/* The flag going up, once, as the page settles. */
+@keyframes postraise{
+  from{opacity:0;transform:translateY(5px) rotate(-16deg) scale(.7)}
+  to{opacity:1;transform:none}
+}
+/* Then a slow lean, three times, and it stops. A mark that moves for ever
+   stops being a signal and becomes wallpaper you learn to ignore. */
+@keyframes postsway{
+  0%,88%,100%{transform:none}
+  92%{transform:rotate(-7deg)}
+  96%{transform:rotate(4deg)}
+}
+@media(prefers-reduced-motion:reduce){
+  .menu-toggle--post::after{animation:none}
+}
+
+/* The line in the menu: blue count, and an envelope so the words are not the
+   only thing carrying it. */
+.navdrawer__count--post{
+  background:var(--post-d);border-color:var(--post);color:#eaf3ff;font-weight:600;
+}
+.nav .navdrawer a.has-post{color:var(--post-ink)}
+.nav .navdrawer a.has-post>span:first-child::before{
+  content:"";display:inline-block;width:15px;height:11px;margin-right:8px;vertical-align:-1px;
+  background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 12' width='16' height='12'%3E%3Crect x='0.6' y='0.6' width='14.8' height='10.8' rx='1.6' fill='%23f7ecd0' stroke='%238a6d2a' stroke-width='1.2'/%3E%3Cpath d='M1.4 1.5 L8 6.3 L14.6 1.5' fill='none' stroke='%238a6d2a' stroke-width='1.2' stroke-linejoin='round'/%3E%3C/svg%3E") center/contain no-repeat;
+}
+
+/* ── and the letter itself, in the room ─────────────────────────────────── */
+.whisper-row--new{
+  position:relative;
+  border-color:var(--post);
+  box-shadow:0 0 0 1px rgba(103,166,238,.4), 0 10px 26px -18px rgba(29,76,140,.9);
+  background-image:linear-gradient(100deg,rgba(103,166,238,.13),transparent 62%);
+}
+/* The flag flies on the letter too, so the room and the button agree. */
+.whisper-row--new::before{
+  content:"";position:absolute;top:-7px;left:-7px;width:17px;height:23px;
+  background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 14 19' width='14' height='19'%3E%3Crect x='1' y='0.6' width='2' height='17.4' rx='1' fill='%231d4c8c'/%3E%3Cpath d='M3 1.5 L12.8 4.8 L3 8.1 Z' fill='%2367a6ee' stroke='%231d4c8c' stroke-width='1.1' stroke-linejoin='round'/%3E%3C/svg%3E") center/contain no-repeat;
+  filter:drop-shadow(0 2px 3px rgba(0,0,0,.6));
+}
+.whisper-row--new .whisper-row__last{color:var(--ink);font-weight:600}
+.whisper-unread{background:var(--post-d);border:1px solid var(--post);color:#eaf3ff}
+
+/* A count of what is waiting, on the heading, so the room says it too. */
+.posthead__count{
+  display:inline-block;margin-left:9px;padding:1px 9px;border-radius:999px;
+  background:var(--post-d);border:1px solid var(--post);color:#eaf3ff;
+  font-family:var(--serif);font-size:.66rem;letter-spacing:.03em;text-transform:none;
+}

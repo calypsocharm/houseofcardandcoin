@@ -30,7 +30,7 @@
     <span class="postdesk__note">To one guildmate, to a few<% if(leader){ %>, or to the whole House<% } %>.</span>
   </div>
 
-  <h3 class="posthead">Your letters</h3>
+  <h3 class="posthead">Your letters<% if(post.unreadLetters){ %><span class="posthead__count"><%= post.unreadLetters %> unopened</span><% } %></h3>
   <% if(!post.letters.length){ %>
     <div class="compose"><p class="muted" style="margin:0">Nothing yet. Write to somebody and it will
       sit here waiting for their answer.</p></div>

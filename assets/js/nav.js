@@ -153,7 +153,14 @@
       if (me.leader) mine.push(['Administration', '/members#admin']);
 
       mine.forEach(function (x) {
-        if (x[1] === '/post') panel.appendChild(link(x[0], x[1], me.unread));
+        if (x[1] === '/post') {
+          /* Blue, and only for a letter. A notice is the House talking to
+             itself about you; a letter is a person waiting on an answer, and
+             the two should not look the same on the way past. */
+          var post = link(x[0], x[1], me.unread, me.letters ? 'navdrawer__count--post' : '');
+          if (me.letters) post.className = (post.className ? post.className + ' ' : '') + 'has-post';
+          panel.appendChild(post);
+        }
         else if (x[1] === '/card') panel.appendChild(
           link(x[0], x[1], me.card ? 'waiting' : 0, 'navdrawer__count--gold'));
         else panel.appendChild(link(x[0], x[1], 0));
@@ -184,11 +191,17 @@
 
     // A mark on the button, so a thing worth doing shows without opening
     // anything — an unread notice, or the night's card still on the deck.
+    var letters = inside && me.letters > 0;
     var news = inside && me.unread > 0;
     var card = inside && !!me.card;
-    btn.classList.toggle('menu-toggle--dot', news || card);
+    /* A letter outranks the rest: the envelope and its raised flag replace
+       the dot rather than sitting beside it, because two marks on one small
+       button is two things to work out instead of one thing to see. */
+    btn.classList.toggle('menu-toggle--post', letters);
+    btn.classList.toggle('menu-toggle--dot', !letters && (news || card));
     var said = [];
-    if (news) said.push(me.unread + ' waiting in the Pigeon Post');
+    if (letters) said.push(me.letters + ' letter' + (me.letters === 1 ? '' : 's') + ' waiting');
+    if (news && me.unread > me.letters) said.push('word from the House');
     if (card) said.push('a card waiting');
     btn.setAttribute('aria-label', said.length ? 'Menu — ' + said.join(', ') : 'Menu');
 

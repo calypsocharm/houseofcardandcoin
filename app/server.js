@@ -154,19 +154,20 @@ app.use(function(req,res,next){
      one mark on one button. It used to count only the House’s own notices, so
      an unopened letter from a guildmate showed nothing at all until they
      happened to look in a room they had no reason to open. */
-  res.locals.unread = me
-    ? (db.notices||[]).filter(function(n){return n.toT===me.t&&n.toId===me.id&&!n.read;}).length
-      + (db.whispers||[]).filter(function(w){return w.toT===me.t&&w.toId===me.id&&!w.read;}).length
-    : 0;
+  res.locals.letters = me
+    ? (db.whispers||[]).filter(function(w){return w.toT===me.t&&w.toId===me.id&&!w.read;}).length : 0;
+  res.locals.notes = me
+    ? (db.notices||[]).filter(function(n){return n.toT===me.t&&n.toId===me.id&&!n.read;}).length : 0;
+  res.locals.unread = res.locals.letters + res.locals.notes;
   // The nav panel is built from this — on the EJS pages inline, so the menu is
   // right on the first paint, and on the generated static pages via /api/me,
   // which hands back exactly this object. Nothing in it is private; it is your
   // own name read back to you.
   var u=res.locals.u, p=res.locals.patron;
   res.locals.me = u
-    ? {signedIn:true,kind:'member',name:u.name,avatar:u.avatar||'',rank:rank(u),pledge:!!u.pledge,leader:u.role==='leader',slug:slugById()[u.id]||'',unread:res.locals.unread,card:handWaiting(u)}
+    ? {signedIn:true,kind:'member',name:u.name,avatar:u.avatar||'',rank:rank(u),pledge:!!u.pledge,leader:u.role==='leader',slug:slugById()[u.id]||'',unread:res.locals.unread,letters:res.locals.letters,card:handWaiting(u)}
     : (p&&!p.banned)
-      ? {signedIn:true,kind:'patron',name:p.name,avatar:p.avatar||'',rank:'Tavern guest',pledge:false,leader:false,unread:res.locals.unread,card:handWaiting(p)}
+      ? {signedIn:true,kind:'patron',name:p.name,avatar:p.avatar||'',rank:'Tavern guest',pledge:false,leader:false,unread:res.locals.unread,letters:res.locals.letters,card:handWaiting(p)}
       : {signedIn:false};
   next();
 });
@@ -3080,7 +3081,15 @@ app.get('/post',canPost,(req,res)=>{
   let touched=false;
   (db.notices||[]).forEach(function(n){
     if(n.toT===i.t&&n.toId===i.id&&!n.read){ n.read=true; touched=true; } });
-  if(touched)save();
+  if(touched){
+    save();
+    /* The counts were worked out by the middleware before this route read the
+       notices, so leaving them alone would draw this very page with a mark
+       claiming there is unread word from the House sitting on it. */
+    res.locals.notes=0;
+    res.locals.unread=res.locals.letters;
+    if(res.locals.me&&res.locals.me.signedIn)res.locals.me.unread=res.locals.letters;
+  }
   res.render('post',{i:i,post:post,q:req.query,leader:!!(i&&i.leader)});
 });
 
