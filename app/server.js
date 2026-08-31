@@ -1441,6 +1441,24 @@ app.post('/members/login',throttleLogin,(req,res)=>{const{email,password}=req.bo
     return res.redirect('/members/login?e='+encodeURIComponent('Bad email or password')+(on?'&next='+encodeURIComponent(on):''));}
   clearLoginTries(req);req.session.uid=u.id;res.redirect(wasHeadedFor(req.body.next)||'/members');});
 app.post('/members/logout',(req,res)=>{req.session.destroy(()=>res.redirect('/'));});
+
+/* The welcome owed to somebody just taken into the House.
+
+   Shown once, where "once" has to mean something kinder than once: pressing
+   refresh while you are still reading it must not take it away. So the first
+   drawing is stamped, and it keeps being drawn for a quarter of an hour after
+   that. Come back tomorrow and it is gone, having been read.
+
+   Nothing here expires on its own. Accepted on the Tuesday and not signing in
+   until the Friday, you still get it — the clock starts when you arrive, not
+   when the Guild Leader pressed the button. */
+const WELCOME_FOR = 15*60*1000;
+function swornWelcome(u){
+  if(!u || u.pledge || !u.sworn) return null;
+  if(!u.swornShown){ u.swornShown=Date.now(); save(); }
+  if(Date.now()-u.swornShown > WELCOME_FOR) return null;
+  return {at:u.sworn, first:(u.faires||0)===0};
+}
 app.get('/members',au,(req,res)=>{
   const u=cur(req);
 
@@ -1499,7 +1517,7 @@ app.get('/members',au,(req,res)=>{
   })();
   const bunksLeft=NIGHTS.length*BUNKS.length-db.bunks.length;
   const items=db.items.map(it=>{const cl=db.claims.filter(c=>c.itemId===it.id);const claimed=cl.reduce((s,c)=>s+c.qty,0);return{...it,claimed,remaining:Math.max(0,it.need-claimed),claims:cl.map(c=>({qty:c.qty,who:db.users.find(y=>y.id===c.userId)})),mine:cl.find(c=>c.userId===u.id)};});
-  res.render('hall',{u,pack:packFor(u),chores:u.role==='leader'?choresFor(u):null,schedule:guildEvents(),backups:backupHealth(),page:pageOf(u),mySlug:slugById()[u.id]||'',backdrops:BACKDROPS,layouts:LAYOUTS,fonts:FONTS,fontKeys:FONT_KEYS,sizeKeys:SIZE_KEYS,sizes:SIZES,charmKeys:CHARM_KEYS,charmSvg:charmSvg,charmMax:CHARM_MAX,rank:rank(u),classes:CLASSES,bunkBoard,bunksLeft,bunkFacts:bunkFacts(),since:since,away:away,cardWaiting:cardWaiting(u),over:countdown().ended===true,finest:highHand(),items,bringers,leader:u.role==='leader',users:u.role==='leader'?db.users.map(function(m){return{slug:slugById()[m.id]||'',berth:m.berth||'',vouches:vouchesFor(m.id),name:m.name,class:m.class,faires:m.faires,rank:rank(m),pledge:!!m.pledge,leader:m.role==='leader',dayContact:!!m.dayContact,title:m.title||'',avatar:m.avatar,id:m.id,contactEmail:m.contactEmail||'',phone:m.phone||'',bunks:db.bunks.filter(function(b){return b.userId===m.id}).map(function(b){return b.night+' \u00b7 Bunk '+b.bunk;})};}):[],announcements:db.announcements,mine:myWeekend(u),prizes:db.prizes||{first:"",second:"",shown:false},outreach:{emails:db.users.filter(function(x){return x.contactEmail;}).map(function(x){return x.contactEmail;}),phones:db.users.filter(function(x){return x.phone;}).map(function(x){return x.phone;})},invite:inviteCode(),err:req.query.e||"",q:req.query});
+  res.render('hall',{u,welcome:swornWelcome(u),pack:packFor(u),chores:u.role==='leader'?choresFor(u):null,schedule:guildEvents(),backups:backupHealth(),page:pageOf(u),mySlug:slugById()[u.id]||'',backdrops:BACKDROPS,layouts:LAYOUTS,fonts:FONTS,fontKeys:FONT_KEYS,sizeKeys:SIZE_KEYS,sizes:SIZES,charmKeys:CHARM_KEYS,charmSvg:charmSvg,charmMax:CHARM_MAX,rank:rank(u),classes:CLASSES,bunkBoard,bunksLeft,bunkFacts:bunkFacts(),since:since,away:away,cardWaiting:cardWaiting(u),over:countdown().ended===true,finest:highHand(),items,bringers,leader:u.role==='leader',users:u.role==='leader'?db.users.map(function(m){return{slug:slugById()[m.id]||'',berth:m.berth||'',vouches:vouchesFor(m.id),sworn:m.sworn||0,swornSeen:!!m.swornShown,name:m.name,class:m.class,faires:m.faires,rank:rank(m),pledge:!!m.pledge,leader:m.role==='leader',dayContact:!!m.dayContact,title:m.title||'',avatar:m.avatar,id:m.id,contactEmail:m.contactEmail||'',phone:m.phone||'',bunks:db.bunks.filter(function(b){return b.userId===m.id}).map(function(b){return b.night+' \u00b7 Bunk '+b.bunk;})};}):[],announcements:db.announcements,mine:myWeekend(u),prizes:db.prizes||{first:"",second:"",shown:false},outreach:{emails:db.users.filter(function(x){return x.contactEmail;}).map(function(x){return x.contactEmail;}),phones:db.users.filter(function(x){return x.phone;}).map(function(x){return x.phone;})},invite:inviteCode(),err:req.query.e||"",q:req.query});
 });
 // How your page looks. Separate from the details form above because these are
 // about presentation and those are about the guild — and because this one
@@ -1626,8 +1644,28 @@ app.get('/members/admin/backup',al,(req,res)=>{
   res.setHeader('Cache-Control','no-store');
   res.send(payload);
 });
-app.post('/members/admin/promote',al,(req,res)=>{const u=db.users.find(x=>x.id===parseInt(req.body.id));if(u&&u.pledge){u.pledge=false;notify('member',u.id,'You have been accepted into the House of Card and Coin. You are a Guildmate now — the camp bunks are yours to claim.');save();}res.redirect('/members#admin');});
-app.post('/members/admin/demote',al,(req,res)=>{const u=db.users.find(x=>x.id===parseInt(req.body.id));if(u&&u.role!=='leader'){u.pledge=true;save();}res.redirect('/members#admin');});
+/* Being taken in was, until now, almost entirely silent. The pledge line
+   vanished, the bunks stopped refusing them, and a small dot appeared on the
+   menu button — and that was the whole of it. Somebody could be accepted on
+   the Tuesday and not realise until the Friday.
+
+   So the moment is written down. It is what the Guild Hall reads to know it
+   owes somebody a welcome the next time they walk in, and it is cleared again
+   on the way out so that being put back to Pledge and taken in a second time
+   is greeted just as warmly as the first. */
+app.post('/members/admin/promote',al,(req,res)=>{
+  const u=db.users.find(x=>x.id===parseInt(req.body.id));
+  if(!u||!u.pledge)return res.redirect('/members#admin');
+  u.pledge=false;
+  u.sworn=Date.now();
+  delete u.swornShown;              // the welcome has not been drawn yet
+  notify('member',u.id,'You have been accepted into the House of Card and Coin. You are a Guildmate now — the camp bunks are yours to claim.');
+  save();
+  // Straight back to the panel with the welcome note ready to send, so it is
+  // one press rather than something to remember to do later.
+  res.redirect('/members?welcomed='+u.id+'#admin');
+});
+app.post('/members/admin/demote',al,(req,res)=>{const u=db.users.find(x=>x.id===parseInt(req.body.id));if(u&&u.role!=='leader'){u.pledge=true;delete u.sworn;delete u.swornShown;save();}res.redirect('/members#admin');});
 
 /* Handing somebody the keys.
 

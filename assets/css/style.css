@@ -1672,3 +1672,29 @@ footer :where(a,button):focus-visible{
   animation:dealpip 3.2s var(--ease) infinite}
 @keyframes dealpip{0%,74%,100%{transform:scale(1)}82%{transform:scale(1.3)}}
 @media(prefers-reduced-motion:reduce){.hero__deal.is-waiting::after{animation:none}}
+
+/* ── And the welcome on the far side of that door ──────────────────────────
+   The same panel as the pledge welcome, in gold rather than wine. Deliberately
+   the same shape: one says what a Pledge is and what waits beyond, the other
+   is the door opening, and they should read as a pair rather than as two
+   unrelated announcements. */
+.pledgewelcome--sworn{border-top-color:var(--gold)}
+.pledgewelcome--sworn .pledgewelcome__mark{background:var(--gold);color:var(--dark)}
+.pledgewelcome--sworn .pledgewelcome__lead b{color:var(--gold-d)}
+.pledgewelcome--sworn .pledgewelcome__foot b{color:var(--gold-d)}
+.pledgewelcome--sworn a{color:var(--wine);font-weight:600;text-decoration:underline;text-underline-offset:2px}
+.pledgewelcome--sworn a:hover{color:var(--gold-d)}
+
+/* ── The welcome note, ready to send ───────────────────────────────────────
+   Accepting somebody used to end with a redirect and nothing else, so the
+   welcome was a thing to remember to send later — which meant never. The
+   letter now arrives with the confirmation. */
+.welcomenote{
+  max-width:760px;margin:0 auto 18px;padding:16px 20px;border-radius:5px;
+  background:rgba(44,74,54,.1);border:1px solid var(--forest);
+  display:flex;flex-wrap:wrap;align-items:center;gap:12px;
+}
+.welcomenote__said{flex:1 1 260px;margin:0;font-size:.94rem;color:#22402b;line-height:1.55}
+.welcomenote__said b{font-family:var(--display);color:#1b3323}
+.welcomenote__go{padding:10px 18px;font-size:.62rem;flex-shrink:0}
+.welcomenote__to{font-size:.78rem;color:var(--muted);font-style:italic;flex:1 1 100%}
