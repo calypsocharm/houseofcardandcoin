@@ -94,7 +94,7 @@
 <% if(since.length || cardWaiting){ %>
 <section class="section since"><div class="container">
   <div class="since__box">
-    <p class="since__h">While you were away<% if(_away && since.length){ %> <span><%= _away %></span><% } %></p>
+    <p class="since__h"><% if(typeof firstLook!=="undefined" && firstLook){ %>Waiting for you<% } else { %>While you were away<% if(_away && since.length){ %> <span><%= _away %></span><% } %><% } %></p>
     <ul class="since__list">
       <% since.forEach(function(s){ %>
         <li><a class="since__item<%= s.gold ? " is-gold" : "" %>" href="<%= s.go %>">

@@ -1490,7 +1490,7 @@ app.get('/members',au,(req,res)=>{
      archive, and it is a poor welcome. The mark is set instead, and the line
      starts telling them things the next time they come. */
   const firstEver=!u.lastSeen;
-  const since=firstEver ? [] : sinceYouWere(u, req.session.hallSince);
+  const since=sinceYouWere(u, req.session.hallSince, firstEver);
   const away=(!firstEver && req.session.hallSince) ? now-req.session.hallSince : 0;
   u.lastSeen=now; save();
   const bunkBoard=NIGHTS.map(n=>{
@@ -1525,7 +1525,7 @@ app.get('/members',au,(req,res)=>{
   })();
   const bunksLeft=NIGHTS.length*BUNKS.length-db.bunks.length;
   const items=db.items.map(it=>{const cl=db.claims.filter(c=>c.itemId===it.id);const claimed=cl.reduce((s,c)=>s+c.qty,0);return{...it,claimed,remaining:Math.max(0,it.need-claimed),claims:cl.map(c=>({qty:c.qty,who:db.users.find(y=>y.id===c.userId)})),mine:cl.find(c=>c.userId===u.id)};});
-  res.render('hall',{u,welcome:swornWelcome(u),pack:packFor(u),chores:u.role==='leader'?choresFor(u):null,schedule:guildEvents(),backups:backupHealth(),page:pageOf(u),mySlug:slugById()[u.id]||'',backdrops:BACKDROPS,layouts:LAYOUTS,fonts:FONTS,fontKeys:FONT_KEYS,sizeKeys:SIZE_KEYS,sizes:SIZES,charmKeys:CHARM_KEYS,charmSvg:charmSvg,charmMax:CHARM_MAX,rank:rank(u),classes:CLASSES,bunkBoard,bunksLeft,bunkFacts:bunkFacts(),since:since,away:away,cardWaiting:cardWaiting(u),over:countdown().ended===true,finest:highHand(),items,bringers,leader:u.role==='leader',users:u.role==='leader'?db.users.map(function(m){return{slug:slugById()[m.id]||'',berth:m.berth||'',vouches:vouchesFor(m.id),sworn:m.sworn||0,swornSeen:!!m.swornShown,name:m.name,class:m.class,faires:m.faires,rank:rank(m),pledge:!!m.pledge,leader:m.role==='leader',dayContact:!!m.dayContact,title:m.title||'',avatar:m.avatar,id:m.id,contactEmail:m.contactEmail||'',phone:m.phone||'',bunks:db.bunks.filter(function(b){return b.userId===m.id}).map(function(b){return b.night+' \u00b7 Bunk '+b.bunk;})};}):[],announcements:db.announcements,mine:myWeekend(u),prizes:db.prizes||{first:"",second:"",shown:false},outreach:{emails:db.users.filter(function(x){return x.contactEmail;}).map(function(x){return x.contactEmail;}),phones:db.users.filter(function(x){return x.phone;}).map(function(x){return x.phone;})},invite:inviteCode(),err:req.query.e||"",q:req.query});
+  res.render('hall',{u,welcome:swornWelcome(u),pack:packFor(u),chores:u.role==='leader'?choresFor(u):null,schedule:guildEvents(),backups:backupHealth(),page:pageOf(u),mySlug:slugById()[u.id]||'',backdrops:BACKDROPS,layouts:LAYOUTS,fonts:FONTS,fontKeys:FONT_KEYS,sizeKeys:SIZE_KEYS,sizes:SIZES,charmKeys:CHARM_KEYS,charmSvg:charmSvg,charmMax:CHARM_MAX,rank:rank(u),classes:CLASSES,bunkBoard,bunksLeft,bunkFacts:bunkFacts(),since:since,away:away,firstLook:firstEver,cardWaiting:cardWaiting(u),over:countdown().ended===true,finest:highHand(),items,bringers,leader:u.role==='leader',users:u.role==='leader'?db.users.map(function(m){return{slug:slugById()[m.id]||'',berth:m.berth||'',vouches:vouchesFor(m.id),sworn:m.sworn||0,swornSeen:!!m.swornShown,name:m.name,class:m.class,faires:m.faires,rank:rank(m),pledge:!!m.pledge,leader:m.role==='leader',dayContact:!!m.dayContact,title:m.title||'',avatar:m.avatar,id:m.id,contactEmail:m.contactEmail||'',phone:m.phone||'',bunks:db.bunks.filter(function(b){return b.userId===m.id}).map(function(b){return b.night+' \u00b7 Bunk '+b.bunk;})};}):[],announcements:db.announcements,mine:myWeekend(u),prizes:db.prizes||{first:"",second:"",shown:false},outreach:{emails:db.users.filter(function(x){return x.contactEmail;}).map(function(x){return x.contactEmail;}),phones:db.users.filter(function(x){return x.phone;}).map(function(x){return x.phone;})},invite:inviteCode(),err:req.query.e||"",q:req.query});
 });
 // How your page looks. Separate from the details form above because these are
 // about presentation and those are about the guild — and because this one
@@ -2229,7 +2229,20 @@ function myWeekend(u){
 
    Says nothing at all when nothing has happened. A line reading "nothing new"
    every day teaches people to stop reading the line. */
-function sinceYouWere(u,anchor){
+/* What is worth telling you the moment you walk in.
+
+   Two different kinds of thing end up in this list, and a first-ever visit
+   is where the difference matters. The ambient ones — talk by the fire,
+   rounds closed, pictures on the wall — measure back to a mark, and on a
+   first visit there is no mark, so they would reach to the beginning of the
+   House and greet a newcomer with a summary of everything that has ever
+   happened. Those are skipped until there is a second visit to measure from.
+
+   The personal ones — a letter, a notice, a signature on your scroll,
+   somebody speaking for you — are addressed to you and nobody else, and a
+   newcomer has seen none of them. Those always show. A guildmate written to
+   on their first day should not have to find out by accident. */
+function sinceYouWere(u,anchor,freshFace){
   if(!u)return [];
   var out=[];
   var mine=function(t,id){ return t==='member'&&id===u.id; };
@@ -2239,10 +2252,10 @@ function sinceYouWere(u,anchor){
     if(t.ts>anchor&&!mine(t.authorType,t.authorId))said++;
     (t.replies||[]).forEach(function(r){ if(r.ts>anchor&&!mine(r.authorType,r.authorId))said++; });
   });
-  if(said)out.push({n:said,say:said===1?'new line by the fire':'new lines by the fire',go:'/board'});
+  if(said && !freshFace)out.push({n:said,say:said===1?'new line by the fire':'new lines by the fire',go:'/board'});
 
   var closed=(db.rounds||[]).filter(function(r){return r.ended>anchor;});
-  if(closed.length)out.push({
+  if(closed.length && !freshFace)out.push({
     n:closed.length,
     say:closed.length===1?'round closed':'rounds closed',
     go:'/board/roll', gold:true});
@@ -2255,7 +2268,7 @@ function sinceYouWere(u,anchor){
   if(whispers)out.push({n:whispers,say:whispers===1?'letter waiting':'letters waiting',go:'/post',gold:true});
 
   var shots=(db.photos||[]).filter(function(p){return p.ts>anchor&&!mine(p.byT,p.byId);}).length;
-  if(shots)out.push({n:shots,say:shots===1?'new picture':'new pictures',go:'/gallery'});
+  if(shots && !freshFace)out.push({n:shots,say:shots===1?'new picture':'new pictures',go:'/gallery'});
 
   var signed=(db.wall||[]).filter(function(w){return w.toId===u.id&&w.ts>anchor;}).length;
   if(signed)out.push({n:signed,say:signed===1?'signature on your scroll':'signatures on your scroll',
