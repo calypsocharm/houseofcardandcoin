@@ -1,6 +1,6 @@
 <%- include('_top',{title:'Whisper: '+other.name,bodyClass:'tavern-page'}) %>
 <section class="section" style="padding-top:120px"><div class="container" style="max-width:680px">
-<a class="muted" href="/board/whispers" style="color:#cdb98f">&larr; All whispers</a>
+<a class="muted" href="/post" style="color:#cdb98f">&larr; All whispers</a>
 <div style="display:flex;gap:12px;align-items:center;margin:14px 0"><%- include('_avatar',{name:other.name,avatar:other.avatar}) %><h2 style="color:#f8edd1;margin:0">Whispering <%= other.name %></h2></div>
 <div class="whisper-thread">
 <% msgs.forEach(function(m){ var mine=m.fromT===i.t&&m.fromId===i.id; %>

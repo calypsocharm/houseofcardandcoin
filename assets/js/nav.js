@@ -144,13 +144,16 @@
          Tavern and then scrolling to find it. The card has a door of its own
          now, and when there is one waiting the menu says so rather than making
          anybody go and look. */
+      /* 'Notices' pointed at one of the two piles the House kept, and the
+         other one — letters between people — was on no menu at all. There is
+         one room for both now, and one count on the line. */
       var mine = patron
-        ? [['Tonight’s card', '/card'], ['Notices', '/board/notices']]
-        : [['Profile', '/members'], ['Tonight’s card', '/card'], ['Notices', '/board/notices']];
+        ? [['Tonight’s card', '/card'], ['Pigeon Post', '/post']]
+        : [['Profile', '/members'], ['Tonight’s card', '/card'], ['Pigeon Post', '/post']];
       if (me.leader) mine.push(['Administration', '/members#admin']);
 
       mine.forEach(function (x) {
-        if (x[1] === '/board/notices') panel.appendChild(link(x[0], x[1], me.unread));
+        if (x[1] === '/post') panel.appendChild(link(x[0], x[1], me.unread));
         else if (x[1] === '/card') panel.appendChild(
           link(x[0], x[1], me.card ? 'waiting' : 0, 'navdrawer__count--gold'));
         else panel.appendChild(link(x[0], x[1], 0));
@@ -185,7 +188,7 @@
     var card = inside && !!me.card;
     btn.classList.toggle('menu-toggle--dot', news || card);
     var said = [];
-    if (news) said.push(me.unread + ' unread notice' + (me.unread === 1 ? '' : 's'));
+    if (news) said.push(me.unread + ' waiting in the Pigeon Post');
     if (card) said.push('a card waiting');
     btn.setAttribute('aria-label', said.length ? 'Menu — ' + said.join(', ') : 'Menu');
 

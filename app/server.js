@@ -150,7 +150,14 @@ app.use(function(req,res,next){
   // Unread notices drive the header badge, so news reaches someone wherever
   // they land — there is no email, so the site itself has to carry the word.
   var me = res.locals.u ? {t:'member',id:res.locals.u.id} : (res.locals.patron ? {t:'patron',id:res.locals.patron.id} : null);
-  res.locals.unread = me ? (db.notices||[]).filter(function(n){return n.toT===me.t&&n.toId===me.id&&!n.read;}).length : 0;
+  /* What is waiting for you, counted as one number, because it reaches you as
+     one mark on one button. It used to count only the House’s own notices, so
+     an unopened letter from a guildmate showed nothing at all until they
+     happened to look in a room they had no reason to open. */
+  res.locals.unread = me
+    ? (db.notices||[]).filter(function(n){return n.toT===me.t&&n.toId===me.id&&!n.read;}).length
+      + (db.whispers||[]).filter(function(w){return w.toT===me.t&&w.toId===me.id&&!w.read;}).length
+    : 0;
   // The nav panel is built from this — on the EJS pages inline, so the menu is
   // right on the first paint, and on the generated static pages via /api/me,
   // which hands back exactly this object. Nothing in it is private; it is your
@@ -2240,11 +2247,11 @@ function sinceYouWere(u,anchor){
     go:'/board/roll', gold:true});
 
   var notices=(db.notices||[]).filter(function(n){return n.toT==='member'&&n.toId===u.id&&n.ts>anchor;}).length;
-  if(notices)out.push({n:notices,say:notices===1?'notice for you':'notices for you',go:'/board/notices',gold:true});
+  if(notices)out.push({n:notices,say:notices===1?'notice for you':'notices for you',go:'/post',gold:true});
 
   var whispers=(db.whispers||[]).filter(function(w){
     return w.toT==='member'&&w.toId===u.id&&!w.read;}).length;
-  if(whispers)out.push({n:whispers,say:whispers===1?'whisper waiting':'whispers waiting',go:'/board/whispers',gold:true});
+  if(whispers)out.push({n:whispers,say:whispers===1?'letter waiting':'letters waiting',go:'/post',gold:true});
 
   var shots=(db.photos||[]).filter(function(p){return p.ts>anchor&&!mine(p.byT,p.byId);}).length;
   if(shots)out.push({n:shots,say:shots===1?'new picture':'new pictures',go:'/gallery'});
@@ -3004,10 +3011,133 @@ function countdown(){
   if(now>=open)return{open:true};
   return{days:Math.floor((open-now)/86400000)};
 }
-app.get('/board/notices',canPost,(req,res)=>{var i=ident(req);var mine=(db.notices||[]).filter(function(n){return n.toT===i.t&&n.toId===i.id;}).sort(function(a,b){return b.ts-a.ts;});db.notices.forEach(function(n){if(n.toT===i.t&&n.toId===i.id)n.read=true;});save();res.render('notices',{i:i,notices:mine});});
-app.get('/board/whispers',canPost,(req,res)=>{var i=ident(req);var mine=(db.whispers||[]).filter(function(w){return (w.fromT===i.t&&w.fromId===i.id)||(w.toT===i.t&&w.toId===i.id);});var conv={};mine.forEach(function(w){var other=(w.fromT===i.t&&w.fromId===i.id)?{t:w.toT,id:w.toId}:{t:w.fromT,id:w.fromId};var k=other.t+':'+other.id;if(!conv[k]||w.ts>conv[k].last.ts)conv[k]={other:other,last:w};});var list=Object.keys(conv).map(function(k){var c=conv[k];var p=party(c.other.t,c.other.id)||{name:'A stranger',avatar:''};var unread=mine.filter(function(w){return w.toT===i.t&&w.toId===i.id&&w.fromT===c.other.t&&w.fromId===c.other.id&&!w.read;}).length;return {other:c.other,last:c.last,name:p.name,avatar:p.avatar,unread:unread};}).sort(function(a,b){return b.last.ts-a.last.ts;});res.render('whispers',{i:i,conv:list});});
+
+/* ── The Pigeon Post ────────────────────────────────────────────────────────
+   The House could already carry a private word from one person to another —
+   whispers have worked for months. The trouble was that nobody could find
+   them: one link buried in the Tavern, no way to begin one except by
+   stumbling across somebody in the Rogues gallery, and a second separate pile
+   of House notices sitting somewhere else entirely. Two inboxes, neither of
+   them on the menu.
+
+   This is one room for both, with a door of its own, and the one thing that
+   genuinely could not be done before: writing to several people at once, or
+   to the whole guild, without composing the same letter nine times.
+
+   Underneath it is still whispers. A letter to nine people is nine private
+   letters, so a reply comes back to you alone rather than to a crowd — which
+   is what anybody answering a letter expects. */
+
+// Everyone a letter can be addressed to: the guild, not counting yourself.
+function guildFolk(i){
+  return (db.users||[]).filter(function(u){
+    return !(i && i.t==="member" && i.id===u.id);
+  }).map(function(u){
+    return {t:"member", id:u.id, name:u.name, avatar:u.avatar||"", rank:rank(u),
+            pledge:!!u.pledge, leader:u.role==="leader"};
+  }).sort(function(a,b){
+    if(a.pledge!==b.pledge) return a.pledge?1:-1;      // pledges last, not hidden
+    return a.name.localeCompare(b.name);
+  });
+}
+
+/* Everything addressed to you, in the two shapes it comes in: letters from
+   people, which are conversations and can be answered, and word from the
+   House, which is one-way. Kept apart on the page, because answering a notice
+   is not a thing anybody can do. */
+function postFor(i){
+  const mine=(db.whispers||[]).filter(function(w){
+    return (w.fromT===i.t&&w.fromId===i.id)||(w.toT===i.t&&w.toId===i.id); });
+  const conv={};
+  mine.forEach(function(w){
+    const other=(w.fromT===i.t&&w.fromId===i.id)?{t:w.toT,id:w.toId}:{t:w.fromT,id:w.fromId};
+    const k=other.t+":"+other.id;
+    if(!conv[k]||w.ts>conv[k].last.ts)conv[k]={other:other,last:w};
+  });
+  const letters=Object.keys(conv).map(function(k){
+    const c=conv[k];
+    const who=party(c.other.t,c.other.id)||{name:"A stranger",avatar:""};
+    const unread=mine.filter(function(w){
+      return w.toT===i.t&&w.toId===i.id&&w.fromT===c.other.t&&w.fromId===c.other.id&&!w.read; }).length;
+    return {other:c.other,last:c.last,name:who.name,avatar:who.avatar,unread:unread,
+            mine:(c.last.fromT===i.t&&c.last.fromId===i.id)};
+  }).sort(function(a,b){ return b.last.ts-a.last.ts; });
+
+  const notices=(db.notices||[]).filter(function(n){
+    return n.toT===i.t&&n.toId===i.id; }).sort(function(a,b){ return b.ts-a.ts; });
+
+  return {letters:letters, notices:notices,
+          unreadLetters:letters.reduce(function(n,c){return n+c.unread;},0),
+          unreadNotices:notices.filter(function(n){return !n.read;}).length};
+}
+
+app.get('/post',canPost,(req,res)=>{
+  const i=ident(req);
+  const post=postFor(i);
+  /* Opening the room is reading the House’s word, so the notices are marked
+     here. The letters are not — a letter is read by opening it, which is what
+     opening a letter means. */
+  let touched=false;
+  (db.notices||[]).forEach(function(n){
+    if(n.toT===i.t&&n.toId===i.id&&!n.read){ n.read=true; touched=true; } });
+  if(touched)save();
+  res.render('post',{i:i,post:post,q:req.query,leader:!!(i&&i.leader)});
+});
+
+app.get('/post/write',canPost,(req,res)=>{
+  const i=ident(req);
+  res.render("write",{i:i,folk:guildFolk(i),to:String(req.query.to||""),
+    leader:!!(i&&i.leader),err:String(req.query.e||"")});
+});
+
+app.post('/post/write',canPost,(req,res)=>{
+  const i=ident(req);
+  const body=String(req.body.body||"").trim().slice(0,2000);
+  if(!body)return res.redirect("/post/write?e="+encodeURIComponent("There is nothing written on it."));
+
+  /* Who it goes to. "The whole guild" is a checkbox rather than a second
+     button, so it still works with scripting off, and it belongs to the Guild
+     Leader alone — not because anybody else would abuse it, but because a
+     letter to every soul in the House should read as coming from the House. */
+  let to=[];
+  if(req.body.everyone && i.leader){
+    to=guildFolk(i);
+  } else {
+    const picked=[].concat(req.body.to||[]).filter(function(x){return typeof x==="string";});
+    const folk=guildFolk(i);
+    to=picked.map(function(k){
+      const bits=k.split(":");
+      return folk.find(function(f){ return f.t===bits[0] && String(f.id)===bits[1]; });
+    }).filter(Boolean);
+  }
+  if(!to.length)return res.redirect("/post/write?e="+encodeURIComponent("Nobody was chosen to receive it."));
+
+  if(!Array.isArray(db.whispers))db.whispers=[];
+  to.forEach(function(f){
+    db.whispers.push({id:nid(),fromT:i.t,fromId:i.id,toT:f.t,toId:f.id,
+                      body:body,ts:Date.now(),read:false});
+  });
+
+  /* The Guild Leader is told when somebody writes to her, the same as with a
+     whisper — unless she is the one doing the writing. */
+  const toHer=to.find(function(f){ return f.leader; });
+  if(toHer && !i.leader)
+    tellHer(i.name+" wrote to "+toHer.name+": “"+body.slice(0,120)+(body.length>120?"…":"")+"”");
+  save();
+
+  /* Straight into the letter if it went to one person, because you will want
+     to see it sitting there. Back to the room if it went to several, where all
+     of them now are. */
+  if(to.length===1)return res.redirect("/board/whisper/"+to[0].t+"/"+to[0].id);
+  res.redirect("/post?sent="+to.length);
+});
+
+/* The two old doors still open — they are linked from the FAQ and the Tavern,
+   and from every notice anybody has ever been sent. */
+app.get('/board/notices',canPost,(req,res)=>res.redirect('/post#house'));
+app.get('/board/whispers',canPost,(req,res)=>res.redirect('/post'));
 app.get('/board/whisper/:t/:id',canPost,(req,res)=>{var i=ident(req);var ot=req.params.t,oid=parseInt(req.params.id);if(ot===i.t&&oid===i.id)return res.redirect('/board/whispers');if(ot!=='member'&&ot!=='patron')return res.redirect('/board/whispers');var p=party(ot,oid);if(!p)return res.redirect('/board/whispers');var msgs=(db.whispers||[]).filter(function(w){return ((w.fromT===i.t&&w.fromId===i.id&&w.toT===ot&&w.toId===oid)||(w.fromT===ot&&w.fromId===oid&&w.toT===i.t&&w.toId===i.id));}).sort(function(a,b){return a.ts-b.ts;});db.whispers.forEach(function(w){if(w.fromT===ot&&w.fromId===oid&&w.toT===i.t&&w.toId===i.id)w.read=true;});save();res.render('whisper',{i:i,other:{t:ot,id:oid,name:p.name,avatar:p.avatar},msgs:msgs});});
-app.post('/board/whisper/:t/:id',canPost,(req,res)=>{var i=ident(req);var ot=req.params.t,oid=parseInt(req.params.id);if(ot===i.t&&oid===i.id)return res.redirect('/board/whispers');var body=(req.body.body||'').trim();if(!body)return res.redirect('/board/whisper/'+ot+'/'+oid);if(!Array.isArray(db.whispers))db.whispers=[];db.whispers.push({id:nid(),fromT:i.t,fromId:i.id,toT:ot,toId:oid,body:body,ts:Date.now(),read:false});notify(ot,oid,i.name+' whispered you');var _to=ot==='member'?db.users.find(function(x){return x.id===oid;}):null;if(_to&&_to.role==='leader'&&!(i.t==='member'&&i.id===_to.id))tellHer(i.name+' whispered '+_to.name+': \u201c'+body.slice(0,120)+(body.length>120?'\u2026':'')+'\u201d');save();res.redirect('/board/whisper/'+ot+'/'+oid);});
+app.post('/board/whisper/:t/:id',canPost,(req,res)=>{var i=ident(req);var ot=req.params.t,oid=parseInt(req.params.id);if(ot===i.t&&oid===i.id)return res.redirect('/board/whispers');var body=(req.body.body||'').trim();if(!body)return res.redirect('/board/whisper/'+ot+'/'+oid);if(!Array.isArray(db.whispers))db.whispers=[];db.whispers.push({id:nid(),fromT:i.t,fromId:i.id,toT:ot,toId:oid,body:body,ts:Date.now(),read:false});var _to=ot==='member'?db.users.find(function(x){return x.id===oid;}):null;if(_to&&_to.role==='leader'&&!(i.t==='member'&&i.id===_to.id))tellHer(i.name+' whispered '+_to.name+': \u201c'+body.slice(0,120)+(body.length>120?'\u2026':'')+'\u201d');save();res.redirect('/board/whisper/'+ot+'/'+oid);});
 
 /* ── The forecast, once there is one ────────────────────────────────────────
    The camp page has twenty-six years of history on it — that weekend has run

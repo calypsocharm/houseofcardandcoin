@@ -1,0 +1,90 @@
+<%- include('_top',{title:'Write a letter',bodyClass:'tavern-page'}) %>
+
+<%
+  /* The writing desk.
+
+     Pick the faces it goes to, write it once, and the House delivers a private
+     copy to each — so an answer comes back to the writer alone rather than to
+     a crowd, which is what anybody answering a letter expects.
+
+     The picker is faces rather than a list of names because a small guild is
+     recognised by sight long before it is recognised by spelling. */
+  var pre = to;   // e.g. "member:25", arriving from a "write to them" link
+%>
+<section class="section" style="padding-top:120px"><div class="container" style="max-width:680px">
+
+  <a class="muted" href="/post" style="color:#cdb98f">&larr; The Pigeon Post</a>
+
+  <div class="bannerhead" style="margin-top:10px">
+    <span class="eyebrow" style="color:var(--gold-l)">&#9998; A letter</span>
+    <h2 style="color:#f8edd1">Who is it for?</h2>
+    <div class="rule"></div>
+  </div>
+
+  <% if(err){ %><div class="alert alert--bad" style="margin-bottom:18px"><%= err %></div><% } %>
+
+  <form method="post" action="/post/write" class="writer">
+
+    <% if(leader){ %>
+      <%
+        /* The whole House at once, which is the thing that could not be done
+           before without writing the same letter nine times. A checkbox rather
+           than a second button, so it still works with scripting switched off;
+           the script below only saves the trouble of ticking everybody. */
+      %>
+      <label class="writer__all">
+        <input type="checkbox" name="everyone" value="1" id="everyone">
+        <span><b>The whole House</b> &mdash; every guildmate and pledge, <%= folk.length %> of them</span>
+      </label>
+    <% } %>
+
+    <div class="writer__folk" id="folk">
+      <% folk.forEach(function(f){ var key=f.t+':'+f.id; %>
+        <label class="writer__one<%= f.pledge?' is-pledge':'' %>">
+          <input type="checkbox" name="to" value="<%= key %>"<%= pre===key?' checked':'' %>>
+          <span class="writer__face">
+            <% if(f.avatar){ %><img src="<%= f.avatar %>" alt=""><% } else { %><i><%= f.name.slice(0,2).toUpperCase() %></i><% } %>
+          </span>
+          <span class="writer__who">
+            <b><%= f.name %></b>
+            <small><%= f.pledge ? 'Pledge' : f.rank %><% if(f.leader){ %> &middot; Guild Leader<% } %></small>
+          </span>
+        </label>
+      <% }) %>
+    </div>
+
+    <div class="field" style="margin-top:22px">
+      <label for="letter">What does it say?</label>
+      <textarea id="letter" name="body" rows="7" required maxlength="2000"
+        placeholder="Write it as you would say it&hellip;"></textarea>
+    </div>
+
+    <button class="btn btn--gold" style="margin-top:12px">Send it by pigeon</button>
+    <p class="muted writer__foot">Each person gets their own copy, privately. Nobody sees who else
+      it went to, and an answer comes back to you alone.</p>
+  </form>
+
+</div></section>
+
+<script>
+/* Ticking "the whole House" ticks everybody, and untidying one of them again
+   unticks it — otherwise the box would claim something that is no longer true.
+   Everything here is convenience: with scripting off the checkboxes still work
+   one by one, and the House still honours "everyone" on its own. */
+(function(){
+  var all = document.getElementById('everyone');
+  var folk = document.getElementById('folk');
+  if (!all || !folk) return;
+  var boxes = [].slice.call(folk.querySelectorAll('input[type=checkbox]'));
+  all.addEventListener('change', function () {
+    boxes.forEach(function (b) { b.checked = all.checked; });
+  });
+  boxes.forEach(function (b) {
+    b.addEventListener('change', function () {
+      if (!b.checked) all.checked = false;
+      else if (boxes.every(function (x) { return x.checked; })) all.checked = true;
+    });
+  });
+})();
+</script>
+<%- include('_bot') %>

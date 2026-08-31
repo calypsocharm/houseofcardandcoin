@@ -1698,3 +1698,82 @@ footer :where(a,button):focus-visible{
 .welcomenote__said b{font-family:var(--display);color:#1b3323}
 .welcomenote__go{padding:10px 18px;font-size:.62rem;flex-shrink:0}
 .welcomenote__to{font-size:.78rem;color:var(--muted);font-style:italic;flex:1 1 100%}
+
+/* ── The Pigeon Post ───────────────────────────────────────────────────────
+   One room for everything addressed to you. The whispers row already had a
+   look; this gives it a date and a "you:" for a thread waiting on the other
+   person, adds the writing desk above it, and sets the House's own notices
+   apart underneath so nobody tries to answer a bell. */
+.postdesk{
+  display:flex;align-items:center;gap:14px;flex-wrap:wrap;
+  margin:22px 0 8px;padding:16px 18px;border-radius:5px;
+  background:rgba(226,199,127,.07);border:1px dashed var(--gold-d);
+}
+.postdesk__note{font-size:.88rem;color:#cdb98f;font-style:italic}
+.postsent{max-width:none;margin-bottom:18px}
+
+.posthead{
+  font-family:var(--display);font-size:.68rem;letter-spacing:.2em;text-transform:uppercase;
+  color:var(--gold);margin:34px 0 4px;padding-bottom:8px;
+  border-bottom:1px solid rgba(226,199,127,.22);
+}
+.posthead__sub{font-size:.86rem;color:#a8946c;margin:0 0 14px}
+
+.whisper-row__last{
+  color:var(--ink2);margin:2px 0 0;font-size:.9rem;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.whisper-row__me{color:var(--muted);font-style:italic}
+.whisper-row__when{
+  display:block;margin-top:3px;font-size:.72rem;color:var(--muted);
+  font-variant-numeric:tabular-nums;
+}
+/* A letter you have not opened sits forward of the others. */
+.whisper-row--new{border-color:var(--gold);box-shadow:0 0 0 1px rgba(194,161,77,.35)}
+
+/* The House's voice, set apart: no face, no reply, quieter than a letter. */
+.housenote{margin-bottom:12px;opacity:.92}
+
+.postdoors{
+  text-align:center;margin:34px 0 0;font-family:var(--display);font-size:.66rem;
+  letter-spacing:.14em;text-transform:uppercase;color:#9d8a62;
+}
+.postdoors a{color:var(--gold);border-bottom:1px solid rgba(194,161,77,.4)}
+.postdoors a:hover{color:var(--gold-l)}
+
+/* ── The writing desk ───────────────────────────────────────────────────── */
+.writer__all{
+  display:flex;align-items:center;gap:11px;margin-bottom:16px;padding:13px 16px;
+  border-radius:5px;cursor:pointer;
+  background:rgba(110,26,26,.16);border:1px solid var(--wine-l);color:#f3ddc0;
+}
+.writer__all b{font-family:var(--display);color:var(--gold-l)}
+.writer__all input{width:17px;height:17px;accent-color:var(--wine);flex-shrink:0}
+
+.writer__folk{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:9px}
+.writer__one{
+  display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:4px;cursor:pointer;
+  background:rgba(244,234,210,.05);border:1px solid rgba(194,161,77,.28);
+  transition:background .16s,border-color .16s;
+}
+.writer__one:hover{background:rgba(226,199,127,.11);border-color:var(--gold)}
+.writer__one input{width:16px;height:16px;accent-color:var(--gold-d);flex-shrink:0}
+/* :has so the whole tile lights up when its box is ticked, rather than only
+   the box — the tile is what people are actually aiming at. */
+.writer__one:has(input:checked){background:rgba(226,199,127,.16);border-color:var(--gold-l)}
+.writer__one:has(input:focus-visible){outline:2px solid var(--gold-l);outline-offset:2px}
+.writer__face{width:34px;height:34px;flex-shrink:0}
+.writer__face img{width:34px;height:34px;border-radius:50%;object-fit:cover;border:1px solid var(--gold-d)}
+.writer__face i{
+  width:34px;height:34px;border-radius:50%;display:grid;place-items:center;font-style:normal;
+  background:linear-gradient(180deg,var(--gold-l),var(--gold));color:var(--dark);
+  font-family:var(--display);font-size:.68rem;font-weight:700;
+}
+.writer__who{display:flex;flex-direction:column;min-width:0}
+.writer__who b{font-size:.92rem;color:#f5e9c8;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.writer__who small{
+  font-family:var(--display);font-size:.54rem;letter-spacing:.13em;text-transform:uppercase;
+  color:var(--gold-l);
+}
+.writer__one.is-pledge .writer__who small{color:#9d8a62}
+.writer__foot{font-size:.84rem;margin-top:12px;color:#a8946c}

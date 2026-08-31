@@ -1,0 +1,71 @@
+<%- include('_top',{title:'Pigeon Post',bodyClass:'tavern-page'}) %>
+
+<%
+  /* One room for everything addressed to you.
+
+     There used to be two piles in two places — whispers, and the House's own
+     notices — and neither was on the menu, so people had no reason to believe
+     the site could carry a word at all. This is both of them at one address,
+     with the writing desk at the top rather than hidden behind finding
+     somebody in the Rogues gallery first.
+
+     Letters above, because they are from people and can be answered. The
+     House's word below, because it cannot. */
+%>
+<section class="section" style="padding-top:120px"><div class="container" style="max-width:760px">
+
+  <div class="bannerhead">
+    <span class="eyebrow" style="color:var(--gold-l)">&#128330; By Pigeon &#128330;</span>
+    <h2 style="color:#f8edd1">The Pigeon Post</h2>
+    <div class="rule"></div>
+  </div>
+
+  <% if(q && q.sent){ %>
+    <div class="alert alert--ok postsent">Sent to <b><%= q.sent %></b> of the House.
+      Each of them has it privately, so any answer comes back to you alone.</div>
+  <% } %>
+
+  <div class="postdesk">
+    <a class="btn btn--gold" href="/post/write">&#9998; Write a letter</a>
+    <span class="postdesk__note">To one guildmate, to a few<% if(leader){ %>, or to the whole House<% } %>.</span>
+  </div>
+
+  <h3 class="posthead">Your letters</h3>
+  <% if(!post.letters.length){ %>
+    <div class="compose"><p class="muted" style="margin:0">Nothing yet. Write to somebody and it will
+      sit here waiting for their answer.</p></div>
+  <% } %>
+  <% post.letters.forEach(function(c){ %>
+    <a class="whisper-row<%= c.unread?' whisper-row--new':'' %>" href="/board/whisper/<%= c.other.t %>/<%= c.other.id %>">
+      <%- include('_avatar',{name:c.name,avatar:c.avatar}) %>
+      <div style="flex:1;min-width:0">
+        <b style="color:var(--wine)"><%= c.name %></b>
+        <p class="whisper-row__last"><% if(c.mine){ %><span class="whisper-row__me">you:</span> <% } %><%= c.last.body %></p>
+        <span class="whisper-row__when"><%= new Date(c.last.ts).toLocaleString('en-US',{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'}) %></span>
+      </div>
+      <% if(c.unread>0){ %><span class="whisper-unread"><%= c.unread %></span><% } %>
+    </a>
+  <% }) %>
+
+  <h3 class="posthead" id="house">Word from the House</h3>
+  <p class="muted posthead__sub">Things the House noticed on your behalf. Nothing to answer &mdash;
+    these are told to you, not asked of you.</p>
+  <% if(!post.notices.length){ %>
+    <div class="compose"><p class="muted" style="margin:0">All quiet. No one has called your name yet.</p></div>
+  <% } %>
+  <% post.notices.forEach(function(n){ %>
+    <div class="note housenote">
+      <div style="display:flex;gap:14px;align-items:flex-start">
+        <span class="postpic postpic--init">&#128276;</span>
+        <div style="flex:1;min-width:0">
+          <p style="color:var(--ink2);margin:0"><%= n.text %></p>
+          <p class="muted" style="font-size:.78rem;margin:6px 0 0"><%= new Date(n.ts).toLocaleString() %></p>
+        </div>
+      </div>
+    </div>
+  <% }) %>
+
+  <p class="postdoors"><a href="/board">The Tavern</a> &middot; <a href="/members">Your profile</a></p>
+
+</div></section>
+<%- include('_bot') %>
