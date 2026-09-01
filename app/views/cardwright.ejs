@@ -35,7 +35,25 @@
         <input type="file" name="photo" accept="image/*" required>
         <button class="btn btn--gold" style="width:100%;justify-content:center;margin-top:10px">
           <%= photo ? 'Use a different picture' : 'Put it on the bench' %></button>
-        <% if(photo){ %><p class="bench__note">One is on the bench. Everything below re-cuts it.</p><% } %>
+        <% if(typeof wall!=="undefined" && wall.length){ %>
+        <div class="bench__box">
+          <p class="bench__k">&hellip;or take one off the wall</p>
+          <p class="bench__note" style="margin:0 0 11px">Everything hanging in the
+            <a href="/gallery" style="color:var(--gold-l)">Gallery</a>. Newest first.</p>
+          <div class="bench__wall">
+            <% wall.forEach(function(p){ %>
+              <form method="post" action="/cardwright/from-gallery" class="bench__pick">
+                <input type="hidden" name="id" value="<%= p.id %>">
+                <button type="submit" title="<%= p.caption || (p.by ? 'by '+p.by : 'take this one') %>">
+                  <img src="<%= p.thumb %>" alt="<%= p.caption %>" loading="lazy">
+                </button>
+              </form>
+            <% }) %>
+          </div>
+        </div>
+      <% } %>
+
+      <% if(photo){ %><p class="bench__note">One is on the bench. Everything below re-cuts it.</p><% } %>
       </form>
 
       <% if(photo){ %>
@@ -86,10 +104,15 @@
             take the plate.</p>
         </form>
 
-        <a class="btn btn--wine bench__take" href="/cardwright/print.png?<%= qs() %>">
-          &#8681; Take the printing plate</a>
-        <p class="bench__note bench__note--wide">2.75 &times; 4.75 inches at 300dpi with an eighth of
-          an inch of bleed all round &mdash; what a card printer asks for.</p>
+        <a class="btn btn--gold bench__take" href="/cardwright/print.png?trim=1&amp;<%= qs() %>">
+          &#8681; Take the card</a>
+        <p class="bench__note bench__note--wide">The card as you see it, full size &mdash; corners
+          off, ready to post or keep.</p>
+
+        <a class="btn btn--wine bench__take" style="margin-top:10px"
+           href="/cardwright/print.png?<%= qs() %>">&#8681; Take the printing plate</a>
+        <p class="bench__note bench__note--wide">Square-cornered, with an eighth of an inch of bleed
+          all round &mdash; what a card printer asks for, and no use for anything else.</p>
       <% } %>
     </div>
 
@@ -144,8 +167,12 @@
       var out = form.querySelector('label[for="' + p[0] + '"] span');
       if (el && out) out.textContent = p[1](el.value);
     });
-    var take = document.querySelector('.bench__take');
-    if (take) take.href = '/cardwright/print.png?' + q;
+    // both ways out have to follow the sliders, not just the first one
+    var takes = document.querySelectorAll('.bench__take');
+    if (takes[0]) takes[0].href = '/cardwright/print.png?trim=1&' + q;
+    if (takes[1]) takes[1].href = '/cardwright/print.png?' + q;
+    var backs = document.querySelector('.bench__back');
+    if (backs) backs.src = '/cardwright/back.png?' + q;
   }
 
   // Redrawing on every pixel of a drag would queue a hundred renders; this

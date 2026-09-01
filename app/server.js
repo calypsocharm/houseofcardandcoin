@@ -3174,7 +3174,10 @@ app.get('/cardwright',alPage,(req,res)=>{
   const photo = req.session.cardPhoto || '';
   const has = photo && fs.existsSync(path.join(cardStore(),photo));
   keepOffThePhone(res);
-  res.render('cardwright',{photo:has?photo:'',opts:cardOpts(req.query),
+  // Newest first: the picture she wants is nearly always the one just added.
+  const wall = (db.photos||[]).slice().sort(function(a,b){ return b.ts-a.ts; })
+    .map(function(p){ return {id:p.id, thumb:p.thumb||p.file, caption:p.caption||'', by:p.byName||''}; });
+  res.render('cardwright',{photo:has?photo:'',wall:wall,opts:cardOpts(req.query),
     suits:Object.keys(TAROT.plate.SUITS), q:req.query, err:String(req.query.e||'')});
 });
 
@@ -3212,6 +3215,29 @@ app.get('/cardwright/preview.png',al,async(req,res)=>{
 /* And the plate, at full size, with bleed, named for what it is. */
 /* The back of the deck. No photograph — it is the one card that is not a
    picture of anybody, so it needs nothing on the bench in order to exist. */
+/* Taking one off the wall instead of off a phone.
+
+   The Gallery is already full of faire photographs, uploaded by the people
+   in them, and making her find the file again on her camera roll to put it
+   on the bench is asking her to do a thing the House has already done.
+
+   The chosen picture is copied into the card store rather than read out of
+   uploads where it lies. Two reasons: everything downstream then has exactly
+   one kind of path to think about, and — the one that matters — a card in
+   progress cannot be pulled out from under her if somebody takes that
+   photograph off the wall while she is working. */
+app.post('/cardwright/from-gallery',al,(req,res)=>{
+  const id = parseInt(req.body.id, 10);
+  const shot = (db.photos||[]).find(function(p){ return p.id === id; });
+  if(!shot) return res.redirect('/cardwright?e='+encodeURIComponent('That picture is no longer on the wall.'));
+  try{
+    const from = path.join(__dirname,'uploads', String(shot.file).replace('/uploads/',''));
+    const to = cardId()+'.jpg';
+    fs.copyFileSync(from, path.join(cardStore(), to));
+    req.session.cardPhoto = to;
+  }catch(e){ return res.redirect('/cardwright?e='+encodeURIComponent('That picture could not be lifted off the wall.')); }
+  res.redirect('/cardwright');
+});
 app.get('/cardwright/back.png',al,async(req,res)=>{
   try{
     const o = cardOpts(req.query);
@@ -3240,10 +3266,22 @@ app.get('/cardwright/print.png',al,async(req,res)=>{
   try{
     const o = cardOpts(req.query);
     const c = await buildCard(path.join(cardStore(),photo), o, 1);
-    const file = c.title.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')+'-bleed.png';
+    const stem = c.title.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
+    const trim = req.query.trim === '1';
     res.set('Content-Type','image/png');
-    res.set('Content-Disposition','attachment; filename="'+file+'"');
-    keepOffThePhone(res); res.end(c.full);
+    keepOffThePhone(res);
+
+    /* Trimmed: the card itself, at full size, cut to the same corners as the
+       one on the bench. For a screen, a digital deck, a picture of the deck.
+       Untrimmed: the plate, square and bled, for a press. */
+    if(trim){
+      const cut = await sharp(c.full).extract({left:c.bleed,top:c.bleed,
+        width:c.W-c.bleed*2,height:c.H-c.bleed*2}).png().toBuffer();
+      res.set('Content-Disposition','attachment; filename="'+stem+'.png"');
+      return res.end(await roundCard(cut, c.W-c.bleed*2, c.H-c.bleed*2, o.round));
+    }
+    res.set('Content-Disposition','attachment; filename="'+stem+'-bleed.png"');
+    res.end(c.full);
   }catch(e){ console.log('cardwright print:',e.message); res.redirect('/cardwright?e='+encodeURIComponent('The plate would not render.')); }
 });
 app.get('/letters',canPost,(req,res)=>{
