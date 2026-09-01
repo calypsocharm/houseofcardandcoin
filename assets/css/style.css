@@ -1950,7 +1950,18 @@ body.tavern-page .compose .field label{color:var(--wine)}
   color:#cdb98f;transition:background .15s,border-color .15s,color .15s;
 }
 .bench__suit:hover span{border-color:var(--gold);color:var(--gold-l)}
-.bench__suit.is-on span{background:rgba(226,199,127,.18);border-color:var(--gold-l);color:#f8edd1}
+/* Which chip is chosen has to be answered by the radio, not by a class the
+   server wrote. Clicking one only redraws the card — the page does not reload —
+   so an .is-on painted on at render time stayed exactly where it was, and
+   pressing Major lit nothing. The class is kept for the first paint and for a
+   browser with scripting off; :checked is what actually moves. */
+.bench__suit.is-on span,
+.bench__suit input:checked + span{background:rgba(226,199,127,.18);border-color:var(--gold-l);color:#f8edd1}
+/* And it has to be able to move OFF the one the server marked, or the old
+   choice would stay lit beside the new one. */
+.bench__suit.is-on input:not(:checked) + span{
+  background:rgba(244,234,210,.05);border-color:rgba(194,161,77,.35);color:#cdb98f;
+}
 .bench__suit input:focus-visible + span{outline:2px solid var(--gold-l);outline-offset:2px}
 
 .bench__take{width:100%;justify-content:center}
