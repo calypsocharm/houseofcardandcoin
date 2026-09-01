@@ -162,7 +162,7 @@ function face(opts) {
   const ruleR = Math.max(0, cardR - 22 * k);
   // Scrollwork needs a corner to sit in. Past about a tenth there is not one.
   const scrolled = round < 9;
-  const dam = damask('facedam', k, g.m, 0.17, 62);
+  const dam = damask('facedam', k, g.m, 0.2, 112);
 
   // the outer rule, close to the trim
   const o0 = bleed + 22 * k, o1x = bleed + tw - 22 * k, o1y = bleed + th - 22 * k;
@@ -200,6 +200,9 @@ function face(opts) {
       + '</radialGradient>'
       + '<clipPath id="win"><path d="' + aperturePath(a) + '"/></clipPath>'
       + dam.def + sheen('gold', g)
+      + '<clipPath id="band"><rect x="' + (o0 + 7 * k) + '" y="' + (o0 + 7 * k) + '" '
+        + 'width="' + (o1x - o0 - 14 * k) + '" height="' + (o1y - o0 - 14 * k) + '" '
+        + 'rx="' + Math.max(0, ruleR - 7 * k) + '" ry="' + Math.max(0, ruleR - 7 * k) + '"/></clipPath>'
     + '</defs>'
 
     /* The ground, with the window cut out of it. evenodd: the outer rectangle
@@ -208,8 +211,8 @@ function face(opts) {
        picture is inside the card rather than behind a frame laid on top. */
     + '<path fill-rule="evenodd" fill="url(#gr)" d="M0 0 H' + W + ' V' + H + ' H0 Z '
       + aperturePath(a) + '"/>'
-    + '<path fill-rule="evenodd" fill="url(#' + dam.id + ')" d="M0 0 H' + W + ' V' + H + ' H0 Z '
-      + aperturePath(a) + '"/>'
+    + '<g clip-path="url(#band)"><path fill-rule="evenodd" fill="url(#' + dam.id + ')" '
+      + 'd="M0 0 H' + W + ' V' + H + ' H0 Z ' + aperturePath(a) + '"/></g>'
     + '<path fill-rule="evenodd" fill="url(#glow)" d="M0 0 H' + W + ' V' + H + ' H0 Z '
       + aperturePath(a) + '"/>'
 
@@ -293,23 +296,26 @@ module.exports = { face, grain, MARKS, METAL, INK, numeralFor };
 function damask(id, k, colour, opacity, step) {
   const s = (step || 66) * k;
   const c = s / 2;
+  const u = s / 66;                       // every measurement is a share of the tile,
+  const w = 1.15 * k * Math.sqrt(u);      // so one number makes the whole motif bigger
   return {
     id: id,
     def: '<pattern id="' + id + '" width="' + s + '" height="' + s + '" patternUnits="userSpaceOnUse">'
-      + '<g fill="none" stroke="' + colour + '" stroke-width="' + (1.15 * k) + '" opacity="' + opacity + '">'
+      + '<g fill="none" stroke="' + colour + '" stroke-width="' + w + '" opacity="' + opacity + '">'
       /* a four-petal rosette, with quarter-arcs that meet across the tile edges
          so the repeat reads as a lattice rather than a grid of stamps */
-      + '<path d="M' + c + ' ' + (c - 13 * k) + ' Q' + (c + 9 * k) + ' ' + c + ' ' + c + ' ' + (c + 13 * k)
-        + ' Q' + (c - 9 * k) + ' ' + c + ' ' + c + ' ' + (c - 13 * k) + ' Z"/>'
-      + '<path d="M' + (c - 13 * k) + ' ' + c + ' Q' + c + ' ' + (c - 9 * k) + ' ' + (c + 13 * k) + ' ' + c
-        + ' Q' + c + ' ' + (c + 9 * k) + ' ' + (c - 13 * k) + ' ' + c + ' Z"/>'
-      + '<path d="M0 ' + c + ' Q' + (c / 2) + ' ' + (c - 10 * k) + ' ' + c + ' ' + c
-        + ' Q' + (c * 1.5) + ' ' + (c + 10 * k) + ' ' + s + ' ' + c + '"/>'
-      + '<circle cx="' + c + '" cy="' + c + '" r="' + (2.2 * k) + '" fill="' + colour + '" stroke="none"/>'
+      + '<path d="M' + c + ' ' + (c - 15 * u) + ' Q' + (c + 10 * u) + ' ' + c + ' ' + c + ' ' + (c + 15 * u)
+        + ' Q' + (c - 10 * u) + ' ' + c + ' ' + c + ' ' + (c - 15 * u) + ' Z"/>'
+      + '<path d="M' + (c - 15 * u) + ' ' + c + ' Q' + c + ' ' + (c - 10 * u) + ' ' + (c + 15 * u) + ' ' + c
+        + ' Q' + c + ' ' + (c + 10 * u) + ' ' + (c - 15 * u) + ' ' + c + ' Z"/>'
+      + '<path d="M0 ' + c + ' Q' + (c / 2) + ' ' + (c - 11 * u) + ' ' + c + ' ' + c
+        + ' Q' + (c * 1.5) + ' ' + (c + 11 * u) + ' ' + s + ' ' + c + '"/>'
+      + '<path d="M' + c + ' 0 Q' + (c - 11 * u) + ' ' + (c / 2) + ' ' + c + ' ' + c
+        + ' Q' + (c + 11 * u) + ' ' + (c * 1.5) + ' ' + c + ' ' + s + '"/>'
+      + '<circle cx="' + c + '" cy="' + c + '" r="' + (2.6 * u) + '" fill="' + colour + '" stroke="none"/>'
       + '</g></pattern>',
   };
 }
-
 /* Metal that looks like metal. A flat yellow line is a flat yellow line; gold
    catches the light along its length, so the rules are stroked with a gradient
    that runs bright, dark, bright across the card. It is the difference between
@@ -347,7 +353,7 @@ function back(opts) {
   const ink = INK[opts.ink] || INK.major;
   const round = Math.max(0, Math.min(50, Number(opts.round) || 0));
   const ruleR = Math.max(0, tw * round / 100 - 22 * k);
-  const dam = damask('backdam', k, g.m, 0.3, 74);
+  const dam = damask('backdam', k, g.m, 0.3, 126);
 
   // a ring of diamonds and the arms of a star, both built out from the centre,
   // so the whole thing survives a half-turn unchanged
@@ -379,7 +385,10 @@ function back(opts) {
       + '</radialGradient>'
     + '</defs>'
     + '<rect width="' + W + '" height="' + H + '" fill="url(#bg)"/>'
-    + '<rect width="' + W + '" height="' + H + '" fill="url(#backdam)"/>'
+    + '<clipPath id="bband"><rect x="' + (o0 + 8 * k) + '" y="' + (o0 + 8 * k) + '" '
+      + 'width="' + (o1x - o0 - 16 * k) + '" height="' + (o1y - o0 - 16 * k) + '" '
+      + 'rx="' + Math.max(0, ruleR - 8 * k) + '" ry="' + Math.max(0, ruleR - 8 * k) + '"/></clipPath>'
+    + '<g clip-path="url(#bband)"><rect width="' + W + '" height="' + H + '" fill="url(#backdam)"/></g>'
 
     + '<rect x="' + o0 + '" y="' + o0 + '" width="' + (o1x - o0) + '" height="' + (o1y - o0) + '" '
       + 'rx="' + ruleR + '" ry="' + ruleR + '" fill="none" stroke="url(#bgold)" stroke-width="' + (2.6 * k) + '"/>'
