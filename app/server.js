@@ -3175,7 +3175,10 @@ app.get('/cardwright',alPage,(req,res)=>{
   const has = photo && fs.existsSync(path.join(cardStore(),photo));
   keepOffThePhone(res);
   // Newest first: the picture she wants is nearly always the one just added.
+  /* Only what the bench can genuinely open. Offering a picture and then
+     refusing it is worse than not offering it. */
   const wall = (db.photos||[]).slice().sort(function(a,b){ return b.ts-a.ts; })
+    .filter(function(p){ const f = wallFile(p.file); return f && fs.existsSync(f); })
     .map(function(p){ return {id:p.id, thumb:p.thumb||p.file, caption:p.caption||'', by:p.byName||''}; });
   const deck = db.deck.slice().sort(function(a,b){ return b.ts-a.ts; }).map(deckCard);
   res.render('cardwright',{photo:has?photo:'',wall:wall,deck:deck,opts:cardOpts(req.query),
@@ -3227,16 +3230,42 @@ app.get('/cardwright/preview.png',al,async(req,res)=>{
    one kind of path to think about, and — the one that matters — a card in
    progress cannot be pulled out from under her if somebody takes that
    photograph off the wall while she is working. */
+/* Where a picture on the wall actually lives.
+
+   Two places, and assuming one of them is what broke this. Most photographs
+   are uploads and sit in app/uploads. But the wall also holds a few that were
+   never uploaded at all — the 2025 faire pictures were added as site assets
+   and then hung in the Gallery, so they point at /assets/img/... The bench
+   went looking for those under uploads, found nothing, and said only that it
+   could not lift them off the wall.
+
+   Anything that is not one of those two roots is refused outright, and so is
+   anything containing a climb, because this takes a path out of the database
+   and turns it into a file read. */
+function wallFile(ref){
+  const p = String(ref || '');
+  if(!p || p.indexOf('..') > -1) return '';
+  if(p.indexOf('/uploads/') === 0) return path.join(__dirname, 'uploads', p.slice(9));
+  if(p.indexOf('/assets/') === 0)  return path.join(__dirname, '..', p.slice(1));
+  return '';
+}
 app.post('/cardwright/from-gallery',al,(req,res)=>{
   const id = parseInt(req.body.id, 10);
   const shot = (db.photos||[]).find(function(p){ return p.id === id; });
   if(!shot) return res.redirect('/cardwright?e='+encodeURIComponent('That picture is no longer on the wall.'));
+  const from = wallFile(shot.file);
+  if(!from)
+    return res.redirect('/cardwright?e='+encodeURIComponent('That picture is kept somewhere the bench cannot reach.'));
+  if(!fs.existsSync(from))
+    return res.redirect('/cardwright?e='+encodeURIComponent('The file behind that picture is missing from the server.'));
   try{
-    const from = path.join(__dirname,'uploads', String(shot.file).replace('/uploads/',''));
     const to = cardId()+'.jpg';
     fs.copyFileSync(from, path.join(cardStore(), to));
     req.session.cardPhoto = to;
-  }catch(e){ return res.redirect('/cardwright?e='+encodeURIComponent('That picture could not be lifted off the wall.')); }
+  }catch(e){
+    console.log('cardwright from-gallery:', e.message);
+    return res.redirect('/cardwright?e='+encodeURIComponent('That picture could not be copied onto the bench: '+e.code));
+  }
   res.redirect('/cardwright');
 });
 /* ── The deck ───────────────────────────────────────────────────────────────
