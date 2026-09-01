@@ -3085,6 +3085,105 @@ function postFor(i){
           unreadNotices:notices.filter(function(n){return !n.read;}).length};
 }
 
+
+/* ── The Cardwright ─────────────────────────────────────────────────────────
+   A bench for turning a faire photograph into a tarot card.
+
+   Not in any menu, not in the sitemap, refused to anybody but the Guild
+   Leader, and reachable only from a line in her own Administration panel. It
+   is on the site and it is not on the site.
+
+   The photograph is hers and stays hers — nothing is painted over the picture
+   itself. What is built is the card around it: the crop, the weather of the
+   suit, the border, the medallion and the cartouche. Exactly the same two
+   modules the command-line generator uses, so a card made here and a card made
+   at a terminal are the same card.
+
+   Nothing touches guild.json. Uploads and renders live on disk under app/,
+   which the static guard already refuses, and the picture in play is kept in
+   the session — so this cannot be the thing that loses anybody’s data. */
+const TAROT = { plate: require('./tarot/plate'), frame: require('./tarot/frame') };
+const CARD_DIR = path.join(__dirname, 'cards');
+const CARD_DPI = 300;
+const CARD_W = Math.round(2.75 * CARD_DPI), CARD_H = Math.round(4.75 * CARD_DPI);
+const CARD_BLEED = Math.round(0.125 * CARD_DPI);
+
+function cardStore(){ if(!fs.existsSync(CARD_DIR))fs.mkdirSync(CARD_DIR,{recursive:true}); return CARD_DIR; }
+function cardId(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,8); }
+
+/* One card, at whatever size is asked for. The screen wants something small
+   and quick; the printer wants the full plate with bleed. Same code, one
+   number different. */
+async function buildCard(photo, opts, scale){
+  const bleed = Math.round(CARD_BLEED*scale);
+  const W = Math.round(CARD_W*scale)+bleed*2, H = Math.round(CARD_H*scale)+bleed*2;
+  const art = await TAROT.plate.plate(photo, opts.suit, W, H, opts);
+  const suit = TAROT.plate.SUITS[opts.suit] || TAROT.plate.SUITS.major;
+  const title = suit.label ? (opts.rank+' of '+suit.label) : opts.rank;
+  const full = await sharp(art).composite([{ input: Buffer.from(
+    TAROT.frame.face({width:W,height:H,bleed:bleed,suit:opts.suit,title:title})) }])
+    .png().toBuffer();
+  return { full: full, W: W, H: H, bleed: bleed, title: title };
+}
+
+function cardOpts(q){
+  const suit = TAROT.plate.SUITS[String(q.suit||'').toLowerCase()] ? String(q.suit).toLowerCase() : 'swords';
+  const num = function(v,d,lo,hi){ v=Number(v); return isNaN(v)?d:Math.min(hi,Math.max(lo,v)); };
+  return { suit:suit, rank:String(q.rank||'King').trim().slice(0,28)||'King',
+           zoom:num(q.zoom,1,1,3), x:num(q.x,0.5,0,1), y:num(q.y,0.5,0,1) };
+}
+
+app.get('/cardwright',al,(req,res)=>{
+  const photo = req.session.cardPhoto || '';
+  const has = photo && fs.existsSync(path.join(cardStore(),photo));
+  keepOffThePhone(res);
+  res.render('cardwright',{photo:has?photo:'',opts:cardOpts(req.query),
+    suits:Object.keys(TAROT.plate.SUITS), q:req.query, err:String(req.query.e||'')});
+});
+
+/* The picture arrives. It is kept at a workable size rather than at whatever
+   a phone produces, but big enough that a 300dpi plate still has pixels to
+   spare. */
+app.post('/cardwright/photo',al,up.single('photo'),async(req,res)=>{
+  if(!req.file)return res.redirect('/cardwright?e='+encodeURIComponent('That was not a picture I could read.'));
+  try{
+    const id = cardId()+'.jpg';
+    await sharp(fs.readFileSync(req.file.path)).rotate()
+      .resize(2600,2600,{fit:'inside',withoutEnlargement:true})
+      .jpeg({quality:92}).toFile(path.join(cardStore(),id));
+    req.session.cardPhoto = id;
+  }catch(e){ return res.redirect('/cardwright?e='+encodeURIComponent('That was not a picture I could read.')); }
+  finally{ try{ fs.unlinkSync(req.file.path); }catch(e){} }
+  res.redirect('/cardwright');
+});
+
+/* The preview, drawn small and fast. Trimmed, because what she is judging is
+   the card as it will be held, not the printer’s margin. */
+app.get('/cardwright/preview.png',al,async(req,res)=>{
+  const photo = req.session.cardPhoto;
+  if(!photo)return res.status(404).end();
+  try{
+    const o = cardOpts(req.query);
+    const c = await buildCard(path.join(cardStore(),photo), o, 0.52);
+    const trimmed = await sharp(c.full).extract({left:c.bleed,top:c.bleed,
+      width:c.W-c.bleed*2,height:c.H-c.bleed*2}).png().toBuffer();
+    res.set('Content-Type','image/png'); keepOffThePhone(res); res.end(trimmed);
+  }catch(e){ console.log('cardwright preview:',e.message); res.status(500).end(); }
+});
+
+/* And the plate, at full size, with bleed, named for what it is. */
+app.get('/cardwright/print.png',al,async(req,res)=>{
+  const photo = req.session.cardPhoto;
+  if(!photo)return res.redirect('/cardwright');
+  try{
+    const o = cardOpts(req.query);
+    const c = await buildCard(path.join(cardStore(),photo), o, 1);
+    const file = c.title.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')+'-bleed.png';
+    res.set('Content-Type','image/png');
+    res.set('Content-Disposition','attachment; filename="'+file+'"');
+    keepOffThePhone(res); res.end(c.full);
+  }catch(e){ console.log('cardwright print:',e.message); res.redirect('/cardwright?e='+encodeURIComponent('The plate would not render.')); }
+});
 app.get('/letters',canPost,(req,res)=>{
   const i=ident(req);
   const post=postFor(i);

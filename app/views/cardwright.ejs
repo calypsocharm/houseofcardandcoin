@@ -1,0 +1,135 @@
+<%- include('_top',{title:'The Cardwright',bodyClass:'tavern-page'}) %>
+
+<%
+  /* The bench. Not in any menu, refused to anybody but the Guild Leader, and
+     reachable only from a line in her own Administration panel.
+
+     The photograph stays the photograph — nothing is painted over it. What is
+     built here is the card around it, and every control on the page is one of
+     the four things that decides how that card comes out: which suit's weather
+     it takes, what it is called, and where the window sits on the picture. */
+  var o = opts;
+  var qs = function (over) {
+    var v = Object.assign({ suit: o.suit, rank: o.rank, zoom: o.zoom, x: o.x, y: o.y }, over || {});
+    return Object.keys(v).map(function (k) { return k + '=' + encodeURIComponent(v[k]); }).join('&');
+  };
+%>
+<section class="section" style="padding-top:118px"><div class="container" style="max-width:940px">
+
+  <div class="bannerhead">
+    <span class="eyebrow" style="color:var(--gold-l)">&#9876; A private bench &#9876;</span>
+    <h2 style="color:#f8edd1">The Cardwright</h2>
+    <div class="rule"></div>
+  </div>
+  <p class="lead" style="text-align:center;max-width:56ch;margin:0 auto 6px">A photograph from the
+    faire, made into a tarot card. The picture stays as it is &mdash; the card is built around it.</p>
+
+  <% if(err){ %><div class="alert alert--bad" style="max-width:640px;margin:20px auto 0"><%= err %></div><% } %>
+
+  <div class="bench">
+
+    <div class="bench__side">
+      <form method="post" action="/cardwright/photo" enctype="multipart/form-data" class="bench__box">
+        <p class="bench__k">The photograph</p>
+        <input type="file" name="photo" accept="image/*" required>
+        <button class="btn btn--gold" style="width:100%;justify-content:center;margin-top:10px">
+          <%= photo ? 'Use a different picture' : 'Put it on the bench' %></button>
+        <% if(photo){ %><p class="bench__note">One is on the bench. Everything below re-cuts it.</p><% } %>
+      </form>
+
+      <% if(photo){ %>
+        <form method="get" action="/cardwright" class="bench__box">
+          <p class="bench__k">Which card is it?</p>
+
+          <div class="bench__suits">
+            <% suits.forEach(function(su){ %>
+              <label class="bench__suit<%= o.suit===su?' is-on':'' %>">
+                <input type="radio" name="suit" value="<%= su %>"<%= o.suit===su?' checked':'' %>>
+                <span><%= su==='major' ? 'Major' : su.charAt(0).toUpperCase()+su.slice(1) %></span>
+              </label>
+            <% }) %>
+          </div>
+
+          <label class="bench__lab" for="rank">The name on it</label>
+          <input class="bench__in" id="rank" name="rank" value="<%= o.rank %>" maxlength="28"
+                 placeholder="King &middot; Three &middot; The Hermit">
+          <p class="bench__note">A suit adds its own word &mdash; <b>King</b> becomes
+            <i>King of Swords</i>. On <b>Major</b> the name stands alone.</p>
+
+          <p class="bench__k" style="margin-top:20px">Where the window sits</p>
+          <label class="bench__lab" for="zoom">In closer <span><%= Number(o.zoom).toFixed(2) %>&times;</span></label>
+          <input class="bench__slide" id="zoom" name="zoom" type="range" min="1" max="3" step="0.02" value="<%= o.zoom %>">
+          <label class="bench__lab" for="x">Left and right <span><%= Math.round(o.x*100) %></span></label>
+          <input class="bench__slide" id="x" name="x" type="range" min="0" max="1" step="0.01" value="<%= o.x %>">
+          <label class="bench__lab" for="y">Up and down <span><%= Math.round(o.y*100) %></span></label>
+          <input class="bench__slide" id="y" name="y" type="range" min="0" max="1" step="0.01" value="<%= o.y %>">
+
+          <button class="btn btn--gold" style="width:100%;justify-content:center;margin-top:16px">Cut it again</button>
+          <p class="bench__note">Nudge the sliders and the card follows. Nothing is kept until you
+            take the plate.</p>
+        </form>
+
+        <a class="btn btn--wine bench__take" href="/cardwright/print.png?<%= qs() %>">
+          &#8681; Take the printing plate</a>
+        <p class="bench__note bench__note--wide">2.75 &times; 4.75 inches at 300dpi with an eighth of
+          an inch of bleed all round &mdash; what a card printer asks for.</p>
+      <% } %>
+    </div>
+
+    <div class="bench__stage">
+      <% if(photo){ %>
+        <img class="bench__card" id="card" src="/cardwright/preview.png?<%= qs() %>"
+             alt="the card as it stands" width="429" height="741">
+      <% } else { %>
+        <div class="bench__empty">
+          <span>&#9876;</span>
+          <p>Nothing on the bench yet.</p>
+          <p class="bench__note">A tall picture with room above the head crops best &mdash; the card
+            is narrow, and a wide group shot will not fit it.</p>
+        </div>
+      <% } %>
+    </div>
+
+  </div>
+</div></section>
+
+<% if(photo){ %>
+<script>
+/* The sliders redraw the card as they move, without leaving the page. The form
+   still works with scripting off — it is a plain GET, and pressing the button
+   reloads with the new numbers. This only saves the reload. */
+(function () {
+  var form = document.querySelector('form[action="/cardwright"]');
+  var card = document.getElementById('card');
+  if (!form || !card) return;
+  var waiting = null;
+
+  function redraw() {
+    var q = new URLSearchParams(new FormData(form)).toString();
+    // A page's worth of new addresses would be a page's worth of history.
+    history.replaceState(null, '', '/cardwright?' + q);
+    card.src = '/cardwright/preview.png?' + q;
+    [['zoom', function (v) { return Number(v).toFixed(2) + '×'; }],
+     ['x', function (v) { return Math.round(v * 100); }],
+     ['y', function (v) { return Math.round(v * 100); }]].forEach(function (p) {
+      var el = form.querySelector('#' + p[0]);
+      var out = form.querySelector('label[for="' + p[0] + '"] span');
+      if (el && out) out.textContent = p[1](el.value);
+    });
+    var take = document.querySelector('.bench__take');
+    if (take) take.href = '/cardwright/print.png?' + q;
+  }
+
+  // Redrawing on every pixel of a drag would queue a hundred renders; this
+  // waits for the hand to settle.
+  form.addEventListener('input', function () {
+    clearTimeout(waiting);
+    card.classList.add('is-cutting');
+    waiting = setTimeout(redraw, 220);
+  });
+  card.addEventListener('load', function () { card.classList.remove('is-cutting'); });
+  form.addEventListener('submit', function (e) { e.preventDefault(); redraw(); });
+})();
+</script>
+<% } %>
+<%- include('_bot') %>

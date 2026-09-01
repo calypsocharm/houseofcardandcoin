@@ -1899,3 +1899,79 @@ body.tavern-page .compose .field label{color:var(--wine)}
 }
 .pigeonnote b{color:var(--wine)}
 .pigeonnote a{color:var(--wine);font-weight:600;text-decoration:underline;text-underline-offset:2px}
+
+/* ── The Cardwright's bench ────────────────────────────────────────────────
+   The card is the whole point of the page, so it gets the room and the light,
+   and the controls sit beside it in a column narrow enough that the eye keeps
+   going back to the card. */
+.bench{display:grid;grid-template-columns:340px 1fr;gap:30px;align-items:start;margin-top:26px}
+@media(max-width:820px){.bench{grid-template-columns:1fr}}
+
+.bench__side{display:flex;flex-direction:column;gap:16px}
+.bench__box{
+  padding:18px 20px;border-radius:5px;
+  background:rgba(244,234,210,.05);border:1px solid rgba(194,161,77,.32);
+}
+.bench__k{
+  margin:0 0 11px;font-family:var(--display);font-size:.6rem;letter-spacing:.18em;
+  text-transform:uppercase;color:var(--gold);
+}
+.bench__lab{
+  display:flex;justify-content:space-between;align-items:baseline;
+  font-family:var(--display);font-size:.58rem;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--gold-l);margin:14px 0 5px;
+}
+.bench__lab span{font-family:var(--serif);letter-spacing:0;color:#cdb98f;font-size:.8rem;
+  font-variant-numeric:tabular-nums}
+.bench__in{
+  width:100%;padding:9px 11px;border-radius:3px;
+  border:1px solid var(--gold-d);background:var(--dark2);color:#f5e9c8;
+  font-family:var(--serif);font-size:.94rem;
+}
+.bench__in:focus{outline:2px solid var(--gold-l);outline-offset:1px}
+.bench__slide{width:100%;accent-color:var(--gold);margin:0}
+.bench__note{margin:9px 0 0;font-size:.8rem;color:#a8946c;line-height:1.5}
+.bench__note b{color:var(--gold-l)}
+.bench__note--wide{text-align:center;margin-top:-4px}
+.bench__box input[type=file]{
+  width:100%;font-size:.82rem;color:#cdb98f;
+}
+
+/* The five suits, as chips rather than a dropdown — five is few enough to show
+   all of them, and the one that is chosen should be visible without opening
+   anything. */
+.bench__suits{display:flex;flex-wrap:wrap;gap:6px}
+.bench__suit{cursor:pointer}
+.bench__suit input{position:absolute;opacity:0;width:0;height:0}
+.bench__suit span{
+  display:block;padding:6px 11px;border-radius:3px;
+  border:1px solid rgba(194,161,77,.35);background:rgba(244,234,210,.05);
+  font-family:var(--display);font-size:.58rem;letter-spacing:.12em;text-transform:uppercase;
+  color:#cdb98f;transition:background .15s,border-color .15s,color .15s;
+}
+.bench__suit:hover span{border-color:var(--gold);color:var(--gold-l)}
+.bench__suit.is-on span{background:rgba(226,199,127,.18);border-color:var(--gold-l);color:#f8edd1}
+.bench__suit input:focus-visible + span{outline:2px solid var(--gold-l);outline-offset:2px}
+
+.bench__take{width:100%;justify-content:center}
+
+/* The stage. A card is an object, so it gets an object's shadow. */
+.bench__stage{display:flex;justify-content:center;align-items:flex-start;padding-top:4px}
+.bench__card{
+  width:429px;max-width:100%;height:auto;border-radius:9px;
+  box-shadow:0 40px 70px -34px rgba(0,0,0,.95), 0 0 0 1px rgba(226,199,127,.22);
+  transition:opacity .18s;
+}
+/* Mid-cut. Dimmed rather than hidden, so the card does not blink out and back
+   every time a slider moves a pixel. */
+.bench__card.is-cutting{opacity:.45}
+@media(prefers-reduced-motion:reduce){.bench__card{transition:none}}
+
+.bench__empty{
+  width:429px;max-width:100%;aspect-ratio:825/1425;border-radius:9px;
+  border:1px dashed rgba(194,161,77,.45);background:rgba(244,234,210,.03);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:10px;padding:34px;text-align:center;
+}
+.bench__empty span{font-size:2.6rem;color:var(--gold-d)}
+.bench__empty p{margin:0;color:#a8946c;font-size:.94rem}

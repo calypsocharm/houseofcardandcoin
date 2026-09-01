@@ -22,14 +22,14 @@
    thrown away, so the copy on the phone is always the public one.
 
    Bumping CACHE retires everything from the version before it. */
-const CACHE = 'hocc-v4';
+const CACHE = 'hocc-v5';
 
 /* The pages worth having when there is no signal. Deliberately short — these
    are the ones somebody opens standing in the park. */
 const PAGES = ['/', '/camp.html', '/faq', '/events.html', '/weekend', '/map', '/offline'];
 
 /* Never touched by the cache, in either direction. */
-const PRIVATE = /^\/(members|board|card|letters|post|api|uploads|tavern|guild\/|join)/;
+const PRIVATE = /^\/(members|board|card|cardwright|letters|post|api|uploads|tavern|guild\/|join)/;
 
 self.addEventListener('install', function (e) {
   // The offline page is the only thing fetched up front. Everything else
