@@ -5,13 +5,18 @@
      reachable only from a line in her own Administration panel.
 
      The photograph stays the photograph — nothing is painted over it. What is
-     built here is the card around it, and every control on the page is one of
-     the four things that decides how that card comes out: which suit's weather
-     it takes, what it is called, and where the window sits on the picture. */
+     built here is the card around it.
+
+     Two columns: every tool in the left one, the card being worked on alone in
+     the right. Worth stating plainly, because it was got wrong by patching —
+     the card-back panel ended up a child of the grid rather than of the left
+     column, so it took the card's place and pushed the card being worked on
+     down into the narrow column. Anything added here goes INSIDE
+     .bench__side, or it will do the same thing again. */
   var o = opts;
   var qs = function (over) {
     var v = Object.assign({ suit: o.suit, ink: o.ink, round: o.round, rank: o.rank,
-                           zoom: o.zoom, x: o.x, y: o.y }, over || {});
+                            zoom: o.zoom, x: o.x, y: o.y }, over || {});
     return Object.keys(v).map(function (k) { return k + '=' + encodeURIComponent(v[k]); }).join('&');
   };
 %>
@@ -33,31 +38,38 @@
   <div class="bench">
 
     <div class="bench__side">
+
+      <%
+        /* Two ways to get a picture onto the bench, and they have to be two
+           separate forms. They were nested for a while, and a browser answers
+           a nested <form> by dropping it and handing its buttons to the outer
+           one — so pressing a gallery thumbnail pressed "upload". */
+      %>
       <form method="post" action="/cardwright/photo" enctype="multipart/form-data" class="bench__box">
         <p class="bench__k">The photograph</p>
         <input type="file" name="photo" accept="image/*" required>
         <button class="btn btn--gold" style="width:100%;justify-content:center;margin-top:10px">
           <%= photo ? 'Use a different picture' : 'Put it on the bench' %></button>
-        <% if(typeof wall!=="undefined" && wall.length){ %>
+        <% if(photo){ %><p class="bench__note">One is on the bench. Everything below re-cuts it.</p><% } %>
+      </form>
+
+      <% if(typeof wall!=="undefined" && wall.length){ %>
         <div class="bench__box">
           <p class="bench__k">&hellip;or take one off the wall</p>
           <p class="bench__note" style="margin:0 0 11px">Everything hanging in the
             <a href="/gallery" style="color:var(--gold-l)">Gallery</a>. Newest first.</p>
           <div class="bench__wall">
-            <% wall.forEach(function(p){ %>
+            <% wall.forEach(function(pic){ %>
               <form method="post" action="/cardwright/from-gallery" class="bench__pick">
-                <input type="hidden" name="id" value="<%= p.id %>">
-                <button type="submit" title="<%= p.caption || (p.by ? 'by '+p.by : 'take this one') %>">
-                  <img src="<%= p.thumb %>" alt="<%= p.caption %>" loading="lazy">
+                <input type="hidden" name="id" value="<%= pic.id %>">
+                <button type="submit" title="<%= pic.caption || (pic.by ? 'by '+pic.by : 'take this one') %>">
+                  <img src="<%= pic.thumb %>" alt="<%= pic.caption %>" loading="lazy">
                 </button>
               </form>
             <% }) %>
           </div>
         </div>
       <% } %>
-
-      <% if(photo){ %><p class="bench__note">One is on the bench. Everything below re-cuts it.</p><% } %>
-      </form>
 
       <% if(photo){ %>
         <form method="get" action="/cardwright" class="bench__box">
@@ -103,8 +115,7 @@
           <input class="bench__slide" id="y" name="y" type="range" min="0" max="1" step="0.01" value="<%= o.y %>">
 
           <button class="btn btn--gold" style="width:100%;justify-content:center;margin-top:16px">Cut it again</button>
-          <p class="bench__note">Nudge the sliders and the card follows. Nothing is kept until you
-            take the plate.</p>
+          <p class="bench__note">Nudge the sliders and the card follows.</p>
         </form>
 
         <a class="btn btn--gold bench__take" href="/cardwright/print.png?trim=1&amp;<%= qs() %>">
@@ -130,7 +141,6 @@
         <p class="bench__note bench__note--wide">Square-cornered, with an eighth of an inch of bleed
           all round &mdash; what a card printer asks for, and no use for anything else.</p>
       <% } %>
-    </div>
 
       <div class="bench__box">
         <p class="bench__k">The back of the deck</p>
@@ -142,6 +152,13 @@
            href="/cardwright/back.png?plate=1&amp;<%= qs() %>">&#8681; Take the back&rsquo;s plate</a>
       </div>
 
+    </div>
+
+    <%
+      /* The card being worked on, alone in its own column, and stuck to the top
+         of the screen so it stays in front of her while she reaches down the
+         column of tools beside it. This column holds one thing. */
+    %>
     <div class="bench__stage">
       <% if(photo){ %>
         <img class="bench__card" id="card" src="/cardwright/preview.png?<%= qs() %>"
@@ -203,6 +220,7 @@
     // A page's worth of new addresses would be a page's worth of history.
     history.replaceState(null, '', '/cardwright?' + q);
     card.src = '/cardwright/preview.png?' + q;
+
     [['round', function (v) { return Math.round(v) + '%'; }],
      ['zoom', function (v) { return Number(v).toFixed(2) + '×'; }],
      ['x', function (v) { return Math.round(v * 100); }],
@@ -211,12 +229,20 @@
       var out = form.querySelector('label[for="' + p[0] + '"] span');
       if (el && out) out.textContent = p[1](el.value);
     });
-    // both ways out have to follow the sliders, not just the first one
+
+    /* Every way out of this page has to follow the sliders, not just the first
+       one — otherwise a download hands over a card cut to settings from several
+       changes ago, and "keep" files the wrong recipe. */
     var takes = document.querySelectorAll('.bench__take');
     if (takes[0]) takes[0].href = '/cardwright/print.png?trim=1&' + q;
     if (takes[1]) takes[1].href = '/cardwright/print.png?' + q;
-    var backs = document.querySelector('.bench__back');
-    if (backs) backs.src = '/cardwright/back.png?' + q;
+    var back = document.querySelector('.bench__back');
+    if (back) back.src = '/cardwright/back.png?' + q;
+    var keep = document.querySelector('.bench__keep');
+    if (keep) new URLSearchParams(q).forEach(function (val, key) {
+      var f = keep.querySelector('[name="' + key + '"]');
+      if (f) f.value = val;
+    });
   }
 
   // Redrawing on every pixel of a drag would queue a hundred renders; this
