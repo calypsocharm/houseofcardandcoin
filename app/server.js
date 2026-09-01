@@ -1405,7 +1405,8 @@ app.get('/faq',(req,res)=>{
    One allowed destination, matched literally. A redirect built out of a form
    field is an open redirect, and there is exactly one place this ever needs
    to mean. */
-function wasHeadedFor(v){ return String(v||'')==='/card' ? '/card' : ''; }
+const HEADED_FOR = ['/card','/letters','/cardwright'];
+function wasHeadedFor(v){ return HEADED_FOR.indexOf(String(v||'')) > -1 ? String(v) : ''; }
 app.get('/members/login',(req,res)=>res.render('login',{err:req.query.e||'',code:req.query.code||'',
   needCode:inviteRequired(),next:wasHeadedFor(req.query.next)}));
 // /join is the share link. If an invite code is required, ?code=XXXX pre-fills it.
@@ -3120,9 +3121,14 @@ async function buildCard(photo, opts, scale){
   const art = await TAROT.plate.plate(photo, opts.suit, W, H, opts);
   const suit = TAROT.plate.SUITS[opts.suit] || TAROT.plate.SUITS.major;
   const title = suit.label ? (opts.rank+' of '+suit.label) : opts.rank;
-  const full = await sharp(art).composite([{ input: Buffer.from(
-    TAROT.frame.face({width:W,height:H,bleed:bleed,suit:opts.suit,title:title})) }])
-    .png().toBuffer();
+  /* Card parts over the photograph, then one sheet of paper over the lot of
+     it — the grain has to fall on the metal as well as the picture, or they
+     go on looking like two things stuck together. */
+  const full = await sharp(art).composite([
+    { input: Buffer.from(TAROT.frame.face({width:W,height:H,bleed:bleed,
+        suit:opts.suit,title:title,rank:opts.rank,numeral:opts.numeral})) },
+    { input: TAROT.frame.grain(W,H,title), raw:{width:W,height:H,channels:4}, blend:"overlay" },
+  ]).png().toBuffer();
   return { full: full, W: W, H: H, bleed: bleed, title: title };
 }
 
@@ -3133,7 +3139,21 @@ function cardOpts(q){
            zoom:num(q.zoom,1,1,3), x:num(q.x,0.5,0,1), y:num(q.y,0.5,0,1) };
 }
 
-app.get('/cardwright',al,(req,res)=>{
+/* The same guard as al, but for a page somebody might arrive at by hand.
+
+   al answers a bare "Leader only", which is the right answer to a form post
+   and a useless thing to be told in a browser: it does not say who you are,
+   which is the fact that solves it. Signing in as another guildmate to look
+   at something and forgetting is the ordinary way to end up here. */
+function alPage(req,res,next){
+  const u=db.users.find(x=>x.id===req.session.uid);
+  if(u&&u.role==='leader')return next();
+  const who=u?u.name:(res.locals.patron?res.locals.patron.name:null);
+  if(!who)return res.redirect('/members/login?next='+encodeURIComponent(req.path));
+  keepOffThePhone(res);
+  res.status(403).render('nokeys',{who:who, where:req.path});
+}
+app.get('/cardwright',alPage,(req,res)=>{
   const photo = req.session.cardPhoto || '';
   const has = photo && fs.existsSync(path.join(cardStore(),photo));
   keepOffThePhone(res);

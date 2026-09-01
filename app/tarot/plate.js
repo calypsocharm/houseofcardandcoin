@@ -102,10 +102,10 @@ async function plate(photo, suitKey, W, H, view) {
     '<svg xmlns="http://www.w3.org/2000/svg" width="' + W + '" height="' + H + '">'
     + '<defs><radialGradient id="v" cx="50%" cy="44%" r="74%">'
     + '<stop offset="30%" stop-color="#000" stop-opacity="0"/>'
-    + '<stop offset="70%" stop-color="#000" stop-opacity="0.56"/>'
-    + '<stop offset="100%" stop-color="#000" stop-opacity="0.97"/></radialGradient>'
+    + '<stop offset="70%" stop-color="#000" stop-opacity="0.36"/>'
+    + '<stop offset="100%" stop-color="#000" stop-opacity="0.82"/></radialGradient>'
     + '<linearGradient id="t" x1="0" y1="0" x2="0" y2="1">'
-    + '<stop offset="0%" stop-color="#000" stop-opacity="0.86"/>'
+    + '<stop offset="0%" stop-color="#000" stop-opacity="0.62"/>'
     + '<stop offset="34%" stop-color="#000" stop-opacity="0"/></linearGradient></defs>'
     + '<rect width="' + W + '" height="' + H + '" fill="url(#v)"/>'
     + '<rect width="' + W + '" height="' + H + '" fill="url(#t)"/></svg>');

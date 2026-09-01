@@ -1,0 +1,24 @@
+<%- include('_top',{title:'Not your door',bodyClass:'tavern-page'}) %>
+
+<%
+  /* Refused, and told why — with the one fact that actually solves it, which
+     is who you are signed in as. Being signed in as another guildmate to look
+     at something, and forgetting, is the ordinary way to arrive here. */
+%>
+<section class="section" style="padding-top:130px"><div class="container" style="max-width:560px">
+  <div class="nokeys">
+    <span class="nokeys__mark">&#9919;</span>
+    <h2>That door is the Guild Elder&rsquo;s</h2>
+    <p class="nokeys__lead">You are signed in as <b><%= who %></b>, and <code><%= where %></code>
+      opens for the Elder alone.</p>
+    <p class="nokeys__note">If that is you &mdash; you are wearing somebody else&rsquo;s coat.
+      Sign out and come back as yourself.</p>
+    <div class="nokeys__acts">
+      <form method="post" action="/members/logout" style="margin:0">
+        <button class="btn btn--gold" type="submit">Sign out</button>
+      </form>
+      <a class="btn btn--ghost" href="/members">Back to the Guild Hall</a>
+    </div>
+  </div>
+</div></section>
+<%- include('_bot') %>
