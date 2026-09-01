@@ -1863,3 +1863,29 @@ footer :where(a,button):focus-visible{
    ask for it. */
 body.tavern-page a.btn--outline,
 body.guild-page a.btn--outline{color:var(--gold-l);border-color:var(--gold)}
+
+/* ── Reading a letter you wrote yourself ───────────────────────────────────
+   The thread had two bubbles and both were unreadable, in opposite ways.
+
+   Yours were a translucent gold wash — which over the dark ground of this page
+   flattens to brown — carrying the same dark ink the cream bubble uses. Dark
+   brown on brown: a contrast of 1.38, where 4.5 is the floor for text. You
+   could see that a letter was there and not a word of what it said.
+
+   And on the other bubble, which is cream, the timestamp was taking the page's
+   pale sand .muted — 1.78 on that ground. .compose and .note both carry an
+   override for exactly this; .whisper-msg never got one.
+
+   Both are solid cards now, differing by tint and by which side they sit on,
+   the way the letters in the Pigeon Post do. */
+.whisper-msg--me{background:var(--parchment2);border-color:var(--gold-d)}
+body.tavern-page .whisper-msg .muted{color:#6a5535}
+
+/* A field label is wine, which is right on parchment and invisible on the dark
+   ground — 1.48 for "Send a whisper" over the damask. Most forms on these
+   pages sit inside .compose, a near-opaque cream card, which is why this went
+   unnoticed: only the two bare ones were affected, the reply box on a letter
+   and the writing desk itself. Light gold out in the open, wine back again
+   inside a card. */
+body.tavern-page .field label{color:var(--gold-l)}
+body.tavern-page .compose .field label{color:var(--wine)}
