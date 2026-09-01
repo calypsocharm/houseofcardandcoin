@@ -162,6 +162,7 @@ function face(opts) {
   const ruleR = Math.max(0, cardR - 22 * k);
   // Scrollwork needs a corner to sit in. Past about a tenth there is not one.
   const scrolled = round < 9;
+  const dam = damask('facedam', k, g.m, 0.17, 62);
 
   // the outer rule, close to the trim
   const o0 = bleed + 22 * k, o1x = bleed + tw - 22 * k, o1y = bleed + th - 22 * k;
@@ -198,6 +199,7 @@ function face(opts) {
         + '<stop offset="100%" stop-color="' + g.m + '" stop-opacity="0"/>'
       + '</radialGradient>'
       + '<clipPath id="win"><path d="' + aperturePath(a) + '"/></clipPath>'
+      + dam.def + sheen('gold', g)
     + '</defs>'
 
     /* The ground, with the window cut out of it. evenodd: the outer rectangle
@@ -206,6 +208,8 @@ function face(opts) {
        picture is inside the card rather than behind a frame laid on top. */
     + '<path fill-rule="evenodd" fill="url(#gr)" d="M0 0 H' + W + ' V' + H + ' H0 Z '
       + aperturePath(a) + '"/>'
+    + '<path fill-rule="evenodd" fill="url(#' + dam.id + ')" d="M0 0 H' + W + ' V' + H + ' H0 Z '
+      + aperturePath(a) + '"/>'
     + '<path fill-rule="evenodd" fill="url(#glow)" d="M0 0 H' + W + ' V' + H + ' H0 Z '
       + aperturePath(a) + '"/>'
 
@@ -213,13 +217,13 @@ function face(opts) {
     + '<g clip-path="url(#win)">'
       + '<path d="' + aperturePath(a) + '" fill="none" stroke="#000" stroke-width="' + (16 * k) + '" opacity="0.45"/>'
     + '</g>'
-    + '<path d="' + aperturePath(a) + '" fill="none" stroke="' + g.m + '" stroke-width="' + (2.6 * k) + '"/>'
+    + '<path d="' + aperturePath(a) + '" fill="none" stroke="url(#gold)" stroke-width="' + (2.6 * k) + '"/>'
     + '<path d="' + aperturePath(a) + '" fill="none" stroke="' + g.l + '" stroke-width="' + (0.9 * k) + '" '
       + 'opacity="0.55" transform="translate(0,' + (3.4 * k) + ') scale(1,' + (1 - 6.8 * k / H) + ')"/>'
 
     // the outer rule and its corners
     + '<rect x="' + o0 + '" y="' + o0 + '" width="' + (o1x - o0) + '" height="' + (o1y - o0) + '" '      + 'rx="' + ruleR + '" ry="' + ruleR + '" '
-      + 'fill="none" stroke="' + g.m + '" stroke-width="' + (2 * k) + '" opacity="0.9"/>'
+      + 'fill="none" stroke="url(#gold)" stroke-width="' + (2 * k) + '" opacity="0.95"/>'
     + '<rect x="' + (o0 + 7 * k) + '" y="' + (o0 + 7 * k) + '" width="' + (o1x - o0 - 14 * k) + '" '      + 'height="' + (o1y - o0 - 14 * k) + '" rx="' + Math.max(0, ruleR - 7 * k) + '" '      + 'ry="' + Math.max(0, ruleR - 7 * k) + '" fill="none" stroke="' + ink.line + '" '      + 'stroke-width="' + (1.1 * k) + '" opacity="0.62"/>'    + (scrolled ? '<g transform="translate(' + o0 + ',' + o0 + ')">' + corner(k, g) + '</g>'
     + '<g transform="translate(' + o1x + ',' + o0 + ') scale(-1,1)">' + corner(k, g) + '</g>'
     + '<g transform="translate(' + o0 + ',' + o1y + ') scale(1,-1)">' + corner(k, g) + '</g>'
@@ -275,3 +279,127 @@ function grain(W, H, title) {
 }
 
 module.exports = { face, grain, MARKS, METAL, INK, numeralFor };
+
+/* ── A damask field ─────────────────────────────────────────────────────────
+   The ground between the window and the edge was a flat gradient: dead space
+   with a gold line drawn on it. A field of low-contrast ornament under
+   everything makes the border read as printed card stock rather than as an
+   empty margin, and it costs nothing at reading distance because it is barely
+   there — you see it when you hold the card up, which is exactly when you
+   should.
+
+   Returned as a <defs> block and the id that uses it, so the caller can lay it
+   under whatever else it is drawing. */
+function damask(id, k, colour, opacity, step) {
+  const s = (step || 66) * k;
+  const c = s / 2;
+  return {
+    id: id,
+    def: '<pattern id="' + id + '" width="' + s + '" height="' + s + '" patternUnits="userSpaceOnUse">'
+      + '<g fill="none" stroke="' + colour + '" stroke-width="' + (1.15 * k) + '" opacity="' + opacity + '">'
+      /* a four-petal rosette, with quarter-arcs that meet across the tile edges
+         so the repeat reads as a lattice rather than a grid of stamps */
+      + '<path d="M' + c + ' ' + (c - 13 * k) + ' Q' + (c + 9 * k) + ' ' + c + ' ' + c + ' ' + (c + 13 * k)
+        + ' Q' + (c - 9 * k) + ' ' + c + ' ' + c + ' ' + (c - 13 * k) + ' Z"/>'
+      + '<path d="M' + (c - 13 * k) + ' ' + c + ' Q' + c + ' ' + (c - 9 * k) + ' ' + (c + 13 * k) + ' ' + c
+        + ' Q' + c + ' ' + (c + 9 * k) + ' ' + (c - 13 * k) + ' ' + c + ' Z"/>'
+      + '<path d="M0 ' + c + ' Q' + (c / 2) + ' ' + (c - 10 * k) + ' ' + c + ' ' + c
+        + ' Q' + (c * 1.5) + ' ' + (c + 10 * k) + ' ' + s + ' ' + c + '"/>'
+      + '<circle cx="' + c + '" cy="' + c + '" r="' + (2.2 * k) + '" fill="' + colour + '" stroke="none"/>'
+      + '</g></pattern>',
+  };
+}
+
+/* Metal that looks like metal. A flat yellow line is a flat yellow line; gold
+   catches the light along its length, so the rules are stroked with a gradient
+   that runs bright, dark, bright across the card. It is the difference between
+   a printed rule and a stamped one. */
+function sheen(id, g) {
+  return '<linearGradient id="' + id + '" x1="0" y1="0" x2="1" y2="0.35">'
+    + '<stop offset="0%" stop-color="' + g.d + '"/>'
+    + '<stop offset="18%" stop-color="' + g.l + '"/>'
+    + '<stop offset="38%" stop-color="' + g.m + '"/>'
+    + '<stop offset="58%" stop-color="' + g.l + '"/>'
+    + '<stop offset="80%" stop-color="' + g.m + '"/>'
+    + '<stop offset="100%" stop-color="' + g.d + '"/>'
+    + '</linearGradient>';
+}
+
+/* ── The back of the deck ───────────────────────────────────────────────────
+   The most-seen card in any deck, and the one it does not have until somebody
+   draws it. Seventy-eight faces are seventy-eight pictures; a back is what
+   makes them a deck.
+
+   Two rules, and both are about not giving anything away:
+
+     · no suit, no name, no numeral. A back is common to all seventy-eight, so
+       anything particular on it is wrong.
+     · turned upside down it must be the same card. A reader lays cards
+       reversed on purpose, and a back you can tell the orientation of is a
+       back that answers the question before the card is turned. Everything
+       here is built out from the centre, so a half-turn maps it onto itself. */
+function back(opts) {
+  const W = opts.width, H = opts.height, bleed = opts.bleed || 0;
+  const k = W / 825;
+  const tw = W - bleed * 2, th = H - bleed * 2;
+  const cx = W / 2, cy = H / 2;
+  const g = METAL.major;
+  const ink = INK[opts.ink] || INK.major;
+  const round = Math.max(0, Math.min(50, Number(opts.round) || 0));
+  const ruleR = Math.max(0, tw * round / 100 - 22 * k);
+  const dam = damask('backdam', k, g.m, 0.3, 74);
+
+  // a ring of diamonds and the arms of a star, both built out from the centre,
+  // so the whole thing survives a half-turn unchanged
+  const ring = [];
+  for (let i = 0; i < 8; i++) {
+    const a = (Math.PI / 4) * i, r = 252 * k;
+    ring.push('<g transform="translate(' + (cx + Math.cos(a) * r) + ',' + (cy + Math.sin(a) * r) + ')">'
+      + '<g transform="scale(1.7)">' + pip(k, g, ink) + '</g></g>');
+  }
+  const rays = [];
+  for (let i = 0; i < 16; i++) {
+    const a = (Math.PI / 8) * i, long = i % 2 === 0;
+    const r0 = 30 * k, r1 = (long ? 168 : 112) * k;
+    rays.push('<line x1="' + (cx + Math.cos(a) * r0) + '" y1="' + (cy + Math.sin(a) * r0) + '" '
+      + 'x2="' + (cx + Math.cos(a) * r1) + '" y2="' + (cy + Math.sin(a) * r1) + '" '
+      + 'stroke="' + (long ? g.l : ink.line) + '" stroke-width="' + ((long ? 2.2 : 1.4) * k) + '" stroke-linecap="round"/>');
+  }
+
+  const o0 = bleed + 22 * k, o1x = bleed + tw - 22 * k, o1y = bleed + th - 22 * k;
+  const i0 = bleed + 44 * k, i1x = bleed + tw - 44 * k, i1y = bleed + th - 44 * k;
+  const lz = 300 * k;                                   // the central lozenge, half-height
+
+  return ''
+    + '<svg xmlns="http://www.w3.org/2000/svg" width="' + W + '" height="' + H + '">'
+    + '<defs>' + dam.def + sheen('bgold', g)
+      + '<radialGradient id="bg" cx="50%" cy="50%" r="72%">'
+        + '<stop offset="0%" stop-color="#241a12"/>'
+        + '<stop offset="100%" stop-color="' + g.ground + '"/>'
+      + '</radialGradient>'
+    + '</defs>'
+    + '<rect width="' + W + '" height="' + H + '" fill="url(#bg)"/>'
+    + '<rect width="' + W + '" height="' + H + '" fill="url(#backdam)"/>'
+
+    + '<rect x="' + o0 + '" y="' + o0 + '" width="' + (o1x - o0) + '" height="' + (o1y - o0) + '" '
+      + 'rx="' + ruleR + '" ry="' + ruleR + '" fill="none" stroke="url(#bgold)" stroke-width="' + (2.6 * k) + '"/>'
+    + '<rect x="' + i0 + '" y="' + i0 + '" width="' + (i1x - i0) + '" height="' + (i1y - i0) + '" '
+      + 'rx="' + Math.max(0, ruleR - 22 * k) + '" ry="' + Math.max(0, ruleR - 22 * k) + '" '
+      + 'fill="none" stroke="' + ink.line + '" stroke-width="' + (1.2 * k) + '" opacity="0.6"/>'
+
+    + '<path d="M' + cx + ' ' + (cy - lz) + ' L' + (cx + lz * 0.66) + ' ' + cy + ' L' + cx + ' ' + (cy + lz)
+      + ' L' + (cx - lz * 0.66) + ' ' + cy + ' Z" fill="#150f0b" fill-opacity="0.86" '
+      + 'stroke="url(#bgold)" stroke-width="' + (2.6 * k) + '"/>'
+    + '<path d="M' + cx + ' ' + (cy - lz + 13 * k) + ' L' + (cx + lz * 0.66 - 9 * k) + ' ' + cy
+      + ' L' + cx + ' ' + (cy + lz - 13 * k) + ' L' + (cx - lz * 0.66 + 9 * k) + ' ' + cy + ' Z" '
+      + 'fill="none" stroke="' + ink.line + '" stroke-width="' + (1 * k) + '" opacity="0.7"/>'
+    + rays.join('')
+    + '<circle cx="' + cx + '" cy="' + cy + '" r="' + (22 * k) + '" fill="' + g.l + '"/>'
+    + '<circle cx="' + cx + '" cy="' + cy + '" r="' + (10 * k) + '" fill="' + ink.deep + '"/>'
+    + ring.join('')
+    + '</svg>';
+}
+
+module.exports.back = back;
+module.exports.damask = damask;
+module.exports.sheen = sheen;

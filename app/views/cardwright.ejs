@@ -93,6 +93,16 @@
       <% } %>
     </div>
 
+      <div class="bench__box">
+        <p class="bench__k">The back of the deck</p>
+        <p class="bench__note" style="margin:0 0 11px">Common to all seventy-eight, and the card
+          you will see most of. No suit, no name &mdash; and the same either way up, so a card laid
+          reversed gives nothing away before it is turned.</p>
+        <img class="bench__back" src="/cardwright/back.png?<%= qs() %>" alt="the back of the deck">
+        <a class="btn btn--ghost" style="width:100%;justify-content:center;margin-top:12px"
+           href="/cardwright/back.png?plate=1&amp;<%= qs() %>">&#8681; Take the back&rsquo;s plate</a>
+      </div>
+
     <div class="bench__stage">
       <% if(photo){ %>
         <img class="bench__card" id="card" src="/cardwright/preview.png?<%= qs() %>"

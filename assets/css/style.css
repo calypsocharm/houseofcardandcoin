@@ -1998,3 +1998,10 @@ body.tavern-page .compose .field label{color:var(--wine)}
 }
 .nokeys__note{margin:14px 0 0;color:#a8946c;font-size:.9rem;line-height:1.55}
 .nokeys__acts{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:22px}
+
+/* The back, small, beside the controls — it never changes from card to card,
+   so it does not need the stage. */
+.bench__back{
+  width:100%;height:auto;border-radius:7px;display:block;
+  box-shadow:0 18px 34px -20px rgba(0,0,0,.9), 0 0 0 1px rgba(226,199,127,.18);
+}

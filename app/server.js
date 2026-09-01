@@ -3210,6 +3210,30 @@ app.get('/cardwright/preview.png',al,async(req,res)=>{
 });
 
 /* And the plate, at full size, with bleed, named for what it is. */
+/* The back of the deck. No photograph — it is the one card that is not a
+   picture of anybody, so it needs nothing on the bench in order to exist. */
+app.get('/cardwright/back.png',al,async(req,res)=>{
+  try{
+    const o = cardOpts(req.query);
+    const plate = req.query.plate === '1';
+    const scale = plate ? 1 : 0.52;
+    const bleed = Math.round(CARD_BLEED*scale);
+    const W = Math.round(CARD_W*scale)+bleed*2, H = Math.round(CARD_H*scale)+bleed*2;
+    const ground = await sharp({create:{width:W,height:H,channels:3,background:'#0f0b12'}}).png().toBuffer();
+    const full = await sharp(ground).composite([
+      { input: Buffer.from(TAROT.frame.back({width:W,height:H,bleed:bleed,ink:o.ink,round:o.round})) },
+      { input: TAROT.frame.grain(W,H,'the back'), raw:{width:W,height:H,channels:4}, blend:'overlay' },
+    ]).png().toBuffer();
+    res.set('Content-Type','image/png');
+    keepOffThePhone(res);
+    if(plate){
+      res.set('Content-Disposition','attachment; filename="card-back-bleed.png"');
+      return res.end(full);
+    }
+    const trimmed = await sharp(full).extract({left:bleed,top:bleed,width:W-bleed*2,height:H-bleed*2}).png().toBuffer();
+    res.end(await roundCard(trimmed, W-bleed*2, H-bleed*2, o.round));
+  }catch(e){ console.log('cardwright back:',e.message); res.status(500).end(); }
+});
 app.get('/cardwright/print.png',al,async(req,res)=>{
   const photo = req.session.cardPhoto;
   if(!photo)return res.redirect('/cardwright');
