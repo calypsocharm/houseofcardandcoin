@@ -10,7 +10,8 @@
      it takes, what it is called, and where the window sits on the picture. */
   var o = opts;
   var qs = function (over) {
-    var v = Object.assign({ suit: o.suit, rank: o.rank, zoom: o.zoom, x: o.x, y: o.y }, over || {});
+    var v = Object.assign({ suit: o.suit, ink: o.ink, round: o.round, rank: o.rank,
+                           zoom: o.zoom, x: o.x, y: o.y }, over || {});
     return Object.keys(v).map(function (k) { return k + '=' + encodeURIComponent(v[k]); }).join('&');
   };
 %>
@@ -55,6 +56,22 @@
                  placeholder="King &middot; Three &middot; The Hermit">
           <p class="bench__note">A suit adds its own word &mdash; <b>King</b> becomes
             <i>King of Swords</i>. On <b>Major</b> the name stands alone.</p>
+
+          <p class="bench__k" style="margin-top:20px">The look of it</p>
+          <label class="bench__lab" for="ink">Filigree</label>
+          <div class="bench__suits">
+            <% [["","By suit"],["blue","Blue"],["red","Red"],["wands","Ember"],["pentacles","Green"],["major","Wine"]].forEach(function(pair){ %>
+              <label class="bench__suit<%= String(o.ink)===pair[0]?' is-on':'' %>">
+                <input type="radio" name="ink" value="<%= pair[0] %>"<%= String(o.ink)===pair[0]?' checked':'' %>>
+                <span><%= pair[1] %></span>
+              </label>
+            <% }) %>
+          </div>
+          <label class="bench__lab" for="round">Corners off <span><%= Math.round(o.round) %>%</span></label>
+          <input class="bench__slide" id="round" name="round" type="range" min="0" max="40" step="1" value="<%= o.round %>">
+          <p class="bench__note">A card printer&rsquo;s die takes about <b>4%</b>. More than that is a
+            look rather than a card &mdash; and the printing plate always keeps its square corners,
+            because the die rounds it again after cutting.</p>
 
           <p class="bench__k" style="margin-top:20px">Where the window sits</p>
           <label class="bench__lab" for="zoom">In closer <span><%= Number(o.zoom).toFixed(2) %>&times;</span></label>
@@ -109,7 +126,8 @@
     // A page's worth of new addresses would be a page's worth of history.
     history.replaceState(null, '', '/cardwright?' + q);
     card.src = '/cardwright/preview.png?' + q;
-    [['zoom', function (v) { return Number(v).toFixed(2) + '×'; }],
+    [['round', function (v) { return Math.round(v) + '%'; }],
+     ['zoom', function (v) { return Number(v).toFixed(2) + '×'; }],
      ['x', function (v) { return Math.round(v * 100); }],
      ['y', function (v) { return Math.round(v * 100); }]].forEach(function (p) {
       var el = form.querySelector('#' + p[0]);

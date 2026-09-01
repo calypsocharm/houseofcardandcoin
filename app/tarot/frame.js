@@ -25,6 +25,20 @@
 /* Gold, shifted a little by suit, so a Swords card and a Wands card do not
    feel identical in the hand. The shift is small on purpose — it should be
    felt rather than noticed. */
+/* An ink per suit, taken from the wash already on the photograph, so the
+   colour in the frame and the colour in the picture are the same colour.
+   Swords are steel-blue, wands ember-red, cups a deep water-green, pentacles
+   an old bronze-green, the majors wine. --ink overrides any of them. */
+const INK = {
+  swords:    { line: '#4a7ab5', deep: '#24456f' },
+  cups:      { line: '#3f8f93', deep: '#1d4b4f' },
+  wands:     { line: '#b5462a', deep: '#6e2413' },
+  pentacles: { line: '#5f8a3c', deep: '#31501f' },
+  major:     { line: '#8f3550', deep: '#4d1a2a' },
+  red:       { line: '#b03a3a', deep: '#5f1a1a' },
+  blue:      { line: '#4a7ab5', deep: '#24456f' },
+};
+
 const METAL = {
   swords:    { m: '#b9ae7e', l: '#e2e0c2', d: '#7d7a55', ground: '#0c0e11' },
   cups:      { m: '#b8a878', l: '#e6dcbb', d: '#7a7050', ground: '#0b0f10' },
@@ -60,10 +74,48 @@ function numeralFor(rank, given) {
   return ROMAN[String(rank || '').trim().toLowerCase()] || '';
 }
 
-/* A small diamond flanked by hairlines — used either side of the name, and
-   once under the numeral. The deck's punctuation. */
-function pip(k, g) {
-  return '<path d="M0 ' + (-4.4 * k) + ' L' + (4.4 * k) + ' 0 L0 ' + (4.4 * k) + ' L' + (-4.4 * k) + ' 0 Z" fill="' + g.m + '"/>';
+/* A small diamond, in ink with a gold heart. The deck's punctuation. */
+function pip(k, g, ink) {
+  return '<path d="M0 ' + (-5.2 * k) + ' L' + (5.2 * k) + ' 0 L0 ' + (5.2 * k) + ' L' + (-5.2 * k) + ' 0 Z" fill="' + ink.line + '"/>'
+    + '<path d="M0 ' + (-2.2 * k) + ' L' + (2.2 * k) + ' 0 L0 ' + (2.2 * k) + ' L' + (-2.2 * k) + ' 0 Z" fill="' + g.l + '"/>';
+}
+
+/* ── filigree ───────────────────────────────────────────────────────────────
+   A scroll: a stem that curls back on itself, a leaf on the outside of the
+   curl, and a berry at the tip. Drawn once facing right and mirrored for the
+   left, so the pair either side of a title are actually a pair.
+
+   In ink rather than gold, and this is the point of it — the frame had been
+   one metal from corner to corner, and a card wants a second colour somewhere
+   or the eye has nothing to catch on. It is kept to hairlines: colour in a
+   thin line reads as ornament, colour in a mass reads as a mistake. */
+function scroll(k, g, ink) {
+  /* A long horizontal stem that tapers away from the lettering and finishes in
+     a curl, with a leaf springing off it and a gold berry in the eye of the
+     curl. Horizontal because it sits beside a line of type and has to agree
+     with it — the first attempt curled upward and read, correctly, as a
+     tadpole. */
+  return '<g>'
+    + '<path d="M0 0 C' + (18 * k) + ' 0 ' + (30 * k) + ' ' + (-2 * k) + ' ' + (40 * k) + ' ' + (-7 * k) + '" '
+      + 'fill="none" stroke="' + ink.line + '" stroke-width="' + (2.1 * k) + '" stroke-linecap="round"/>'
+    + '<path d="M' + (40 * k) + ' ' + (-7 * k) + ' C' + (48 * k) + ' ' + (-11 * k) + ' ' + (50 * k) + ' ' + (-2 * k) + ' '
+      + (43 * k) + ' ' + (-1 * k) + ' C' + (38 * k) + ' ' + (-0.4 * k) + ' ' + (37 * k) + ' ' + (-5 * k) + ' ' + (41 * k) + ' ' + (-6 * k) + '" '
+      + 'fill="none" stroke="' + ink.line + '" stroke-width="' + (1.7 * k) + '" stroke-linecap="round"/>'
+    + '<path d="M' + (16 * k) + ' ' + (-0.5 * k) + ' C' + (20 * k) + ' ' + (-9 * k) + ' ' + (30 * k) + ' ' + (-11 * k) + ' '
+      + (34 * k) + ' ' + (-8 * k) + ' C' + (28 * k) + ' ' + (-3 * k) + ' ' + (21 * k) + ' ' + (-1 * k) + ' ' + (16 * k) + ' ' + (-0.5 * k) + ' Z" '
+      + 'fill="' + ink.deep + '" stroke="' + ink.line + '" stroke-width="' + (0.9 * k) + '"/>'
+    + '<circle cx="' + (44.5 * k) + '" cy="' + (-4 * k) + '" r="' + (1.9 * k) + '" fill="' + g.l + '"/>'
+    + '</g>';
+}
+
+/* A spray of three, for under the numeral: two scrolls facing out from a
+   diamond. */
+function spray(k, g, ink) {
+  return '<g>'
+    + '<g transform="translate(' + (11 * k) + ',0) scale(0.82)">' + scroll(k, g, ink) + '</g>'
+    + '<g transform="translate(' + (-11 * k) + ',0) scale(-0.82,0.82)">' + scroll(k, g, ink) + '</g>'
+    + pip(k, g, ink)
+    + '</g>';
 }
 
 /* One corner of scrollwork, drawn once and turned four times. Geometric rather
@@ -98,8 +150,18 @@ function face(opts) {
   const suit = opts.suit || 'major';
   const g = METAL[suit] || METAL.major;
   const mark = (MARKS[suit] || MARKS.major)(g);
+  const ink = INK[opts.ink] || INK[suit] || INK.major;
   const title = String(opts.title || '').toUpperCase();
   const num = numeralFor(opts.rank, opts.numeral);
+
+  /* The radius the card will be cut to, so the frame can follow it. A rule
+     that ignores the die runs straight into a curve and gets bitten off at
+     both ends, which is what the first rounded card did to its own corners. */
+  const round = Math.max(0, Math.min(50, Number(opts.round) || 0));
+  const cardR = tw * round / 100;
+  const ruleR = Math.max(0, cardR - 22 * k);
+  // Scrollwork needs a corner to sit in. Past about a tenth there is not one.
+  const scrolled = round < 9;
 
   // the outer rule, close to the trim
   const o0 = bleed + 22 * k, o1x = bleed + tw - 22 * k, o1y = bleed + th - 22 * k;
@@ -156,12 +218,12 @@ function face(opts) {
       + 'opacity="0.55" transform="translate(0,' + (3.4 * k) + ') scale(1,' + (1 - 6.8 * k / H) + ')"/>'
 
     // the outer rule and its corners
-    + '<rect x="' + o0 + '" y="' + o0 + '" width="' + (o1x - o0) + '" height="' + (o1y - o0) + '" '
+    + '<rect x="' + o0 + '" y="' + o0 + '" width="' + (o1x - o0) + '" height="' + (o1y - o0) + '" '      + 'rx="' + ruleR + '" ry="' + ruleR + '" '
       + 'fill="none" stroke="' + g.m + '" stroke-width="' + (2 * k) + '" opacity="0.9"/>'
-    + '<g transform="translate(' + o0 + ',' + o0 + ')">' + corner(k, g) + '</g>'
+    + '<rect x="' + (o0 + 7 * k) + '" y="' + (o0 + 7 * k) + '" width="' + (o1x - o0 - 14 * k) + '" '      + 'height="' + (o1y - o0 - 14 * k) + '" rx="' + Math.max(0, ruleR - 7 * k) + '" '      + 'ry="' + Math.max(0, ruleR - 7 * k) + '" fill="none" stroke="' + ink.line + '" '      + 'stroke-width="' + (1.1 * k) + '" opacity="0.62"/>'    + (scrolled ? '<g transform="translate(' + o0 + ',' + o0 + ')">' + corner(k, g) + '</g>'
     + '<g transform="translate(' + o1x + ',' + o0 + ') scale(-1,1)">' + corner(k, g) + '</g>'
     + '<g transform="translate(' + o0 + ',' + o1y + ') scale(1,-1)">' + corner(k, g) + '</g>'
-    + '<g transform="translate(' + o1x + ',' + o1y + ') scale(-1,-1)">' + corner(k, g) + '</g>'
+    + '<g transform="translate(' + o1x + ',' + o1y + ') scale(-1,-1)">' + corner(k, g) + '</g>' : '')
 
     /* At the head: the numeral if the card has one, the suit's mark if it does
        not. Courts and the Fool have no number, and pretending otherwise is how
@@ -172,16 +234,14 @@ function face(opts) {
         + 'fill="' + g.l + '">' + num + '</text>'
       : '<g transform="translate(' + (cx - 20 * k * 1.05) + ',' + (bleed + 52 * k) + ') scale(' + (k * 1.05) + ')">'
         + mark + '</g>')
-    + '<g transform="translate(' + cx + ',' + (bleed + 126 * k) + ')">' + pip(k, g) + '</g>'
-    + '<line x1="' + (cx - 54 * k) + '" y1="' + (bleed + 126 * k) + '" x2="' + (cx - 12 * k) + '" y2="' + (bleed + 126 * k) + '" stroke="' + g.m + '" stroke-width="' + (0.9 * k) + '" opacity="0.7"/>'
-    + '<line x1="' + (cx + 12 * k) + '" y1="' + (bleed + 126 * k) + '" x2="' + (cx + 54 * k) + '" y2="' + (bleed + 126 * k) + '" stroke="' + g.m + '" stroke-width="' + (0.9 * k) + '" opacity="0.7"/>'
+    + '<g transform="translate(' + cx + ',' + (bleed + 128 * k) + ')">' + spray(k, g, ink) + '</g>'
 
     // and at the foot: the name, flanked, on the ground rather than on a plate
     + '<text x="' + cx + '" y="' + nameY + '" text-anchor="middle" '
       + 'font-family="Georgia, \'Bookman Old Style\', serif" font-size="' + size + '" '
       + 'letter-spacing="' + track + '" fill="' + g.l + '">' + title + '</text>'
-    + '<g transform="translate(' + (cx - half) + ',' + (nameY - size * 0.34) + ')">' + pip(k, g) + '</g>'
-    + '<g transform="translate(' + (cx + half) + ',' + (nameY - size * 0.34) + ')">' + pip(k, g) + '</g>'
+    + '<g transform="translate(' + (cx - half) + ',' + (nameY - size * 0.34) + ') scale(-1,1)">' + scroll(k, g, ink) + '</g>'
+    + '<g transform="translate(' + (cx + half) + ',' + (nameY - size * 0.34) + ')">' + scroll(k, g, ink) + '</g>'
     + '</svg>';
 }
 
@@ -214,4 +274,4 @@ function grain(W, H, title) {
   return buf;
 }
 
-module.exports = { face, grain, MARKS, METAL, numeralFor };
+module.exports = { face, grain, MARKS, METAL, INK, numeralFor };

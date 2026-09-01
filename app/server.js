@@ -3126,16 +3126,33 @@ async function buildCard(photo, opts, scale){
      go on looking like two things stuck together. */
   const full = await sharp(art).composite([
     { input: Buffer.from(TAROT.frame.face({width:W,height:H,bleed:bleed,
-        suit:opts.suit,title:title,rank:opts.rank,numeral:opts.numeral})) },
+        suit:opts.suit,title:title,rank:opts.rank,numeral:opts.numeral,
+        ink:opts.ink,round:opts.round})) },
     { input: TAROT.frame.grain(W,H,title), raw:{width:W,height:H,channels:4}, blend:"overlay" },
   ]).png().toBuffer();
   return { full: full, W: W, H: H, bleed: bleed, title: title };
 }
 
+/* Corners off, as a share of the width.
+
+   Only ever on the trimmed card. A printed card is rounded by a die after it
+   is cut, so a plate with the corners already taken off would be rounded
+   twice and come back with pale bites out of it — the bleed exists precisely
+   so the die has something to eat. Square for the printer, round for the eye. */
+async function roundCard(buf, W, H, pct){
+  const r = Math.max(0, Math.min(W/2, W*(Number(pct)||0)/100));
+  if(!r) return buf;
+  const mask = Buffer.from('<svg xmlns="http://www.w3.org/2000/svg" width="'+W+'" height="'+H+'">'
+    + '<rect width="'+W+'" height="'+H+'" rx="'+r+'" ry="'+r+'" fill="#fff"/></svg>');
+  return sharp(buf).composite([{ input: mask, blend: 'dest-in' }]).png().toBuffer();
+}
+
 function cardOpts(q){
   const suit = TAROT.plate.SUITS[String(q.suit||'').toLowerCase()] ? String(q.suit).toLowerCase() : 'swords';
   const num = function(v,d,lo,hi){ v=Number(v); return isNaN(v)?d:Math.min(hi,Math.max(lo,v)); };
-  return { suit:suit, rank:String(q.rank||'King').trim().slice(0,28)||'King',
+  const ink = TAROT.frame.INK[String(q.ink||'').toLowerCase()] ? String(q.ink).toLowerCase() : '';
+  return { suit:suit, ink:ink, round:num(q.round,20,0,50),
+           rank:String(q.rank||'King').trim().slice(0,28)||'King',
            zoom:num(q.zoom,1,1,3), x:num(q.x,0.5,0,1), y:num(q.y,0.5,0,1) };
 }
 
@@ -3187,7 +3204,8 @@ app.get('/cardwright/preview.png',al,async(req,res)=>{
     const c = await buildCard(path.join(cardStore(),photo), o, 0.52);
     const trimmed = await sharp(c.full).extract({left:c.bleed,top:c.bleed,
       width:c.W-c.bleed*2,height:c.H-c.bleed*2}).png().toBuffer();
-    res.set('Content-Type','image/png'); keepOffThePhone(res); res.end(trimmed);
+    const card = await roundCard(trimmed, c.W-c.bleed*2, c.H-c.bleed*2, o.round);
+    res.set('Content-Type','image/png'); keepOffThePhone(res); res.end(card);
   }catch(e){ console.log('cardwright preview:',e.message); res.status(500).end(); }
 });
 
