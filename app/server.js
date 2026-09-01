@@ -3177,7 +3177,8 @@ app.get('/cardwright',alPage,(req,res)=>{
   // Newest first: the picture she wants is nearly always the one just added.
   const wall = (db.photos||[]).slice().sort(function(a,b){ return b.ts-a.ts; })
     .map(function(p){ return {id:p.id, thumb:p.thumb||p.file, caption:p.caption||'', by:p.byName||''}; });
-  res.render('cardwright',{photo:has?photo:'',wall:wall,opts:cardOpts(req.query),
+  const deck = db.deck.slice().sort(function(a,b){ return b.ts-a.ts; }).map(deckCard);
+  res.render('cardwright',{photo:has?photo:'',wall:wall,deck:deck,opts:cardOpts(req.query),
     suits:Object.keys(TAROT.plate.SUITS), q:req.query, err:String(req.query.e||'')});
 });
 
@@ -3237,6 +3238,104 @@ app.post('/cardwright/from-gallery',al,(req,res)=>{
     req.session.cardPhoto = to;
   }catch(e){ return res.redirect('/cardwright?e='+encodeURIComponent('That picture could not be lifted off the wall.')); }
   res.redirect('/cardwright');
+});
+/* ── The deck ───────────────────────────────────────────────────────────────
+   Everything up to here was one card at a time: frame it, take it away, and
+   it was gone the moment the page closed. A deck is the difference between
+   making a card and making seventy-eight of them.
+
+   What is kept is the RECIPE, never the picture: which photograph, which
+   suit, what it is called, and where the window sat. The card is cut again
+   from that whenever it is wanted. Two things fall out of doing it that way,
+   and both matter — the data stays a few hundred bytes a card instead of two
+   megabytes, and a change to the frame updates every card already made
+   rather than leaving her with a deck half in the old style.
+
+   It lives in guild.json with everything else, so the nightly backup already
+   covers it. */
+
+if(!Array.isArray(db.deck))db.deck=[];
+
+function deckCard(row){
+  return { id:row.id, name:row.name, suit:row.suit, rank:row.rank, ink:row.ink||'',
+           round:row.round, zoom:row.zoom, x:row.x, y:row.y, photo:row.photo, ts:row.ts };
+}
+
+/* Thumbnails are cut once and kept on disk, because a deck page asking for
+   seventy-eight fresh renders is seventy-eight renders. The key carries the
+   settings AND when the frame was last changed, so editing the design quietly
+   retires every thumbnail rather than leaving a page of stale ones. */
+function deckStamp(){
+  try{ return String(Math.floor(fs.statSync(path.join(__dirname,'tarot','frame.js')).mtimeMs)); }
+  catch(e){ return '0'; }
+}
+function thumbName(row){
+  const key = [row.photo,row.suit,row.rank,row.ink,row.round,row.zoom,row.x,row.y,deckStamp()].join('|');
+  let h = 2166136261;
+  for(let i=0;i<key.length;i++){ h ^= key.charCodeAt(i); h = Math.imul(h,16777619); }
+  return 't'+(h>>>0).toString(36)+'.png';
+}
+
+app.post('/cardwright/save',al,(req,res)=>{
+  const photo = req.session.cardPhoto;
+  if(!photo) return res.redirect('/cardwright?e='+encodeURIComponent('There is nothing on the bench to keep.'));
+  const o = cardOpts(req.body);
+  const suit = TAROT.plate.SUITS[o.suit];
+  const name = suit.label ? (o.rank+' of '+suit.label) : o.rank;
+
+  /* Cutting the same card twice is nearly always a correction rather than a
+     second card, so a name that is already in the deck is replaced. */
+  const had = db.deck.find(function(c){ return c.name === name; });
+  const row = { id: had ? had.id : nid(), name:name, photo:photo, suit:o.suit, rank:o.rank,
+                ink:o.ink, round:o.round, zoom:o.zoom, x:o.x, y:o.y, ts:Date.now() };
+  if(had) Object.assign(had, row); else db.deck.push(row);
+  save();
+  res.redirect('/cardwright?kept='+encodeURIComponent(name));
+});
+
+/* Opening one puts its recipe back on the bench, exactly as it was left. */
+app.post('/cardwright/deck/open',al,(req,res)=>{
+  const c = db.deck.find(function(x){ return x.id === parseInt(req.body.id,10); });
+  if(!c) return res.redirect('/cardwright');
+  if(!fs.existsSync(path.join(cardStore(), c.photo)))
+    return res.redirect('/cardwright?e='+encodeURIComponent('The photograph for that card is gone.'));
+  req.session.cardPhoto = c.photo;
+  res.redirect('/cardwright?suit='+encodeURIComponent(c.suit)+'&rank='+encodeURIComponent(c.rank)
+    +'&ink='+encodeURIComponent(c.ink||'')+'&round='+c.round+'&zoom='+c.zoom+'&x='+c.x+'&y='+c.y);
+});
+
+app.post('/cardwright/deck/remove',al,(req,res)=>{
+  const id = parseInt(req.body.id,10);
+  const c = db.deck.find(function(x){ return x.id === id; });
+  db.deck = db.deck.filter(function(x){ return x.id !== id; });
+  save();
+  /* The photograph goes too, unless another card is still using it — two
+     cards can be cut from one picture, and pulling the file would break the
+     one that was not deleted. */
+  if(c && !db.deck.some(function(x){ return x.photo === c.photo; })){
+    try{ fs.unlinkSync(path.join(cardStore(), c.photo)); }catch(e){}
+  }
+  res.redirect('/cardwright#deck');
+});
+
+/* One card out of the deck, at whatever size. Small ones are kept. */
+app.get('/cardwright/deck/:id.png',al,async(req,res)=>{
+  const c = db.deck.find(function(x){ return x.id === parseInt(req.params.id,10); });
+  if(!c) return res.status(404).end();
+  const file = path.join(cardStore(), c.photo);
+  if(!fs.existsSync(file)) return res.status(404).end();
+  try{
+    const thumb = path.join(cardStore(), thumbName(c));
+    if(!fs.existsSync(thumb)){
+      const built = await buildCard(file, c, 0.2);
+      const cut = await sharp(built.full).extract({left:built.bleed,top:built.bleed,
+        width:built.W-built.bleed*2,height:built.H-built.bleed*2}).png().toBuffer();
+      fs.writeFileSync(thumb, await roundCard(cut, built.W-built.bleed*2, built.H-built.bleed*2, c.round));
+    }
+    res.set('Content-Type','image/png');
+    keepOffThePhone(res);
+    res.end(fs.readFileSync(thumb));
+  }catch(e){ console.log('deck thumb:',e.message); res.status(500).end(); }
 });
 app.get('/cardwright/back.png',al,async(req,res)=>{
   try{

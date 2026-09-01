@@ -26,6 +26,9 @@
     faire, made into a tarot card. The picture stays as it is &mdash; the card is built around it.</p>
 
   <% if(err){ %><div class="alert alert--bad" style="max-width:640px;margin:20px auto 0"><%= err %></div><% } %>
+  <% if(q && q.kept){ %><div class="alert alert--ok" style="max-width:640px;margin:20px auto 0">
+    <b><%= q.kept %></b> is in the deck. Cut it again whenever you like &mdash; what is kept is the
+    recipe, not the picture, so it will follow the frame if the frame changes.</div><% } %>
 
   <div class="bench">
 
@@ -109,6 +112,19 @@
         <p class="bench__note bench__note--wide">The card as you see it, full size &mdash; corners
           off, ready to post or keep.</p>
 
+        <form method="post" action="/cardwright/save" class="bench__keep">
+          <input type="hidden" name="suit" value="<%= o.suit %>">
+          <input type="hidden" name="rank" value="<%= o.rank %>">
+          <input type="hidden" name="ink" value="<%= o.ink %>">
+          <input type="hidden" name="round" value="<%= o.round %>">
+          <input type="hidden" name="zoom" value="<%= o.zoom %>">
+          <input type="hidden" name="x" value="<%= o.x %>">
+          <input type="hidden" name="y" value="<%= o.y %>">
+          <button class="btn btn--gold" style="width:100%;justify-content:center">&#10022; Keep it in the deck</button>
+        </form>
+        <p class="bench__note bench__note--wide">Kept by name, so cutting the same card again
+          corrects it rather than making a second one.</p>
+
         <a class="btn btn--wine bench__take" style="margin-top:10px"
            href="/cardwright/print.png?<%= qs() %>">&#8681; Take the printing plate</a>
         <p class="bench__note bench__note--wide">Square-cornered, with an eighth of an inch of bleed
@@ -141,6 +157,34 @@
     </div>
 
   </div>
+
+  <% if(typeof deck!=="undefined" && deck.length){ %>
+    <div class="bench__deck" id="deck">
+      <h3 class="posthead">The deck so far<span class="posthead__count"><%= deck.length %> of 78</span></h3>
+      <p class="bench__note" style="margin:0 0 16px">What is kept is the recipe &mdash; which
+        photograph, which suit, and where the window sat &mdash; so every card here is cut fresh
+        and will follow the frame if the frame changes.</p>
+      <div class="bench__shelf">
+        <% deck.forEach(function(c){ %>
+          <div class="bench__slot">
+            <img src="/cardwright/deck/<%= c.id %>.png" alt="<%= c.name %>" loading="lazy">
+            <b><%= c.name %></b>
+            <div class="bench__slotacts">
+              <form method="post" action="/cardwright/deck/open" style="margin:0">
+                <input type="hidden" name="id" value="<%= c.id %>">
+                <button class="btn btn--ghost" type="submit">Open</button>
+              </form>
+              <form method="post" action="/cardwright/deck/remove" style="margin:0"
+                    onsubmit="return confirm(<%= JSON.stringify('Take '+c.name+' out of the deck? The framing goes with it.') %>)">
+                <input type="hidden" name="id" value="<%= c.id %>">
+                <button class="btn btn--wine" type="submit">&times;</button>
+              </form>
+            </div>
+          </div>
+        <% }) %>
+      </div>
+    </div>
+  <% } %>
 </div></section>
 
 <% if(photo){ %>

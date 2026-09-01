@@ -2029,3 +2029,25 @@ body.tavern-page .compose .field label{color:var(--wine)}
 .bench__pick button:hover{border-color:var(--gold-l);transform:translateY(-2px)}
 .bench__pick button:focus-visible{outline:2px solid var(--gold-l);outline-offset:2px}
 .bench__pick img{width:100%;aspect-ratio:1;object-fit:cover;display:block}
+
+/* ── The deck so far ───────────────────────────────────────────────────────
+   A shelf under the bench. Cards are objects, so they get an object's shadow
+   and lift a little when reached for — and they are shown at the size you
+   would actually judge one at, not as a contact sheet of stamps. */
+.bench__keep{margin:0}
+.bench__deck{margin-top:44px;border-top:1px solid rgba(226,199,127,.2);padding-top:8px}
+.bench__shelf{display:grid;grid-template-columns:repeat(auto-fill,minmax(148px,1fr));gap:20px}
+.bench__slot{display:flex;flex-direction:column;gap:8px;align-items:center;text-align:center}
+.bench__slot img{
+  width:100%;height:auto;border-radius:6px;display:block;
+  box-shadow:0 16px 30px -18px rgba(0,0,0,.95), 0 0 0 1px rgba(226,199,127,.2);
+  transition:transform .16s var(--ease),box-shadow .16s var(--ease);
+}
+.bench__slot:hover img{transform:translateY(-3px);box-shadow:0 22px 38px -18px rgba(0,0,0,.95), 0 0 0 1px var(--gold)}
+.bench__slot b{
+  font-family:var(--display);font-size:.62rem;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--gold-l);line-height:1.4;
+}
+.bench__slotacts{display:flex;gap:6px}
+.bench__slotacts .btn{padding:4px 10px;font-size:.56rem}
+@media(prefers-reduced-motion:reduce){.bench__slot img{transition:none}.bench__slot:hover img{transform:none}}
