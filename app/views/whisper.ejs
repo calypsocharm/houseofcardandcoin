@@ -1,12 +1,12 @@
 <%- include('_top',{title:'Letter to '+other.name,bodyClass:'tavern-page'}) %>
 <section class="section" style="padding-top:120px"><div class="container" style="max-width:680px">
-<a class="muted" href="/post" style="color:#cdb98f">&larr; The Pigeon Post</a>
+<a class="muted" href="/letters" style="color:#cdb98f">&larr; Your letters</a>
 <div style="display:flex;gap:12px;align-items:center;margin:14px 0"><%- include('_avatar',{name:other.name,avatar:other.avatar}) %><h2 style="color:#f8edd1;margin:0">Writing to <%= other.name %></h2></div>
 <div class="whisper-thread">
 <% msgs.forEach(function(m){ var mine=m.fromT===i.t&&m.fromId===i.id; %>
 <div class="whisper-msg<%= mine?' whisper-msg--me':'' %>"<%= mine?' style="align-self:flex-end"':'' %>><p><%= m.body %></p><span class="muted"><%= new Date(m.ts).toLocaleString() %></span></div>
 <% }) %>
 </div>
-<form method="post" action="/board/whisper/<%= other.t %>/<%= other.id %>" style="margin-top:16px"><div class="field" style="margin:0"><label>Write back</label><textarea name="body" required placeholder="Write your answer&hellip;"></textarea></div><button class="btn btn--gold" style="margin-top:10px">Send</button></form>
+<form method="post" action="/letters/<%= other.t %>/<%= other.id %>" style="margin-top:16px"><div class="field" style="margin:0"><label>Write back</label><textarea name="body" required placeholder="Write your answer&hellip;"></textarea></div><button class="btn btn--gold" style="margin-top:10px">Send</button></form>
 </div></section>
 <%- include('_bot') %>

@@ -1889,3 +1889,13 @@ body.tavern-page .whisper-msg .muted{color:#6a5535}
    inside a card. */
 body.tavern-page .field label{color:var(--gold-l)}
 body.tavern-page .compose .field label{color:var(--wine)}
+
+/* Said on the Carrier Pigeon page, because the two names sound alike and the
+   bird is almost never what a signed-in guildmate wants. */
+.pigeonnote{
+  margin:12px 0 0;padding:11px 15px;border-left:3px solid var(--gold);
+  background:rgba(194,161,77,.09);border-radius:0 4px 4px 0;
+  font-size:.94rem;color:var(--ink2);line-height:1.6;
+}
+.pigeonnote b{color:var(--wine)}
+.pigeonnote a{color:var(--wine);font-weight:600;text-decoration:underline;text-underline-offset:2px}

@@ -148,12 +148,12 @@
          other one — letters between people — was on no menu at all. There is
          one room for both now, and one count on the line. */
       var mine = patron
-        ? [['Tonight’s card', '/card'], ['Pigeon Post', '/post']]
-        : [['Profile', '/members'], ['Tonight’s card', '/card'], ['Pigeon Post', '/post']];
+        ? [['Tonight’s card', '/card'], ['Letters', '/letters']]
+        : [['Profile', '/members'], ['Tonight’s card', '/card'], ['Letters', '/letters']];
       if (me.leader) mine.push(['Administration', '/members#admin']);
 
       mine.forEach(function (x) {
-        if (x[1] === '/post') {
+        if (x[1] === '/letters') {
           /* Blue, and only for a letter. A notice is the House talking to
              itself about you; a letter is a person waiting on an answer, and
              the two should not look the same on the way past. */

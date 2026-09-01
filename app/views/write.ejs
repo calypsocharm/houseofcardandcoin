@@ -13,7 +13,7 @@
 %>
 <section class="section" style="padding-top:120px"><div class="container" style="max-width:680px">
 
-  <a class="muted" href="/post" style="color:#cdb98f">&larr; The Pigeon Post</a>
+  <a class="muted" href="/letters" style="color:#cdb98f">&larr; Your letters</a>
 
   <div class="bannerhead" style="margin-top:10px">
     <span class="eyebrow" style="color:var(--gold-l)">&#9998; A letter</span>
@@ -23,7 +23,7 @@
 
   <% if(err){ %><div class="alert alert--bad" style="margin-bottom:18px"><%= err %></div><% } %>
 
-  <form method="post" action="/post/write" class="writer">
+  <form method="post" action="/letters/write" class="writer">
 
     <% if(leader){ %>
       <%

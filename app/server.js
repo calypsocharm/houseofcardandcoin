@@ -1144,7 +1144,7 @@ app.get('/guild/:slug',(req,res)=>{
     isMe:!!(i&&i.t==='member'&&i.id===u.id), slug:hit.slug,
     // Whispering used to hide behind the little figures in the tavern room.
     // Those now lead here, so the door has to be on this page instead.
-    canWhisper:!!(i&&!(i.t==='member'&&i.id===u.id)), whisperTo:'/board/whisper/member/'+u.id
+    canWhisper:!!(i&&!(i.t==='member'&&i.id===u.id)), whisperTo:'/letters/member/'+u.id
   });
 });
 // ── Signing someone's scroll ────────────────────────────────────────────────
@@ -2261,11 +2261,11 @@ function sinceYouWere(u,anchor,freshFace){
     go:'/board/roll', gold:true});
 
   var notices=(db.notices||[]).filter(function(n){return n.toT==='member'&&n.toId===u.id&&n.ts>anchor;}).length;
-  if(notices)out.push({n:notices,say:notices===1?'notice for you':'notices for you',go:'/post',gold:true});
+  if(notices)out.push({n:notices,say:notices===1?'notice for you':'notices for you',go:'/letters',gold:true});
 
   var whispers=(db.whispers||[]).filter(function(w){
     return w.toT==='member'&&w.toId===u.id&&!w.read;}).length;
-  if(whispers)out.push({n:whispers,say:whispers===1?'letter waiting':'letters waiting',go:'/post',gold:true});
+  if(whispers)out.push({n:whispers,say:whispers===1?'letter waiting':'letters waiting',go:'/letters',gold:true});
 
   var shots=(db.photos||[]).filter(function(p){return p.ts>anchor&&!mine(p.byT,p.byId);}).length;
   if(shots && !freshFace)out.push({n:shots,say:shots===1?'new picture':'new pictures',go:'/gallery'});
@@ -3026,7 +3026,7 @@ function countdown(){
   return{days:Math.floor((open-now)/86400000)};
 }
 
-/* ── The Pigeon Post ────────────────────────────────────────────────────────
+/* ── Letters ────────────────────────────────────────────────────────
    The House could already carry a private word from one person to another —
    whispers have worked for months. The trouble was that nobody could find
    them: one link buried in the Tavern, no way to begin one except by
@@ -3085,7 +3085,7 @@ function postFor(i){
           unreadNotices:notices.filter(function(n){return !n.read;}).length};
 }
 
-app.get('/post',canPost,(req,res)=>{
+app.get('/letters',canPost,(req,res)=>{
   const i=ident(req);
   const post=postFor(i);
   /* Opening the room is reading the House’s word, so the notices are marked
@@ -3106,16 +3106,16 @@ app.get('/post',canPost,(req,res)=>{
   res.render('post',{i:i,post:post,q:req.query,leader:!!(i&&i.leader)});
 });
 
-app.get('/post/write',canPost,(req,res)=>{
+app.get('/letters/write',canPost,(req,res)=>{
   const i=ident(req);
   res.render("write",{i:i,folk:guildFolk(i),to:String(req.query.to||""),
     leader:!!(i&&i.leader),err:String(req.query.e||"")});
 });
 
-app.post('/post/write',canPost,(req,res)=>{
+app.post('/letters/write',canPost,(req,res)=>{
   const i=ident(req);
   const body=String(req.body.body||"").trim().slice(0,2000);
-  if(!body)return res.redirect("/post/write?e="+encodeURIComponent("There is nothing written on it."));
+  if(!body)return res.redirect("/letters/write?e="+encodeURIComponent("There is nothing written on it."));
 
   /* Who it goes to. "The whole guild" is a checkbox rather than a second
      button, so it still works with scripting off, and it belongs to the Guild
@@ -3132,7 +3132,7 @@ app.post('/post/write',canPost,(req,res)=>{
       return folk.find(function(f){ return f.t===bits[0] && String(f.id)===bits[1]; });
     }).filter(Boolean);
   }
-  if(!to.length)return res.redirect("/post/write?e="+encodeURIComponent("Nobody was chosen to receive it."));
+  if(!to.length)return res.redirect("/letters/write?e="+encodeURIComponent("Nobody was chosen to receive it."));
 
   if(!Array.isArray(db.whispers))db.whispers=[];
   to.forEach(function(f){
@@ -3150,16 +3150,20 @@ app.post('/post/write',canPost,(req,res)=>{
   /* Straight into the letter if it went to one person, because you will want
      to see it sitting there. Back to the room if it went to several, where all
      of them now are. */
-  if(to.length===1)return res.redirect("/board/whisper/"+to[0].t+"/"+to[0].id);
-  res.redirect("/post?sent="+to.length);
+  if(to.length===1)return res.redirect("/letters/"+to[0].t+"/"+to[0].id);
+  res.redirect("/letters?sent="+to.length);
 });
 
 /* The two old doors still open — they are linked from the FAQ and the Tavern,
    and from every notice anybody has ever been sent. */
-app.get('/board/notices',canPost,(req,res)=>res.redirect('/post#house'));
-app.get('/board/whispers',canPost,(req,res)=>res.redirect('/post'));
-app.get('/board/whisper/:t/:id',canPost,(req,res)=>{var i=ident(req);var ot=req.params.t,oid=parseInt(req.params.id);if(ot===i.t&&oid===i.id)return res.redirect('/board/whispers');if(ot!=='member'&&ot!=='patron')return res.redirect('/board/whispers');var p=party(ot,oid);if(!p)return res.redirect('/board/whispers');var msgs=(db.whispers||[]).filter(function(w){return ((w.fromT===i.t&&w.fromId===i.id&&w.toT===ot&&w.toId===oid)||(w.fromT===ot&&w.fromId===oid&&w.toT===i.t&&w.toId===i.id));}).sort(function(a,b){return a.ts-b.ts;});db.whispers.forEach(function(w){if(w.fromT===ot&&w.fromId===oid&&w.toT===i.t&&w.toId===i.id)w.read=true;});save();res.render('whisper',{i:i,other:{t:ot,id:oid,name:p.name,avatar:p.avatar},msgs:msgs});});
-app.post('/board/whisper/:t/:id',canPost,(req,res)=>{var i=ident(req);var ot=req.params.t,oid=parseInt(req.params.id);if(ot===i.t&&oid===i.id)return res.redirect('/board/whispers');var body=(req.body.body||'').trim();if(!body)return res.redirect('/board/whisper/'+ot+'/'+oid);if(!Array.isArray(db.whispers))db.whispers=[];db.whispers.push({id:nid(),fromT:i.t,fromId:i.id,toT:ot,toId:oid,body:body,ts:Date.now(),read:false});var _to=ot==='member'?db.users.find(function(x){return x.id===oid;}):null;if(_to&&_to.role==='leader'&&!(i.t==='member'&&i.id===_to.id))tellHer(i.name+' whispered '+_to.name+': \u201c'+body.slice(0,120)+(body.length>120?'\u2026':'')+'\u201d');save();res.redirect('/board/whisper/'+ot+'/'+oid);});
+app.get('/board/notices',canPost,(req,res)=>res.redirect('/letters#house'));
+app.get('/board/whispers',canPost,(req,res)=>res.redirect('/letters'));
+app.get('/post',canPost,(req,res)=>res.redirect('/letters'));
+app.get('/post/write',canPost,(req,res)=>res.redirect('/letters/write'));
+app.post('/post/write',canPost,(req,res)=>res.redirect(307,'/letters/write'));
+app.get('/board/whisper/:t/:id',canPost,(req,res)=>res.redirect('/letters/'+req.params.t+'/'+req.params.id));
+app.get('/letters/:t/:id',canPost,(req,res)=>{var i=ident(req);var ot=req.params.t,oid=parseInt(req.params.id);if(ot===i.t&&oid===i.id)return res.redirect('/letters');if(ot!=='member'&&ot!=='patron')return res.redirect('/letters');var p=party(ot,oid);if(!p)return res.redirect('/letters');var msgs=(db.whispers||[]).filter(function(w){return ((w.fromT===i.t&&w.fromId===i.id&&w.toT===ot&&w.toId===oid)||(w.fromT===ot&&w.fromId===oid&&w.toT===i.t&&w.toId===i.id));}).sort(function(a,b){return a.ts-b.ts;});db.whispers.forEach(function(w){if(w.fromT===ot&&w.fromId===oid&&w.toT===i.t&&w.toId===i.id)w.read=true;});save();res.render('whisper',{i:i,other:{t:ot,id:oid,name:p.name,avatar:p.avatar},msgs:msgs});});
+app.post('/letters/:t/:id',canPost,(req,res)=>{var i=ident(req);var ot=req.params.t,oid=parseInt(req.params.id);if(ot===i.t&&oid===i.id)return res.redirect('/letters');var body=(req.body.body||'').trim();if(!body)return res.redirect('/letters/'+ot+'/'+oid);if(!Array.isArray(db.whispers))db.whispers=[];db.whispers.push({id:nid(),fromT:i.t,fromId:i.id,toT:ot,toId:oid,body:body,ts:Date.now(),read:false});var _to=ot==='member'?db.users.find(function(x){return x.id===oid;}):null;if(_to&&_to.role==='leader'&&!(i.t==='member'&&i.id===_to.id))tellHer(i.name+' whispered '+_to.name+': \u201c'+body.slice(0,120)+(body.length>120?'\u2026':'')+'\u201d');save();res.redirect('/letters/'+ot+'/'+oid);});
 
 /* ── The forecast, once there is one ────────────────────────────────────────
    The camp page has twenty-six years of history on it — that weekend has run

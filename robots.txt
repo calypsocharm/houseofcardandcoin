@@ -2,6 +2,7 @@ User-agent: *
 Allow: /
 Disallow: /members/
 Disallow: /card
+Disallow: /letters
 Disallow: /app/
 Disallow: /content/
 

@@ -1,4 +1,4 @@
-<%- include('_top',{title:'Pigeon Post',bodyClass:'tavern-page'}) %>
+<%- include('_top',{title:'Letters',bodyClass:'tavern-page'}) %>
 
 <%
   /* One room for everything addressed to you.
@@ -15,8 +15,8 @@
 <section class="section" style="padding-top:120px"><div class="container" style="max-width:760px">
 
   <div class="bannerhead">
-    <span class="eyebrow" style="color:var(--gold-l)">&#128330; By Pigeon &#128330;</span>
-    <h2 style="color:#f8edd1">The Pigeon Post</h2>
+    <span class="eyebrow" style="color:var(--gold-l)">&#9993; Letters &#9993;</span>
+    <h2 style="color:#f8edd1">Your Letters</h2>
     <div class="rule"></div>
   </div>
 
@@ -26,7 +26,7 @@
   <% } %>
 
   <div class="postdesk">
-    <a class="btn btn--gold" href="/post/write">&#9998; Write a letter</a>
+    <a class="btn btn--gold" href="/letters/write">&#9998; Write a letter</a>
     <span class="postdesk__note">To one guildmate, to a few<% if(leader){ %>, or to the whole House<% } %>.</span>
   </div>
 
@@ -36,7 +36,7 @@
       sit here waiting for their answer.</p></div>
   <% } %>
   <% post.letters.forEach(function(c){ %>
-    <a class="whisper-row<%= c.unread?' whisper-row--new':'' %>" href="/board/whisper/<%= c.other.t %>/<%= c.other.id %>">
+    <a class="whisper-row<%= c.unread?' whisper-row--new':'' %>" href="/letters/<%= c.other.t %>/<%= c.other.id %>">
       <%- include('_avatar',{name:c.name,avatar:c.avatar}) %>
       <div style="flex:1;min-width:0">
         <b style="color:var(--wine)"><%= c.name %></b>
