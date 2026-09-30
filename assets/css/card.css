@@ -181,3 +181,13 @@ body.card-page::before{display:none}
   .pcard__redeal{bottom:-7px;right:-7px}
   .pcard__redeal button{width:20px;height:20px;font-size:.7rem}
 }
+
+/* Said on the Dealer's own card, because she is the one person whose hand is
+   deliberately missing from the Roll and she should not have to wonder. */
+.cardpage__dealt{
+  margin:0 0 22px;padding:12px 16px;text-align:center;
+  background:rgba(110,26,26,.2);border:1px solid var(--wine-l);border-radius:5px;
+  color:#f3ddc0;font-size:.92rem;line-height:1.6;
+}
+.cardpage__dealt b{font-family:var(--display);color:var(--gold-l)}
+.cardpage__dealt a{color:var(--gold-l);text-decoration:underline;text-underline-offset:2px}

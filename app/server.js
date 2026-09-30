@@ -194,6 +194,8 @@ function highHand(){
   var best=null, held=[];
   function offer(kind,id,name,rank,when){
     if(!rank)return;
+    // also skips hands recorded before she stepped back, so the ribbon clears
+    if(dealsNotPlays(kind,id))return;
     var c=best?cmpHand(rank,best):-1;
     if(c<0){ best=rank; held=[]; }
     else if(c>0){ return; }
@@ -1229,7 +1231,9 @@ app.get('/card',(req,res)=>{
     drew:(i.lastRation===dayKey() && i.lastCard && i.lastCard.code!=null)
       ? Object.assign({},cardInfo(i.lastCard.code),{bonus:i.lastCard.bonus||0,streak:i.lastCard.streak||0})
       : null,
-    high:high
+    high:high,
+    // so the one person whose hand is missing from the Roll knows why
+    dealer:!!(i && i.t==='member' && (db.users.find(function(x){return x.id===i.id;})||{}).dealer)
   });
 });
 
@@ -1526,7 +1530,7 @@ app.get('/members',au,(req,res)=>{
   })();
   const bunksLeft=NIGHTS.length*BUNKS.length-db.bunks.length;
   const items=db.items.map(it=>{const cl=db.claims.filter(c=>c.itemId===it.id);const claimed=cl.reduce((s,c)=>s+c.qty,0);return{...it,claimed,remaining:Math.max(0,it.need-claimed),claims:cl.map(c=>({qty:c.qty,who:db.users.find(y=>y.id===c.userId)})),mine:cl.find(c=>c.userId===u.id)};});
-  res.render('hall',{u,welcome:swornWelcome(u),pack:packFor(u),chores:u.role==='leader'?choresFor(u):null,schedule:guildEvents(),backups:backupHealth(),page:pageOf(u),mySlug:slugById()[u.id]||'',backdrops:BACKDROPS,layouts:LAYOUTS,fonts:FONTS,fontKeys:FONT_KEYS,sizeKeys:SIZE_KEYS,sizes:SIZES,charmKeys:CHARM_KEYS,charmSvg:charmSvg,charmMax:CHARM_MAX,rank:rank(u),classes:CLASSES,bunkBoard,bunksLeft,bunkFacts:bunkFacts(),since:since,away:away,firstLook:firstEver,cardWaiting:cardWaiting(u),over:countdown().ended===true,finest:highHand(),items,bringers,leader:u.role==='leader',users:u.role==='leader'?db.users.map(function(m){return{slug:slugById()[m.id]||'',berth:m.berth||'',vouches:vouchesFor(m.id),sworn:m.sworn||0,swornSeen:!!m.swornShown,name:m.name,class:m.class,faires:m.faires,rank:rank(m),pledge:!!m.pledge,leader:m.role==='leader',dayContact:!!m.dayContact,title:m.title||'',avatar:m.avatar,id:m.id,contactEmail:m.contactEmail||'',phone:m.phone||'',bunks:db.bunks.filter(function(b){return b.userId===m.id}).map(function(b){return b.night+' \u00b7 Bunk '+b.bunk;})};}):[],announcements:db.announcements,mine:myWeekend(u),prizes:db.prizes||{first:"",second:"",shown:false},outreach:{emails:db.users.filter(function(x){return x.contactEmail;}).map(function(x){return x.contactEmail;}),phones:db.users.filter(function(x){return x.phone;}).map(function(x){return x.phone;})},invite:inviteCode(),err:req.query.e||"",q:req.query});
+  res.render('hall',{u,welcome:swornWelcome(u),pack:packFor(u),chores:u.role==='leader'?choresFor(u):null,schedule:guildEvents(),backups:backupHealth(),page:pageOf(u),mySlug:slugById()[u.id]||'',backdrops:BACKDROPS,layouts:LAYOUTS,fonts:FONTS,fontKeys:FONT_KEYS,sizeKeys:SIZE_KEYS,sizes:SIZES,charmKeys:CHARM_KEYS,charmSvg:charmSvg,charmMax:CHARM_MAX,rank:rank(u),classes:CLASSES,bunkBoard,bunksLeft,bunkFacts:bunkFacts(),since:since,away:away,firstLook:firstEver,cardWaiting:cardWaiting(u),over:countdown().ended===true,finest:highHand(),items,bringers,leader:u.role==='leader',users:u.role==='leader'?db.users.map(function(m){return{slug:slugById()[m.id]||'',berth:m.berth||'',vouches:vouchesFor(m.id),sworn:m.sworn||0,swornSeen:!!m.swornShown,dealer:!!m.dealer,name:m.name,class:m.class,faires:m.faires,rank:rank(m),pledge:!!m.pledge,leader:m.role==='leader',dayContact:!!m.dayContact,title:m.title||'',avatar:m.avatar,id:m.id,contactEmail:m.contactEmail||'',phone:m.phone||'',bunks:db.bunks.filter(function(b){return b.userId===m.id}).map(function(b){return b.night+' \u00b7 Bunk '+b.bunk;})};}):[],announcements:db.announcements,mine:myWeekend(u),prizes:db.prizes||{first:"",second:"",shown:false},outreach:{emails:db.users.filter(function(x){return x.contactEmail;}).map(function(x){return x.contactEmail;}),phones:db.users.filter(function(x){return x.phone;}).map(function(x){return x.phone;})},invite:inviteCode(),err:req.query.e||"",q:req.query});
 });
 // How your page looks. Separate from the details form above because these are
 // about presentation and those are about the guild — and because this one
@@ -1940,6 +1944,16 @@ app.post('/members/admin/invite',al,(req,res)=>{
   res.redirect('/members?role='+encodeURIComponent(want
     ? 'The invite code is now '+want
     : 'The invite code is off — anybody can make an account')+'#admin');
+});
+/* Who is giving the prizes, and therefore cannot win them. A toggle rather
+   than a rule about leaders, because the House has two leaders and only one
+   of them is buying the prize. */
+app.post('/members/admin/dealer',al,(req,res)=>{
+  const u=db.users.find(x=>x.id===parseInt(req.body.id,10));
+  if(!u)return res.redirect('/members#admin');
+  u.dealer=!u.dealer;
+  save();
+  res.redirect('/members?dealer='+encodeURIComponent(u.name+(u.dealer?' deals now — their hand is off the Roll':' is back in the game'))+'#admin');
 });
 app.post('/members/admin/daycontact',al,(req,res)=>{
   const u=db.users.find(x=>x.id===parseInt(req.body.id,10));
@@ -2399,9 +2413,30 @@ function tavernFolk(){
 }
 // Everyone's hand is on show — it is a faire game, not a secret. Ranked best
 // first so the table reads like a showdown.
+/* ── The Dealer ─────────────────────────────────────────────────────────────
+   Somebody has to buy the prizes, and it should not be possible for that
+   person to win them. The Guild Elder wanted to keep playing — the card a
+   night, the coins, the streak, the whole evening habit — without her hand
+   ever standing between a guildmate and the thing she is giving them.
+
+   So a Dealer plays and does not compete. Everything about drawing stays
+   exactly as it is; what changes is that her hand is not on the table. It is
+   left out of the Roll, out of the high hand, out of the champions, and out
+   of whatever gets written into a round when one closes.
+
+   One consequence worth knowing: a round closes when every hand AT THE TABLE
+   is full, and the Dealer is not at the table — so she can hold five cards
+   all month without holding the round open, and a round can close while she
+   is still drawing. That is the right way round. */
+function dealsNotPlays(kind, id){
+  if((kind || 'member') !== 'member' || id == null) return false;
+  const u = (db.users || []).find(function(x){ return x.id === id; });
+  return !!(u && u.dealer);
+}
 function allHands(){
   var rows=[];
   (db.users||[]).forEach(function(u){
+    if(u.dealer)return;                       // the Dealer plays, but not against anybody
     if(u.hand&&u.hand.length)rows.push({id:u.id,name:u.name,avatar:u.avatar,kind:'member',cards:u.hand.map(cardInfo),rank:handRank(u.hand)});
   });
   (db.patrons||[]).forEach(function(p){
@@ -2533,6 +2568,7 @@ function champions(){
     if(!hands.length)return;
     var top=hands[0];
     hands.forEach(function(h){
+      if(dealsNotPlays(h.kind,h.id))return;
       var k=(h.kind||'member')+':'+(h.id!=null?h.id:h.name);
       if(!by[k])by[k]={name:h.name,avatar:h.avatar||'',slug:h.slug||'',kind:h.kind||'member',taken:0,played:0,best:null};
       var e=by[k];

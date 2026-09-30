@@ -83,6 +83,14 @@
     <% } %>
   </div>
 
+  <% /* The one person whose hand is missing from the Roll should not have to
+        wonder why it is missing. */ %>
+  <% if(typeof dealer!=="undefined" && dealer){ %>
+    <p class="cardpage__dealt"><b>You deal.</b> Draw every night and keep every coin &mdash; but your
+      hand stays off the <a href="/board/roll">Roll</a> and out of the running, because the prize is
+      yours to give and cannot be yours to win.</p>
+  <% } %>
+
   <div class="cardpage__side">
     <div class="cardpage__box">
       <p class="cardpage__k">Your purse</p>
