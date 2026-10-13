@@ -597,12 +597,16 @@ setInterval(function(){
   loginTries.forEach(function(v,k){ if(now-v.first>15*60000) loginTries.delete(k); });
 }, 5*60000).unref();
 function throttleLogin(req,res,next){
-  const key=(req.headers['x-forwarded-for']||req.ip||'?').split(',')[0].trim();
+  // Per address AND per name typed. At the faire a whole camp can share one
+  // phone's hotspot, and keyed on the address alone, five wrong guesses by
+  // one guildmate locked every other guildmate on that hotspot out as well.
+  const ip=(req.headers['x-forwarded-for']||req.ip||'?').split(',')[0].trim();
+  const key=ip+'|'+String((req.body&&req.body.email)||'').trim().toLowerCase().slice(0,80);
   const now=Date.now();
   const rec=loginTries.get(key);
   if(rec && now-rec.first < 15*60000 && rec.n >= 5){
     const mins=Math.ceil((15*60000-(now-rec.first))/60000);
-    return res.redirect('/members/login?e='+encodeURIComponent('Too many attempts. Try again in '+mins+' minute'+(mins===1?'':'s')+', or send a pigeon to the Guild Leader.'));
+    return res.redirect('/members/login?e='+encodeURIComponent('Too many attempts. Try again in '+mins+' minute'+(mins===1?'':'s')+', or tap "Forgot your password" below.'));
   }
   req._loginKey=key;
   next();
@@ -1449,10 +1453,141 @@ app.post("/members/register",up.single("avatar"),shrinkAvatar,(req,res)=>{const{
   save();req.session.uid=u.id;// A new pledge lands on a page that explains what a pledge is and what
   // happens next, rather than being dropped into the Hall unexplained.
   res.redirect(first?'/members':'/members?new=1');});
-app.post('/members/login',throttleLogin,(req,res)=>{const{email,password}=req.body;const u=db.users.find(x=>x.email===String(email||'').toLowerCase());
+app.post('/members/login',throttleLogin,(req,res)=>{const{email,password}=req.body;const u=findLogin(email);
   if(!u||!bcrypt.compareSync(password||'',u.passhash)){noteBadLogin(req);const on=wasHeadedFor(req.body.next);
     return res.redirect('/members/login?e='+encodeURIComponent('Bad email or password')+(on?'&next='+encodeURIComponent(on):''));}
   clearLoginTries(req);req.session.uid=u.id;res.redirect(wasHeadedFor(req.body.next)||'/members');});
+/* ── Locked out ────────────────────────────────────────────────────────────
+   Forgetting a password used to end at a pigeon: a contact form that mailed
+   the Guild Leader, who then had to invent a password and get it to them
+   somehow. Six people opened that page in the fortnight before the faire
+   and not one of them sent it.
+
+   Most of the guild signs in with a plain login like "nate" and has no
+   email on file, and this server sends no mail, so a reset-by-email would
+   have reached four people out of ten. Instead:
+
+     1. /members/forgot takes a name, login or email and puts a note in the
+        Leader's Administration panel (and pings her inbox as well).
+     2. One button there makes a link: one use, three days, and only its
+        hash is kept. She texts it to them however she likes.
+     3. The link shows them their login, lets them choose a password, and
+        walks them straight in.
+
+   The person never has to know anything they have forgotten. */
+const RESET_DAYS=3;
+function resetHash(t){ return require('crypto').createHash('sha256').update(String(t)).digest('hex'); }
+function plainName(s){ return String(s||'').trim().toLowerCase().replace(/\s+/g,' '); }
+function oneOf(list){ return list.length===1 ? list[0] : null; }
+/* What somebody typed into "Username or Email". Their login first, exactly
+   as it always was; then, only when it points at one person and nobody
+   else, the email they left for contact or the name the guild knows them by. */
+function findLogin(typed){
+  const t=plainName(typed); if(!t) return null;
+  const us=db.users||[];
+  return us.find(function(x){ return x.email===t; })
+    || oneOf(us.filter(function(x){ return plainName(x.contactEmail)===t; }))
+    || oneOf(us.filter(function(x){ return plainName(x.name)===t; }))
+    || null;
+}
+/* The forgot form is looser still: "nate" should find Sir Nate. */
+function findLockedOut(typed){
+  const hit=findLogin(typed); if(hit) return hit;
+  const t=plainName(typed).replace(/^(sir|lady|dame|lord)\s+/,''); if(!t) return null;
+  return oneOf((db.users||[]).filter(function(x){
+    return plainName(x.name).replace(/^(sir|lady|dame|lord)\s+/,'')===t;
+  }));
+}
+function siteRoot(req){
+  const proto=String(req.headers['x-forwarded-proto']||req.protocol||'http').split(',')[0].trim();
+  return proto+'://'+req.get('host');
+}
+function lockoutsView(){
+  return (db.lockouts||[]).slice().reverse().map(function(l){
+    const m=l.userId!=null ? db.users.find(function(x){ return x.id===l.userId; }) : null;
+    return {id:l.id, userId:m?m.id:null, name:m?m.name:'', typed:l.typed, reach:l.reach||'', ts:l.ts};
+  });
+}
+/* The link she just made, kept for a quarter of an hour so a refresh or a
+   wander to another tab does not lose it before it has been sent. Held in
+   memory against the Leader who made it, never written down: the token is
+   only ever stored as a hash, and a restart losing it is fine. */
+const freshLinks=new Map();
+function freshResetLink(req){
+  const r=freshLinks.get(req.session && req.session.uid);
+  return r && Date.now()-r.ts < 15*60000 ? r : null;
+}
+const forgotTries=new Map();
+app.get('/members/forgot',(req,res)=>res.render('lockedout',{stage:req.query.sent?'asked':'ask',err:''}));
+app.post('/members/forgot',(req,res)=>{
+  if(req.body.website) return res.redirect('/members/forgot?sent=1');   // the bot trap
+  const ip=(req.headers['x-forwarded-for']||req.ip||'?').split(',')[0].trim(), now=Date.now();
+  const rec=forgotTries.get(ip);
+  if(rec && now-rec.first<3600000 && rec.n>=6) return res.redirect('/members/forgot?sent=1');
+  if(!rec || now-rec.first>=3600000) forgotTries.set(ip,{first:now,n:1}); else rec.n++;
+  const typed=String(req.body.who||'').trim().slice(0,80);
+  if(!typed) return res.redirect('/members/forgot');
+  const reach=String(req.body.reach||'').trim().slice(0,80);
+  const u=findLockedOut(typed);
+  if(!db.lockouts) db.lockouts=[];
+  // asking twice is one note, whether or not we know who they are
+  db.lockouts=db.lockouts.filter(function(l){ return u ? l.userId!==u.id : plainName(l.typed)!==plainName(typed); });
+  db.lockouts.push({id:nid(),userId:u?u.id:null,typed:typed,reach:reach,ts:now});
+  db.lockouts=db.lockouts.slice(-30);
+  save();
+  // And a nudge to the Leader's inbox by the pigeon's road. Best effort: the
+  // note in Administration is the thing that matters, and it is already saved.
+  const ep=process.env.FORMSPREE_ENDPOINT;
+  if(ep){
+    fetch(ep,{method:'POST',headers:{'Content-Type':'application/json','Accept':'application/json'},
+      body:JSON.stringify({Name:u?u.name:typed,Reason:'Locked out of my account',
+        Message:(u?u.name:'Somebody typing "'+typed+'"')+' cannot get in.'+(reach?' Reach them: '+reach+'.':'')+
+          ' Open Administration in the Hall to send them a link: '+siteRoot(req)+'/members#locked',
+        _subject:'Locked out: '+(u?u.name:typed)+' (House of Card and Coin)'})})
+      .catch(function(e){ console.log('lockout ping failed',e.message); });
+  }
+  res.redirect('/members/forgot?sent=1');
+});
+app.post('/members/admin/resetlink',al,(req,res)=>{
+  const u=db.users.find(function(x){ return x.id===parseInt(req.body.id,10); });
+  if(!u) return res.redirect('/members#locked');
+  const t=require('crypto').randomBytes(24).toString('base64url');
+  u.reset={h:resetHash(t),exp:Date.now()+RESET_DAYS*86400000};
+  db.lockouts=(db.lockouts||[]).filter(function(l){ return l.userId!==u.id && String(l.id)!==String(req.body.note||''); });
+  save();
+  freshLinks.set(req.session.uid,{name:u.name,url:siteRoot(req)+'/members/reset/'+t,phone:u.phone||'',ts:Date.now()});
+  res.redirect('/members#locked');
+});
+app.post('/members/admin/lockout/dismiss',al,(req,res)=>{
+  db.lockouts=(db.lockouts||[]).filter(function(l){ return String(l.id)!==String(req.body.id); });
+  save();
+  res.redirect('/members#locked');
+});
+app.post('/members/admin/resetlink/done',al,(req,res)=>{ freshLinks.delete(req.session.uid); res.redirect('/members#locked'); });
+function resetHolder(t){
+  t=String(t||''); if(t.length<20) return null;
+  const h=resetHash(t), now=Date.now();
+  return db.users.find(function(x){ return x.reset && x.reset.h===h && x.reset.exp>now; }) || null;
+}
+app.get('/members/reset/:t',(req,res)=>{
+  res.set('Referrer-Policy','no-referrer');
+  const u=resetHolder(req.params.t);
+  if(!u) return res.render('lockedout',{stage:'dead',err:''});
+  res.render('lockedout',{stage:'reset',token:req.params.t,who:{name:u.name,login:u.email},err:req.query.e||''});
+});
+app.post('/members/reset/:t',(req,res)=>{
+  const u=resetHolder(req.params.t);
+  if(!u) return res.render('lockedout',{stage:'dead',err:''});
+  const np=String(req.body.password||'').trim();
+  if(np.length<6) return res.redirect('/members/reset/'+encodeURIComponent(req.params.t)+'?e='+encodeURIComponent('That one is too short. At least six letters or numbers.'));
+  u.passhash=bcrypt.hashSync(np,10);
+  delete u.reset;
+  db.lockouts=(db.lockouts||[]).filter(function(l){ return l.userId!==u.id; });
+  save();
+  req.session.uid=u.id;
+  // wait for the session to be written, so the very next page knows them
+  req.session.save(function(){ res.redirect('/members?pw=ok#profile'); });
+});
 app.post('/members/logout',(req,res)=>{req.session.destroy(()=>res.redirect('/'));});
 
 /* The welcome owed to somebody just taken into the House.
@@ -1530,7 +1665,7 @@ app.get('/members',au,(req,res)=>{
   })();
   const bunksLeft=NIGHTS.length*BUNKS.length-db.bunks.length;
   const items=db.items.map(it=>{const cl=db.claims.filter(c=>c.itemId===it.id);const claimed=cl.reduce((s,c)=>s+c.qty,0);return{...it,claimed,remaining:Math.max(0,it.need-claimed),claims:cl.map(c=>({qty:c.qty,who:db.users.find(y=>y.id===c.userId)})),mine:cl.find(c=>c.userId===u.id)};});
-  res.render('hall',{u,welcome:swornWelcome(u),pack:packFor(u),chores:u.role==='leader'?choresFor(u):null,schedule:guildEvents(),backups:backupHealth(),page:pageOf(u),mySlug:slugById()[u.id]||'',backdrops:BACKDROPS,layouts:LAYOUTS,fonts:FONTS,fontKeys:FONT_KEYS,sizeKeys:SIZE_KEYS,sizes:SIZES,charmKeys:CHARM_KEYS,charmSvg:charmSvg,charmMax:CHARM_MAX,rank:rank(u),classes:CLASSES,bunkBoard,bunksLeft,bunkFacts:bunkFacts(),since:since,away:away,firstLook:firstEver,cardWaiting:cardWaiting(u),over:countdown().ended===true,finest:highHand(),items,bringers,leader:u.role==='leader',users:u.role==='leader'?db.users.map(function(m){return{slug:slugById()[m.id]||'',berth:m.berth||'',vouches:vouchesFor(m.id),sworn:m.sworn||0,swornSeen:!!m.swornShown,dealer:!!m.dealer,name:m.name,class:m.class,faires:m.faires,rank:rank(m),pledge:!!m.pledge,leader:m.role==='leader',dayContact:!!m.dayContact,title:m.title||'',avatar:m.avatar,id:m.id,contactEmail:m.contactEmail||'',phone:m.phone||'',bunks:db.bunks.filter(function(b){return b.userId===m.id}).map(function(b){return b.night+' \u00b7 Bunk '+b.bunk;})};}):[],announcements:db.announcements,mine:myWeekend(u),prizes:db.prizes||{first:"",second:"",shown:false},outreach:{emails:db.users.filter(function(x){return x.contactEmail;}).map(function(x){return x.contactEmail;}),phones:db.users.filter(function(x){return x.phone;}).map(function(x){return x.phone;})},invite:inviteCode(),err:req.query.e||"",q:req.query});
+  res.render('hall',{u,welcome:swornWelcome(u),pack:packFor(u),chores:u.role==='leader'?choresFor(u):null,schedule:guildEvents(),backups:backupHealth(),page:pageOf(u),mySlug:slugById()[u.id]||'',backdrops:BACKDROPS,layouts:LAYOUTS,fonts:FONTS,fontKeys:FONT_KEYS,sizeKeys:SIZE_KEYS,sizes:SIZES,charmKeys:CHARM_KEYS,charmSvg:charmSvg,charmMax:CHARM_MAX,rank:rank(u),classes:CLASSES,bunkBoard,bunksLeft,bunkFacts:bunkFacts(),since:since,away:away,firstLook:firstEver,cardWaiting:cardWaiting(u),over:countdown().ended===true,finest:highHand(),items,bringers,leader:u.role==='leader',users:u.role==='leader'?db.users.map(function(m){return{slug:slugById()[m.id]||'',berth:m.berth||'',vouches:vouchesFor(m.id),sworn:m.sworn||0,swornSeen:!!m.swornShown,dealer:!!m.dealer,name:m.name,class:m.class,faires:m.faires,rank:rank(m),pledge:!!m.pledge,leader:m.role==='leader',dayContact:!!m.dayContact,title:m.title||'',avatar:m.avatar,id:m.id,contactEmail:m.contactEmail||'',phone:m.phone||'',bunks:db.bunks.filter(function(b){return b.userId===m.id}).map(function(b){return b.night+' \u00b7 Bunk '+b.bunk;})};}):[],announcements:db.announcements,mine:myWeekend(u),prizes:db.prizes||{first:"",second:"",shown:false},outreach:{emails:db.users.filter(function(x){return x.contactEmail;}).map(function(x){return x.contactEmail;}),phones:db.users.filter(function(x){return x.phone;}).map(function(x){return x.phone;})},invite:inviteCode(),lockouts:u.role==='leader'?lockoutsView():[],resetLink:u.role==='leader'?freshResetLink(req):null,err:req.query.e||"",q:req.query});
 });
 // How your page looks. Separate from the details form above because these are
 // about presentation and those are about the guild — and because this one

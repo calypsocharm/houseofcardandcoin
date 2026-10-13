@@ -1,0 +1,53 @@
+<%- include('_top',{title:'Back Into the House'}) %>
+<style>body{background:#1a120b !important}body::before{display:none !important}.login-backdrop{position:fixed;inset:0;z-index:0;background-image:url('/assets/img/login-bg.jpg');background-size:cover;background-position:center}.login-veil{position:fixed;inset:0;z-index:0;background:linear-gradient(105deg,rgba(20,14,8,.86) 0%,rgba(20,14,8,.5) 55%,rgba(20,14,8,.78) 100%)}main{position:relative;z-index:1}footer{position:relative;z-index:1}.login-card{background:rgba(251,246,233,.96);backdrop-filter:blur(3px)}.lo__who{font-size:1.05rem;margin:0 0 14px}.lo__who b{color:var(--wine)}.lo__fine{font-size:.88rem;margin:14px 0 0}</style>
+<div class="login-backdrop"></div>
+<div class="login-veil"></div>
+<section class="section" style="padding-top:120px"><div class="container" style="max-width:540px">
+<%
+  /* One page, four moments in the same small story:
+       ask    - "I cannot get in", typed by somebody who is locked out
+       asked  - the reply to that, the same whoever they turned out to be
+       reset  - they followed the link the Guild Leader sent them
+       dead   - the link was used, or ran out */
+%>
+<% if(stage==='ask'){ %>
+  <div class="bannerhead"><span class="eyebrow" style="color:var(--gold-l)">Locked Out?</span><h2 style="color:#f8edd1">We&rsquo;ll Let You Back In</h2><div class="rule"></div></div>
+  <div class="login-card scroll">
+    <p style="margin-top:0">Tell us who you are. The Guild Leader gets word straight away and sends you a link to choose a new password.</p>
+    <form method="post" action="/members/forgot">
+      <div class="field"><label for="loWho">Your name, login, or email</label><input id="loWho" name="who" autocomplete="username" autocapitalize="none" autocorrect="off" spellcheck="false" required placeholder="e.g. Sir Nate"></div>
+      <div class="field"><label for="loHow">How should we reach you? <span class="muted" style="font-weight:400">(optional)</span></label><input id="loHow" name="reach" maxlength="80" placeholder="a phone number, or &ldquo;I&rsquo;ll be at the faire&rdquo;"></div>
+      <input type="text" name="website" style="display:none" tabindex="-1" autocomplete="off" aria-hidden="true">
+      <button class="btn btn--gold" style="width:100%;justify-content:center">Ask to be let back in</button>
+    </form>
+    <p class="muted lo__fine"><a href="/members/login" style="color:var(--wine);font-weight:600">&larr; Back to sign in</a></p>
+  </div>
+<% } else if(stage==='asked'){ %>
+  <div class="bannerhead"><span class="eyebrow" style="color:var(--gold-l)">Word Is Sent</span><h2 style="color:#f8edd1">Hang Tight</h2><div class="rule"></div></div>
+  <div class="login-card scroll">
+    <p style="margin-top:0">The Guild Leader has your note. You will get a link from them, and it lets you pick a brand new password in one step.</p>
+    <p class="muted lo__fine" style="margin-top:0">Nothing else to do here. If you remember it in the meantime, <a href="/members/login" style="color:var(--wine);font-weight:600">sign in as usual</a>.</p>
+  </div>
+<% } else if(stage==='reset'){ %>
+  <div class="bannerhead"><span class="eyebrow" style="color:var(--gold-l)">Welcome Back</span><h2 style="color:#f8edd1">Choose a New Password</h2><div class="rule"></div></div>
+  <% if(err){ %><div class="login-card scroll" style="border-color:var(--wine);margin-bottom:18px;color:var(--wine)"><%= err %></div><% } %>
+  <div class="login-card scroll">
+    <p class="lo__who">Hello, <b><%= who.name %></b>.</p>
+    <p style="margin-top:0">You sign in with <b style="font-family:monospace;font-size:1.05em"><%= who.login %></b>. Keep that somewhere handy.</p>
+    <form method="post" action="/members/reset/<%= token %>">
+      <input type="text" name="username" value="<%= who.login %>" autocomplete="username" style="display:none" aria-hidden="true" tabindex="-1">
+      <div class="field"><label for="rsPass">New password</label><input id="rsPass" type="password" name="password" autocomplete="new-password" minlength="6" required></div>
+      <p class="muted" style="font-size:.86rem;margin:-4px 0 12px">At least six letters or numbers.</p>
+      <button class="btn btn--gold" style="width:100%;justify-content:center">Save it and come in</button>
+    </form>
+  </div>
+<% } else { %>
+  <div class="bannerhead"><span class="eyebrow" style="color:var(--gold-l)">This Link Is Spent</span><h2 style="color:#f8edd1">Ask for a Fresh One</h2><div class="rule"></div></div>
+  <div class="login-card scroll">
+    <p style="margin-top:0">Each link works once and lasts three days, and this one has been used or has run out.</p>
+    <a class="btn btn--gold" style="width:100%;justify-content:center" href="/members/forgot">Ask for a new link</a>
+    <p class="muted lo__fine"><a href="/members/login" style="color:var(--wine);font-weight:600">&larr; Back to sign in</a></p>
+  </div>
+<% } %>
+</div></section>
+<%- include('_bot') %>
