@@ -810,6 +810,9 @@ app.get('/gallery',(req,res)=>{
    plain form still works without any of that and still gets redirected. */
 function galleryReply(req,res,q){
   if(req.get('X-Gallery')==='1') return res.json(q);
+  // put up from somebody's own page: back to that page, not the wall
+  const back=String((req.body&&req.body.back)||'');
+  if(/^\/guild\/[a-z0-9-]+#pics$/.test(back)) return res.redirect(back.replace('#pics','')+(q.e?'?e='+encodeURIComponent(q.e):'')+'#pics');
   const bits=[];
   if(q.e) bits.push('e='+encodeURIComponent(q.e));
   if(q.added) bits.push('added='+q.added);
@@ -1423,7 +1426,7 @@ app.get('/faq',(req,res)=>{
    One allowed destination, matched literally. A redirect built out of a form
    field is an open redirect, and there is exactly one place this ever needs
    to mean. */
-const HEADED_FOR = ['/card','/letters','/cardwright'];
+const HEADED_FOR = ['/card','/letters','/cardwright','/gallery'];
 function wasHeadedFor(v){ return HEADED_FOR.indexOf(String(v||'')) > -1 ? String(v) : ''; }
 app.get('/members/login',(req,res)=>res.render('login',{err:req.query.e||'',code:req.query.code||'',
   needCode:inviteRequired(),next:wasHeadedFor(req.query.next)}));

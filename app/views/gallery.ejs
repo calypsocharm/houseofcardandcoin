@@ -29,25 +29,11 @@
   <% if(q.e){ %><div class="alert alert--bad" style="max-width:720px;margin:0 auto 22px"><%= q.e %></div><% } %>
 
   <% if(canAdd){ %>
-    <form class="galadd" id="add" method="post" action="/gallery/add" enctype="multipart/form-data">
-      <div class="galadd__row">
-        <input class="galadd__cap" name="caption" maxlength="140" placeholder="A word about them, if you like (optional)" aria-label="Caption, optional">
-        <label class="galadd__pick">
-          <input type="file" name="photo" id="galPhoto" accept="image/*" multiple required>
-          <span id="galPickLbl">Choose pictures</span>
-        </label>
-        <button class="btn btn--gold galadd__go" type="submit">Put it up</button>
-      </div>
-      <div class="galadd__bar" id="galBar" hidden><span></span></div>
-      <p class="galadd__note" id="galNote">Pick as many as you like. They go up as soon as you choose them, and the caption goes on all of them.
-        <span class="galadd__drop">On a computer you can also drag pictures onto this page.</span>
-        Everyone can see what you put here, and the location your phone hides in a photo is stripped off.</p>
-    </form>
+    <%- include('_addpics',{back:''}) %>
   <% } else { %>
-    <p class="muted center" style="margin-bottom:30px">
-      <a href="/members/login" style="color:var(--wine);font-weight:600">Sign in</a> or
-      <a href="/tavern" style="color:var(--wine);font-weight:600">claim a seat</a> to add your own.
-      Anyone may look.
+    <p class="center" style="margin-bottom:30px">
+      <a class="btn btn--gold" href="/members/login?next=/gallery">&#128247; Add your pictures</a>
+      <br><span class="muted" style="font-size:.86rem">Sign in and you come straight back here. Not in the guild? <a href="/tavern" style="color:var(--wine);font-weight:600">Claim a seat</a>. Anyone may look.</span>
     </p>
   <% } %>
 
@@ -95,7 +81,7 @@
           full garb at nine in the morning. Put the first one up and the rest will follow.</p>
         <a class="btn btn--gold" href="#add">Put one up</a>
       <% } else { %>
-        <p>Nothing here yet. <a href="/members/login">Sign in</a> or
+        <p>Nothing here yet. <a href="/members/login?next=/gallery">Sign in</a> or
           <a href="/tavern">claim a seat</a> and you can be the one to start it.</p>
       <% } %>
     </div>
@@ -103,7 +89,4 @@
 
 </div></section>
 
-<% if(canAdd){ %>
-<script defer src="/assets/js/gallery.js?v=<%= typeof assetv!=='undefined'?assetv:'1' %>"></script>
-<% } %>
 <%- include('_bot') %>

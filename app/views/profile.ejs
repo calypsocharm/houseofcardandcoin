@@ -169,13 +169,7 @@
               <% }) %>
             </ul>
             <% if(isMe){ %>
-              <form class="pro-pics__add-form" method="post" action="/members/page/picture" enctype="multipart/form-data">
-                <label for="picUp">Add a picture</label>
-                <input id="picUp" type="file" name="photo" accept="image/*" required>
-                <input type="text" name="caption" maxlength="140" placeholder="A word about it, if you like…" aria-label="Caption">
-                <button class="btn btn--gold" type="submit">Add it</button>
-                <small>It also goes on the <a href="/gallery">photo wall</a>, where the whole House can see it.</small>
-              </form>
+              <%- include('_addpics',{back:'/guild/'+slug+'#pics'}) %>
             <% } %>
 
           </div>
@@ -184,13 +178,7 @@
             <h2>Pictures</h2>
             <p class="pro-empty">No pictures yet &mdash; put one up.</p>
             <% if(isMe){ %>
-              <form class="pro-pics__add-form" method="post" action="/members/page/picture" enctype="multipart/form-data">
-                <label for="picUp">Add a picture</label>
-                <input id="picUp" type="file" name="photo" accept="image/*" required>
-                <input type="text" name="caption" maxlength="140" placeholder="A word about it, if you like…" aria-label="Caption">
-                <button class="btn btn--gold" type="submit">Add it</button>
-                <small>It also goes on the <a href="/gallery">photo wall</a>, where the whole House can see it.</small>
-              </form>
+              <%- include('_addpics',{back:'/guild/'+slug+'#pics'}) %>
             <% } %>
 
           </div>

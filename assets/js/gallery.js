@@ -83,7 +83,11 @@
     });
   }
 
-  /* Back to the start, with a reason, so they can just choose again. */
+  var SIGNED_OUT = 'You have been signed out.';
+
+  /* Back to the start, with a reason, so they can just choose again. Signed
+     out gets a way straight back in rather than an instruction, and the
+     sign-in returns them here. */
   function giveBack(msg) {
     busy = false;
     window.removeEventListener('beforeunload', hold);
@@ -92,13 +96,27 @@
     bar.hidden = true;
     try { input.value = ''; } catch (e) {}
     say(msg, true);
+    if (msg === SIGNED_OUT) {
+      var a = document.createElement('a');
+      a.href = '/members/login?next=/gallery';
+      a.className = 'btn btn--gold';
+      a.style.marginLeft = '10px';
+      a.textContent = 'Sign in and come back';
+      note.appendChild(a);
+    }
   }
 
-  /* Off to the wall to see them. Whatever went up stays up even if a later
-     batch failed, and the page says both. */
+  /* Off to see them: the wall, or the page they were put up from. Whatever
+     went up stays up even if a later batch failed, and the wall says both. */
   function arrive(t, msg) {
     if (!t.added) return giveBack(msg || 'None of those were pictures we could read. Try another.');
     window.removeEventListener('beforeunload', hold);
+    var back = form.getAttribute('data-back');
+    if (back) {
+      var at = back.indexOf('#');
+      location.href = back.slice(0, at < 0 ? back.length : at) + '?added=' + t.added + (at < 0 ? '' : back.slice(at));
+      return;
+    }
     var q = ['added=' + t.added];
     if (t.skipped) q.push('skipped=' + t.skipped);
     if (t.full) q.push('full=' + t.full);
@@ -141,7 +159,7 @@
           // Not an answer from the wall: most often a signed-out session that
           // was sent off to the sign-in page instead.
           return arrive(tally, /sign in|claim a seat/i.test(x.responseText || '')
-            ? 'You have been signed out. Sign in again, then choose your pictures.'
+            ? SIGNED_OUT
             : 'The House could not take them just now. Try again in a moment.');
         }
         tally.added += r.added || 0;

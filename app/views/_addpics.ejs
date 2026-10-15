@@ -1,0 +1,25 @@
+<%
+  /* The one way pictures go up, used by the photo wall and by a guildmate's
+     own page alike, so the two can never drift apart again. gallery.js does
+     the work: choosing pictures sends them, a few at a time, with a bar.
+
+     back: where to land afterwards. Empty means the wall itself. */
+  var back = (typeof back !== 'undefined' && back) ? back : '';
+%>
+<form class="galadd" id="add" method="post" action="/gallery/add" enctype="multipart/form-data"<% if(back){ %> data-back="<%= back %>"<% } %>>
+  <% if(back){ %><input type="hidden" name="back" value="<%= back %>"><% } %>
+  <div class="galadd__row">
+    <input class="galadd__cap" name="caption" maxlength="140" placeholder="A word about them, if you like (optional)" aria-label="Caption, optional">
+    <label class="galadd__pick">
+      <input type="file" name="photo" id="galPhoto" accept="image/*" multiple required>
+      <span id="galPickLbl">Choose pictures</span>
+    </label>
+    <button class="btn btn--gold galadd__go" type="submit">Put it up</button>
+  </div>
+  <div class="galadd__bar" id="galBar" hidden><span></span></div>
+  <p class="galadd__note" id="galNote">Pick as many as you like. They go up as soon as you choose them, and the caption goes on all of them.
+    <span class="galadd__drop">On a computer you can also drag pictures onto this page.</span>
+    <% if(back){ %>They show here and on the <a href="/gallery">photo wall</a>, where the whole House can see them.<% } else { %>Everyone can see what you put here, and the location your phone hides in a photo is stripped off.<% } %></p>
+</form>
+<link rel="stylesheet" href="/assets/css/gallery.css?v=<%= typeof assetv!=='undefined'?assetv:'1' %>">
+<script defer src="/assets/js/gallery.js?v=<%= typeof assetv!=='undefined'?assetv:'1' %>"></script>
