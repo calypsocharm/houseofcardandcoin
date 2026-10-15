@@ -805,14 +805,26 @@ app.get('/gallery',(req,res)=>{
    The caption goes on all of them, which is what a batch from one moment
    actually wants: "Saturday by the fire" written once across the nine
    pictures of it. */
+/* The page sends pictures itself now, a few at a time, the moment they are
+   chosen, and it wants an answer it can read rather than a new page. The
+   plain form still works without any of that and still gets redirected. */
+function galleryReply(req,res,q){
+  if(req.get('X-Gallery')==='1') return res.json(q);
+  const bits=[];
+  if(q.e) bits.push('e='+encodeURIComponent(q.e));
+  if(q.added) bits.push('added='+q.added);
+  if(q.skipped) bits.push('skipped='+q.skipped);
+  if(q.full) bits.push('full='+q.full);
+  res.redirect('/gallery'+(bits.length?'?'+bits.join('&'):''));
+}
 app.post('/gallery/add',canPost,up.array('photo',20),shrinkPhoto,(req,res)=>{
   const i=ident(req);
   const room=PHOTO_MAX-(db.photos||[]).length;
-  if(room<=0)return res.redirect('/gallery?e='+encodeURIComponent('The wall is full. Ask the Guild Leader to clear some space.'));
+  if(room<=0)return galleryReply(req,res,{e:'The wall is full. Ask the Guild Leader to clear some space.',full:req.shots.length});
   if(!req.shots.length)
-    return res.redirect('/gallery?e='+encodeURIComponent(req.photoDropped
+    return galleryReply(req,res,{e:req.photoDropped
       ? 'Nothing there was a picture we could read. Try another.'
-      : 'Nothing came through. Pick a picture and try again.'));
+      : 'Nothing came through. Pick a picture and try again.',skipped:req.photoDropped});
 
   // If more were picked than the wall can hold, the ones that fit still go up
   // and the rest are said out loud rather than silently dropped.
@@ -829,9 +841,7 @@ app.post('/gallery/add',canPost,up.array('photo',20),shrinkPhoto,(req,res)=>{
     try{ fs.unlinkSync(path.join(__dirname,"uploads",sh.thumb)); }catch(e){}
   });
   save();
-  res.redirect('/gallery?added='+going.length+
-    (req.photoDropped?'&skipped='+req.photoDropped:'')+
-    (noRoom.length?'&full='+noRoom.length:''));
+  galleryReply(req,res,{added:going.length,skipped:req.photoDropped||0,full:noRoom.length});
 });
 /* Add a picture from your own page rather than trekking to the photo wall.
    Same store and the same path through shrinkPhoto, so it is shrunk and has

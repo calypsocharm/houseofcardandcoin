@@ -95,3 +95,30 @@
 .wall-empty__lead{font-family:var(--display);font-size:1.3rem;color:var(--wine);margin-bottom:10px}
 .wall-empty p{color:var(--ink2);line-height:1.7;margin-bottom:16px}
 .wall-empty a{color:var(--wine);font-weight:600}
+
+/* When the page can send pictures itself, choosing them IS putting them up:
+   the separate button goes, and the picker becomes the gold one. Without
+   scripts the plain form, button and all, is left exactly as it was. */
+.galadd--auto .galadd__go{display:none}
+.galadd--auto .galadd__pick span{
+  background:linear-gradient(#e4c77f,#c2a14d);border-color:var(--gold-d);color:#1a120b;font-weight:600;
+}
+.galadd--auto .galadd__pick:hover span{filter:brightness(1.05);color:#1a120b}
+.galadd__pick input:focus-visible + span{outline:2px solid var(--wine);outline-offset:2px}
+.galadd--busy .galadd__pick{pointer-events:none}
+.galadd--busy .galadd__pick span{opacity:.85}
+.galadd__drop{display:none}
+@media (hover:hover) and (pointer:fine){ .galadd--auto .galadd__drop{display:inline} }
+
+/* How far along a batch is. */
+.galadd__bar{margin-top:12px;height:8px;border-radius:4px;background:var(--line);overflow:hidden}
+.galadd__bar span{display:block;height:100%;width:0;background:linear-gradient(90deg,#c2a14d,#e4c77f);transition:width .2s}
+.galadd__note--bad{color:var(--wine);font-weight:600}
+
+/* Pictures dragged over the page from a computer. */
+.galdrop{position:fixed;inset:0;z-index:60;display:none;align-items:center;justify-content:center;
+  background:rgba(26,18,11,.72);pointer-events:none}
+.galdrop.is-on{display:flex}
+.galdrop b{font-family:var(--display);letter-spacing:.14em;text-transform:uppercase;font-size:1rem;
+  color:#f5e9c8;padding:28px 36px;border:2px dashed var(--gold);border-radius:8px;background:rgba(26,18,11,.6)}
+@media (prefers-reduced-motion:reduce){ .galadd__bar span{transition:none} }
